@@ -104,14 +104,9 @@ export default function BottomNav() {
 
       {/* 액션 시트 */}
       {showActionSheet && (
-        <div
-          className="fixed inset-0 bg-black/40 z-60 flex items-end justify-center"
-          onClick={() => setShowActionSheet(false)}
-        >
-          <div
-            className="bg-white w-full max-w-lg rounded-t-2xl pb-10 pt-3"
-            onClick={e => e.stopPropagation()}
-          >
+        <>
+          <div className="fixed inset-0 bg-black/40 z-48" onClick={() => setShowActionSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-52 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
             <div className="flex justify-center mb-4">
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
@@ -130,8 +125,8 @@ export default function BottomNav() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">포스팅 올리기</p>
-                  <p className="text-xs text-gray-400 mt-0.5">방문한 장소나 가고 싶은 곳을 공유해요</p>
+                  <p className="text-sm font-semibold text-gray-900">{t('addPost')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('addPostDesc')}</p>
                 </div>
               </button>
 
@@ -147,13 +142,13 @@ export default function BottomNav() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">장소 저장하기</p>
-                  <p className="text-xs text-gray-400 mt-0.5">링크나 검색으로 장소를 내 리스트에 담아요</p>
+                  <p className="text-sm font-semibold text-gray-900">{t('addPlace')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('addPlaceDesc')}</p>
                 </div>
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* 장소 저장 시트 */}

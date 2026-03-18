@@ -2,24 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
+
+const PlaceMapPreview = dynamic(() => import('@/components/ui/PlaceMapPreview'), {
+  ssr: false,
+  loading: () => <div className="h-52 bg-gray-200 animate-pulse" />,
+})
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import ReportSheet from '@/components/ui/ReportSheet'
 import MeetupSheet from '@/components/place/MeetupSheet'
 
-const CATEGORY_LABELS: Record<string, string> = {
-  cafe: '카페', restaurant: '맛집', photospot: '포토스팟',
-  street: '길거리', bar: '유흥/바', culture: '전시/문화',
-  nature: '자연/뷰', shopping: '쇼핑',
-}
-
-const CITY_LABELS: Record<string, string> = {
-  seoul: '서울', busan: '부산', jeju: '제주', gyeongju: '경주',
-  jeonju: '전주', gangneung: '강릉', sokcho: '속초', yeosu: '여수', incheon: '인천',
-}
 
 const RATING_KEYS = ['must_go', 'worth_it', 'neutral', 'not_great', 'never']
 
@@ -167,17 +162,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
       <main className="max-w-lg mx-auto pt-14 pb-24">
         {/* 지도 */}
         <div className="h-52 bg-gray-100">
-          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-            <Map
-              defaultCenter={{ lat: place.lat, lng: place.lng }}
-              defaultZoom={16}
-              gestureHandling="greedy"
-              disableDefaultUI
-              mapId="place-detail"
-            >
-              <AdvancedMarker position={{ lat: place.lat, lng: place.lng }} />
-            </Map>
-          </APIProvider>
+          <PlaceMapPreview lat={place.lat} lng={place.lng} />
         </div>
 
         {/* 장소 정보 */}
@@ -190,7 +175,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
                 </span>
                 {place.place_type === 'hidden_spot' && (
                   <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full">
-                    히든스팟
+                    {tPost('hiddenSpot')}
                   </span>
                 )}
               </div>
@@ -209,7 +194,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-full"
                 >
-                  🗺 네이버에서 메뉴 보기
+                  🗺 {tPlace('naverMenu')}
                 </a>
               )}
             </div>
@@ -240,7 +225,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
         {totalPosts > 0 && (
           <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">방문자 통계</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{tPlace('visitorStats')}</p>
               {place.avg_rating != null && (
                 <div className="flex items-center gap-1.5">
                   <div
@@ -268,7 +253,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
                   </div>
                 ))
               }
-              <span className="text-xs text-gray-400 ml-auto">총 {totalPosts}개 포스팅</span>
+              <span className="text-xs text-gray-400 ml-auto">{totalPosts}{tPlace('totalPosts')}</span>
             </div>
 
             {/* 평점 분포 */}
@@ -300,8 +285,8 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
         <div className="mt-2">
           {posts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <p className="text-gray-400 text-sm">아직 포스팅이 없어요</p>
-              <p className="text-gray-300 text-xs mt-1">첫 번째로 이 장소를 공유해보세요</p>
+              <p className="text-gray-400 text-sm">{tPlace('noPostsTitle')}</p>
+              <p className="text-gray-300 text-xs mt-1">{tPlace('noPostsSubtitle')}</p>
             </div>
           ) : (
             <PostGrid

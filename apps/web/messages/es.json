@@ -16,7 +16,31 @@
     "all": "Todo",
     "other": "Otros",
     "allTab": "Todo",
-    "followingTab": "Siguiendo"
+    "followingTab": "Siguiendo",
+    "viewModePost": "Publicaciones",
+    "viewModePlace": "Lugares",
+    "filter": "Filtrar",
+    "filterReset": "Restablecer",
+    "filterFeed": "Feed",
+    "filterSort": "Ordenar",
+    "filterSortLatest": "🕐 Más reciente",
+    "filterSortLikes": "❤️ Más me gusta",
+    "filterSortSaves": "📍 Más guardados",
+    "filterPostType": "Tipo de publicación",
+    "filterPostVisited": "✅ Visitado",
+    "filterPostWant": "🧡 Quiero ir",
+    "filterRatingAbove": "Valoración mínima",
+    "filterAboveSuffix": "o más",
+    "filterCategory": "Categoría",
+    "filterLocalOnly": "🔍 Solo recomendados locales",
+    "filterNationality": "Nacionalidad",
+    "filterGender": "Género",
+    "filterAge": "Grupo de edad",
+    "filterAge10s": "Adolescentes",
+    "filterAge20s": "20s",
+    "filterAge30s": "30s",
+    "filterAge40s": "40s+",
+    "filterApply": "Aplicar"
   },
   "cities": {
     "seoul": "Seúl",
@@ -125,7 +149,7 @@
       "nature": "Naturaleza",
       "shopping": "Compras"
     },
-    "hiddenSpot": "Lugar secreto"
+    "hiddenSpot": "Recomendación local"
   },
   "place": {
     "visitorStats": "Estadísticas de visitas",
@@ -133,6 +157,7 @@
     "noPostsTitle": "Aún no hay publicaciones",
     "noPostsSubtitle": "Sé el primero en compartir este lugar",
     "meetupButton": "Encuentro",
+    "naverMenu": "Ver menú en Naver",
     "avgRating": {
       "must_go": "Volvería sin dudarlo",
       "worth_it": "Vale la pena",
@@ -148,7 +173,33 @@
     "noPublicPosts": "Sin publicaciones públicas",
     "noPosts": "Aún no hay publicaciones",
     "scent": "Aroma",
-    "requested": "Solicitado"
+    "requested": "Solicitado",
+    "nationality": {
+      "KR": "Coreano",
+      "JP": "Japonés",
+      "US": "Estadounidense",
+      "CN": "Chino",
+      "ES": "Español/Latino",
+      "RU": "Ruso",
+      "OTHER": "Otro"
+    },
+    "gender": {
+      "female": "Mujer",
+      "male": "Hombre",
+      "other": "Otro"
+    },
+    "styleTag": {
+      "cafe": "Explorador de cafés",
+      "restaurant": "Cazador de restaurantes",
+      "photospot": "Coleccionista de fotospots",
+      "street": "Explorador callejero",
+      "bar": "Amante de bares",
+      "culture": "Explorador cultural",
+      "nature": "Amante de la naturaleza",
+      "shopping": "Amante de las compras"
+    },
+    "localSpotHunter": "Cazador de lugares locales",
+    "tasteDist": "Mi distribución de gustos"
   },
   "settings": {
     "title": "Ajustes",
@@ -162,12 +213,40 @@
     "birthYear": "Año de nacimiento",
     "birthYearNone": "No especificado",
     "language": "Idioma",
+    "languageLabel": "Idioma / Language",
     "visibility": "Visibilidad de la cuenta",
     "public": "Cuenta pública",
     "publicHint": "Cualquiera puede ver tu perfil y publicaciones",
     "private": "Cuenta privada",
     "privateHint": "Solo tus seguidores pueden ver tu contenido",
-    "version": "Versión"
+    "version": "Versión",
+    "bio": "Biografía",
+    "bioPlaceholder": "Escribe una breve introducción (máx. 120 caracteres)",
+    "birthDate": "Fecha de nacimiento",
+    "gender": "Género",
+    "genderLocked": "No se puede cambiar (ya realizado)",
+    "inquiry": "Contáctanos",
+    "inquiryCategory": {
+      "bug": "🐛 Error/Fallo",
+      "account": "👤 Cuenta",
+      "content": "📝 Contenido",
+      "points": "⭐ Puntos",
+      "suggestion": "💡 Sugerencia",
+      "other": "Otro"
+    },
+    "inquiryTitlePlaceholder": "Título",
+    "inquiryContentPlaceholder": "Describe tu consulta en detalle...",
+    "inquirySend": "Enviar",
+    "inquirySending": "Enviando...",
+    "inquiryDoneTitle": "¡Consulta enviada!",
+    "inquiryDoneMsg": "Te responderemos pronto",
+    "adminPage": "Panel de administración",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteConfirm": "¿Seguro que quieres eliminar tu cuenta?\n\nTodos tus datos y publicaciones se eliminarán de forma permanente.",
+    "deleteError": "No se pudo eliminar la cuenta. Por favor intenta de nuevo.",
+    "nicknameErrorDuplicate": "Apodo ya en uso",
+    "nicknameErrorInvalid": "Solo se permiten letras, números, . _ -",
+    "nicknameErrorFailed": "No se pudo guardar"
   },
   "onboarding": {
     "title": "Configura tu apodo y nacionalidad para empezar",
@@ -188,7 +267,11 @@
     "feed": "Inicio",
     "map": "Mapa",
     "saved": "Guardado",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "addPost": "Crear publicación",
+    "addPostDesc": "Comparte lugares que has visitado o quieres visitar",
+    "addPlace": "Guardar lugar",
+    "addPlaceDesc": "Guarda lugares desde enlaces o búsqueda"
   },
   "scent": {
     "label": "Aroma",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "Encuentro",
     "create": "Crear encuentro",
-    "detail": "Detalle",
+    "detail": {
+      "hostTeam": "Equipo anfitrión",
+      "wantedPartner": "Busco",
+      "openThread": "Abrir hilo",
+      "cannotApply": "No puede aplicar",
+      "conditionMismatchNat": "Condición no cumplida (nacionalidad)",
+      "conditionMismatchGender": "Condición no cumplida (género)",
+      "restrictionNotMet": "Perfil público + nivel Sin olor requerido",
+      "inReview": "En revisión",
+      "applyButton": "Me apunto"
+    },
     "applyTitle": "Solicitar unirse",
-    "manage": "Gestionar",
+    "manage": {
+      "closed": "Cerrado",
+      "pending": "Pendientes",
+      "accepted": "Aceptados",
+      "unmatchBtn": "Sin match",
+      "rejectUnmatch": "Rechazar/Sin match",
+      "reject": "Rechazar",
+      "unmatch": "Sin match",
+      "openThread": "Abrir hilo",
+      "closeBtn": "Cerrar encuentro",
+      "noApplicants": "Sin solicitantes aún",
+      "accept": "Aceptar"
+    },
     "threadTitle": "Hilo",
     "createButton": "+ Crear encuentro",
     "noMeetups": "No hay encuentros aún",
@@ -279,17 +384,6 @@
       "submit": "Crear encuentro",
       "saveFailed": "Error al guardar"
     },
-    "detail": {
-      "hostTeam": "Equipo anfitrión",
-      "wantedPartner": "Busco",
-      "openThread": "Abrir hilo",
-      "cannotApply": "No puede aplicar",
-      "conditionMismatchNat": "Condición no cumplida (nacionalidad)",
-      "conditionMismatchGender": "Condición no cumplida (género)",
-      "restrictionNotMet": "Perfil público + nivel Sin olor requerido",
-      "inReview": "En revisión",
-      "applyButton": "Me apunto"
-    },
     "join": {
       "title": "Info de solicitud",
       "ourCount": "Nuestros miembros",
@@ -301,19 +395,6 @@
       "failed": "Error en la solicitud",
       "submitting": "Enviando...",
       "submit": "Solicitar"
-    },
-    "manage": {
-      "closed": "Cerrado",
-      "pending": "Pendientes",
-      "accepted": "Aceptados",
-      "unmatchBtn": "Sin match",
-      "rejectUnmatch": "Rechazar/Sin match",
-      "reject": "Rechazar",
-      "unmatch": "Sin match",
-      "openThread": "Abrir hilo",
-      "closeBtn": "Cerrar encuentro",
-      "noApplicants": "Sin solicitantes aún",
-      "accept": "Aceptar"
     },
     "thread": {
       "openOnDay": "El hilo se abre el día del encuentro",
@@ -364,5 +445,105 @@
     "minutesAgo": "hace {m}m",
     "hoursAgo": "hace {h}h",
     "daysAgo": "hace {d}d"
+  },
+  "report": {
+    "title": "Selecciona un motivo para reportar",
+    "submit": "Reportar",
+    "submitting": "Reportando...",
+    "doneTitle": "Reporte enviado",
+    "doneMsg": "Lo revisaremos y actuaremos",
+    "reasons": {
+      "spam": "Spam / Publicidad",
+      "inappropriate": "Contenido inapropiado",
+      "false": "Información falsa",
+      "copyright": "Infracción de derechos de autor",
+      "custom": "Escribir el motivo"
+    },
+    "customPlaceholder": "Describe el motivo..."
+  },
+  "upload": {
+    "title": "Publicar",
+    "failedMsg": "No se pudo publicar. Por favor intenta de nuevo",
+    "loginRequired": "Debes iniciar sesión",
+    "place": {
+      "title": "¿Dónde fue?",
+      "subtitle": "Busca o marca en el mapa",
+      "tabSearch": "Buscar",
+      "tabMap": "Marcar en mapa",
+      "tabGps": "Mi ubicación",
+      "gpsLoading": "Buscando...",
+      "searchPlaceholder": "Buscar lugar...",
+      "search": "Buscar",
+      "mapInstruction": "Toca el mapa para seleccionar",
+      "placeNamePlaceholder": "Nombre del lugar",
+      "categoryLabel": "Categoría",
+      "neighborhoodLabel": "Barrio",
+      "customInput": "Escribir",
+      "neighborhoodPlaceholder": "Ej: Hongdae, Itaewon...",
+      "hiddenSpotLabel": "Recomendación local",
+      "hiddenSpotDesc": "Puntos extra +15 al registrar",
+      "next": "Siguiente",
+      "gpsError": "No se pudo obtener la ubicación",
+      "currentLocation": "Ubicación actual",
+      "selectedLocation": "Ubicación seleccionada"
+    },
+    "type": {
+      "title": "¿Qué tipo de publicación?",
+      "visitedTitle": "Ya estuve",
+      "visitedDesc": "Comparte fotos y reseña del lugar",
+      "wantTitle": "Quiero ir",
+      "wantDesc": "Comparte un lugar que quieres visitar"
+    },
+    "photos": {
+      "title": "Añadir fotos",
+      "subtitleVisited": "Hasta 3 fotos",
+      "subtitleWant": "Opcional",
+      "skip": "Omitir",
+      "next": "Siguiente"
+    },
+    "rating": {
+      "title": "¿Cómo fue el lugar?",
+      "subtitle": "Deja una reseña honesta",
+      "next": "Siguiente"
+    },
+    "memo": {
+      "title": "Añadir nota",
+      "subtitle": "Opcional",
+      "memoPlaceholder": "Di algo sobre este lugar...",
+      "menuLabel": "Menú recomendado",
+      "menuOptional": "opcional",
+      "menuPlaceholder": "Ej: americano, croissant",
+      "public": "Público",
+      "private": "Privado",
+      "publicDesc": "Visible en el feed",
+      "privateDesc": "Solo tú puedes ver",
+      "submit": "Publicar",
+      "submitting": "Publicando..."
+    }
+  },
+  "placeAdd": {
+    "title": "Guardar lugar",
+    "tabSearch": "Buscar",
+    "tabGps": "Mi ubicación",
+    "tabLink": "Enlace",
+    "searchPlaceholder": "Buscar lugar...",
+    "search": "Buscar",
+    "linkHint": "Pega un enlace de Google Maps o Naver Maps",
+    "confirm": "Confirmar",
+    "gpsButton": "Usar ubicación actual",
+    "gpsLoading": "Obteniendo ubicación...",
+    "gpsError": "No se pudo obtener la ubicación",
+    "currentLocation": "Ubicación actual",
+    "typeLabel": "¿Qué tipo de lugar?",
+    "typeWant": "🧡 Quiero ir",
+    "typeVisited": "✅ Ya estuve",
+    "typeHidden": "🔍 Recomendación local",
+    "categoryLabel": "Categoría",
+    "neighborhoodNotFound": "Barrio no encontrado (opcional)",
+    "neighborhoodPlaceholder": "Ej: Hongdae, Insadong...",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saveError": "No se pudo guardar",
+    "errorGeneral": "Ocurrió un error"
   }
 }

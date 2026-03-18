@@ -16,34 +16,24 @@ const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
 }
 
-const NATIONALITY_LABELS: Record<string, string> = {
-  KR: '한국', JP: '일본', US: '미국', CN: '중국', ES: '스페인/남미', RU: '러시아', OTHER: '기타',
-}
-
 const CATEGORY_COLOR: Record<string, string> = {
   cafe: '#795548', restaurant: '#F44336', photospot: '#9C27B0',
   bar: '#FF9800', culture: '#2196F3', nature: '#4CAF50',
   shopping: '#E91E63', street: '#607D8B',
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  cafe: '카페', restaurant: '맛집', photospot: '포토스팟',
-  bar: '바', culture: '문화', nature: '자연',
-  shopping: '쇼핑', street: '길거리',
-}
-
-const STYLE_TAGS: { category: string; label: string; minPct: number }[] = [
-  { category: 'cafe',       label: '카페 탐방러',     minPct: 25 },
-  { category: 'restaurant', label: '맛집 헌터',       minPct: 25 },
-  { category: 'photospot',  label: '포토스팟 수집가', minPct: 20 },
-  { category: 'street',     label: '길거리 탐험가',   minPct: 20 },
-  { category: 'bar',        label: '바 홀릭',         minPct: 20 },
-  { category: 'culture',    label: '문화 탐방러',     minPct: 20 },
-  { category: 'nature',     label: '자연 힐러',       minPct: 20 },
-  { category: 'shopping',   label: '쇼핑 러버',       minPct: 20 },
+const STYLE_TAG_CATEGORIES: { category: string; minPct: number }[] = [
+  { category: 'cafe',       minPct: 25 },
+  { category: 'restaurant', minPct: 25 },
+  { category: 'photospot',  minPct: 20 },
+  { category: 'street',     minPct: 20 },
+  { category: 'bar',        minPct: 20 },
+  { category: 'culture',    minPct: 20 },
+  { category: 'nature',     minPct: 20 },
+  { category: 'shopping',   minPct: 20 },
 ]
 
-function DonutChart({ data }: { data: { category: string; count: number }[] }) {
+function DonutChart({ data, getCategoryLabel }: { data: { category: string; count: number }[]; getCategoryLabel: (cat: string) => string }) {
   const total = data.reduce((s, d) => s + d.count, 0)
   if (total === 0) return null
   const r = 36; const cx = 44; const cy = 44
@@ -73,7 +63,7 @@ function DonutChart({ data }: { data: { category: string; count: number }[] }) {
         {slices.map(s => (
           <div key={s.category} className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-            <span className="text-xs text-gray-600">{CATEGORY_LABEL[s.category]}</span>
+            <span className="text-xs text-gray-600">{getCategoryLabel(s.category)}</span>
             <span className="text-xs text-gray-400 ml-auto pl-3">{s.pct}%</span>
           </div>
         ))}
@@ -121,6 +111,7 @@ export default function ProfileClient({
   const t = useTranslations('profile')
   const tCommon = useTranslations('common')
   const tFeed = useTranslations('feed')
+  const tPost = useTranslations('post')
 
   const [profile, setProfile] = useState(initialProfile)
   const [followersCount, setFollowersCount] = useState(initialFollowers)
@@ -144,9 +135,9 @@ export default function ProfileClient({
 
   // 스타일 태그
   const styleTags = totalPosts >= 3
-    ? STYLE_TAGS.filter(t => {
-        const pct = ((categoryCounts[t.category] || 0) / totalPosts) * 100
-        return pct >= t.minPct
+    ? STYLE_TAG_CATEGORIES.filter(tag => {
+        const pct = ((categoryCounts[tag.category] || 0) / totalPosts) * 100
+        return pct >= tag.minPct
       })
     : []
   const hasHiddenSpot = posts.some(p => p.places?.place_type === 'hidden_spot')
@@ -218,12 +209,12 @@ export default function ProfileClient({
           <div className="flex flex-col items-center gap-1">
             <h2 className="text-lg font-bold text-gray-900">{profile.nickname}</h2>
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span>{NATIONALITY_FLAGS[profile.nationality]} {NATIONALITY_LABELS[profile.nationality]}</span>
+              <span>{NATIONALITY_FLAGS[profile.nationality]} {t(`nationality.${profile.nationality}`)}</span>
               {(profile.gender || profile.birth_date) && (
                 <span className="text-gray-300">·</span>
               )}
               {profile.gender && (
-                <span>{profile.gender === 'female' ? '여자' : profile.gender === 'male' ? '남자' : '기타'}</span>
+                <span>{t(`gender.${profile.gender}`)}</span>
               )}
               {profile.birth_date && (
                 <span>{new Date().getFullYear() - new Date(profile.birth_date).getFullYear()}세</span>
@@ -264,12 +255,12 @@ export default function ProfileClient({
                   className="px-2.5 py-1 rounded-full text-xs font-medium"
                   style={{ backgroundColor: CATEGORY_COLOR[tag.category] + '18', color: CATEGORY_COLOR[tag.category] }}
                 >
-                  {tag.label}
+                  {t(`styleTag.${tag.category}`)}
                 </span>
               ))}
               {hasHiddenSpot && (
                 <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-600">
-                  히든스팟 헌터
+                  {t('localSpotHunter')}
                 </span>
               )}
             </div>
@@ -284,7 +275,7 @@ export default function ProfileClient({
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
               </svg>
-              내 취향 분포보기
+              {t('tasteDist')}
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}
                 style={{ transform: showTaste ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
                 <path d="M6 9l6 6 6-6" strokeLinecap="round"/>
@@ -295,7 +286,7 @@ export default function ProfileClient({
           {/* 취향 분포 차트 */}
           {showTaste && chartData.length > 0 && (
             <div className="w-full px-2 py-3 bg-gray-50 rounded-2xl">
-              <DonutChart data={chartData} />
+              <DonutChart data={chartData} getCategoryLabel={(cat) => tPost(`category.${cat}`)} />
             </div>
           )}
 

@@ -17,13 +17,14 @@ interface Props {
 }
 
 export default function StepRating({ rating, onSelect, onNext }: Props) {
-  const t = useTranslations('post')
+  const t = useTranslations('upload')
+  const tPost = useTranslations('post')
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">이 장소 어땠나요?</h2>
-        <p className="text-sm text-gray-500 mt-0.5">솔직한 후기를 남겨주세요</p>
+        <h2 className="text-lg font-semibold text-gray-900">{t('rating.title')}</h2>
+        <p className="text-sm text-gray-500 mt-0.5">{t('rating.subtitle')}</p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -36,7 +37,7 @@ export default function StepRating({ rating, onSelect, onNext }: Props) {
             }`}
           >
             <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
-            <span className="text-sm font-semibold text-gray-900">{t(`rating.${r.value}`)}</span>
+            <span className="text-sm font-semibold text-gray-900">{tPost(`rating.${r.value}`)}</span>
             {rating === r.value && (
               <svg className="ml-auto" width="16" height="16" fill="none" stroke="#111" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
@@ -51,7 +52,7 @@ export default function StepRating({ rating, onSelect, onNext }: Props) {
         disabled={!rating}
         className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
       >
-        다음
+        {t('rating.next')}
       </button>
     </div>
   )

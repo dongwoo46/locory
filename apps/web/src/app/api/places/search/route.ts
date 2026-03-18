@@ -20,6 +20,7 @@ export async function GET(request: Request) {
       languageCode: 'ko',
       maxResultCount: 5,
     }),
+    next: { revalidate: 3600 }, // 1시간 캐싱
   })
 
   const data = await res.json()
@@ -35,5 +36,7 @@ export async function GET(request: Request) {
     googleReviewCount: p.userRatingCount || null,
   }))
 
-  return NextResponse.json({ places })
+  return NextResponse.json({ places }, {
+    headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+  })
 }

@@ -16,7 +16,31 @@
     "all": "All",
     "other": "Other",
     "allTab": "All",
-    "followingTab": "Following"
+    "followingTab": "Following",
+    "viewModePost": "Posts",
+    "viewModePlace": "Places",
+    "filter": "Filter",
+    "filterReset": "Reset",
+    "filterFeed": "Feed",
+    "filterSort": "Sort",
+    "filterSortLatest": "🕐 Latest",
+    "filterSortLikes": "❤️ Most liked",
+    "filterSortSaves": "📍 Most saved",
+    "filterPostType": "Post type",
+    "filterPostVisited": "✅ Visited",
+    "filterPostWant": "🧡 Wanna go",
+    "filterRatingAbove": "Minimum rating",
+    "filterAboveSuffix": "and above",
+    "filterCategory": "Category",
+    "filterLocalOnly": "🔍 Local picks only",
+    "filterNationality": "Nationality",
+    "filterGender": "Gender",
+    "filterAge": "Age group",
+    "filterAge10s": "Teens",
+    "filterAge20s": "20s",
+    "filterAge30s": "30s",
+    "filterAge40s": "40s+",
+    "filterApply": "Apply"
   },
   "cities": {
     "seoul": "Seoul",
@@ -110,7 +134,7 @@
   },
   "post": {
     "rating": {
-      "must_go": "Want to go again",
+      "must_go": "Wanna go again",
       "worth_it": "Satisfying",
       "neutral": "Just okay",
       "not_great": "Not great"
@@ -125,7 +149,7 @@
       "nature": "Nature",
       "shopping": "Shopping"
     },
-    "hiddenSpot": "Hidden spot"
+    "hiddenSpot": "Local's pick"
   },
   "place": {
     "visitorStats": "Visitor stats",
@@ -133,6 +157,7 @@
     "noPostsTitle": "No posts yet",
     "noPostsSubtitle": "Be the first to share this place",
     "meetupButton": "Meetup",
+    "naverMenu": "See menu on Naver",
     "avgRating": {
       "must_go": "Absolutely love it",
       "worth_it": "Worth a visit",
@@ -148,7 +173,33 @@
     "noPublicPosts": "No public posts",
     "noPosts": "No posts yet",
     "scent": "Note",
-    "requested": "Requested"
+    "requested": "Requested",
+    "nationality": {
+      "KR": "Korean",
+      "JP": "Japanese",
+      "US": "American",
+      "CN": "Chinese",
+      "ES": "Spanish/Latin",
+      "RU": "Russian",
+      "OTHER": "Other"
+    },
+    "gender": {
+      "female": "Female",
+      "male": "Male",
+      "other": "Other"
+    },
+    "styleTag": {
+      "cafe": "Café Explorer",
+      "restaurant": "Food Hunter",
+      "photospot": "Photo Spot Collector",
+      "street": "Street Explorer",
+      "bar": "Bar Hopper",
+      "culture": "Culture Explorer",
+      "nature": "Nature Lover",
+      "shopping": "Shopaholic"
+    },
+    "localSpotHunter": "Local Spot Hunter",
+    "tasteDist": "My taste distribution"
   },
   "settings": {
     "title": "Settings",
@@ -162,12 +213,40 @@
     "birthYear": "Birth Year",
     "birthYearNone": "Not specified",
     "language": "Language",
+    "languageLabel": "Language",
     "visibility": "Account Visibility",
     "public": "Public account",
     "publicHint": "Anyone can see your profile and posts",
     "private": "Private account",
     "privateHint": "Only followers can see your content",
-    "version": "Version"
+    "version": "Version",
+    "bio": "Bio",
+    "bioPlaceholder": "Write a short intro (max 120 chars)",
+    "birthDate": "Birth Date",
+    "gender": "Gender",
+    "genderLocked": "Cannot change (done once)",
+    "inquiry": "Contact Us",
+    "inquiryCategory": {
+      "bug": "🐛 Bug/Error",
+      "account": "👤 Account",
+      "content": "📝 Content",
+      "points": "⭐ Points",
+      "suggestion": "💡 Feature request",
+      "other": "Other"
+    },
+    "inquiryTitlePlaceholder": "Title",
+    "inquiryContentPlaceholder": "Describe your inquiry in detail...",
+    "inquirySend": "Send",
+    "inquirySending": "Sending...",
+    "inquiryDoneTitle": "Inquiry submitted!",
+    "inquiryDoneMsg": "We'll get back to you soon",
+    "adminPage": "Admin Page",
+    "deleteAccount": "Delete Account",
+    "deleteConfirm": "Are you sure you want to delete your account?\n\nAll your data and posts will be permanently deleted.",
+    "deleteError": "Failed to delete account. Please try again.",
+    "nicknameErrorDuplicate": "Nickname already in use",
+    "nicknameErrorInvalid": "Only letters, numbers, ., _, - are allowed",
+    "nicknameErrorFailed": "Failed to save"
   },
   "onboarding": {
     "title": "Set up your nickname and nationality to get started",
@@ -188,7 +267,11 @@
     "feed": "Feed",
     "map": "Map",
     "saved": "Saved",
-    "profile": "Profile"
+    "profile": "Profile",
+    "addPost": "Create Post",
+    "addPostDesc": "Share places you've visited or want to visit",
+    "addPlace": "Save Place",
+    "addPlaceDesc": "Save places from links or search"
   },
   "scent": {
     "label": "Note",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "Meetup",
     "create": "Create Meetup",
-    "detail": "Meetup Detail",
+    "detail": {
+      "hostTeam": "Host Team",
+      "wantedPartner": "Looking for",
+      "openThread": "Open Thread",
+      "cannotApply": "Cannot Apply",
+      "conditionMismatchNat": "Condition mismatch (nationality)",
+      "conditionMismatchGender": "Condition mismatch (gender)",
+      "restrictionNotMet": "Public profile + Odorless level required",
+      "inReview": "Pending review",
+      "applyButton": "I'm in"
+    },
     "applyTitle": "Apply",
-    "manage": "Manage",
+    "manage": {
+      "closed": "Closed",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "unmatchBtn": "Unmatch",
+      "rejectUnmatch": "Reject/Unmatch",
+      "reject": "Reject",
+      "unmatch": "Unmatch",
+      "openThread": "Open Thread",
+      "closeBtn": "Close Meetup",
+      "noApplicants": "No applicants yet",
+      "accept": "Accept"
+    },
     "threadTitle": "Thread",
     "createButton": "+ Create Meetup",
     "noMeetups": "No meetups yet",
@@ -279,17 +384,6 @@
       "submit": "Create Meetup",
       "saveFailed": "Failed to save"
     },
-    "detail": {
-      "hostTeam": "Host Team",
-      "wantedPartner": "Looking for",
-      "openThread": "Open Thread",
-      "cannotApply": "Cannot Apply",
-      "conditionMismatchNat": "Condition mismatch (nationality)",
-      "conditionMismatchGender": "Condition mismatch (gender)",
-      "restrictionNotMet": "Public profile + Odorless level required",
-      "inReview": "Pending review",
-      "applyButton": "I'm in"
-    },
     "join": {
       "title": "Application Info",
       "ourCount": "Our members",
@@ -301,19 +395,6 @@
       "failed": "Application failed",
       "submitting": "Submitting...",
       "submit": "Apply"
-    },
-    "manage": {
-      "closed": "Closed",
-      "pending": "Pending",
-      "accepted": "Accepted",
-      "unmatchBtn": "Unmatch",
-      "rejectUnmatch": "Reject/Unmatch",
-      "reject": "Reject",
-      "unmatch": "Unmatch",
-      "openThread": "Open Thread",
-      "closeBtn": "Close Meetup",
-      "noApplicants": "No applicants yet",
-      "accept": "Accept"
     },
     "thread": {
       "openOnDay": "Thread opens on the day of the meetup",
@@ -364,5 +445,105 @@
     "minutesAgo": "{m}m ago",
     "hoursAgo": "{h}h ago",
     "daysAgo": "{d}d ago"
+  },
+  "report": {
+    "title": "Select a reason for reporting",
+    "submit": "Report",
+    "submitting": "Reporting...",
+    "doneTitle": "Report submitted",
+    "doneMsg": "We'll review and take action",
+    "reasons": {
+      "spam": "Spam / Advertising",
+      "inappropriate": "Inappropriate content",
+      "false": "False information",
+      "copyright": "Copyright infringement",
+      "custom": "Write my own"
+    },
+    "customPlaceholder": "Describe the reason..."
+  },
+  "upload": {
+    "title": "Post",
+    "failedMsg": "Failed to post. Please try again",
+    "loginRequired": "Login required",
+    "place": {
+      "title": "Where was it?",
+      "subtitle": "Search or pin on map",
+      "tabSearch": "Search",
+      "tabMap": "Map Pin",
+      "tabGps": "My Location",
+      "gpsLoading": "Searching...",
+      "searchPlaceholder": "Search place...",
+      "search": "Search",
+      "mapInstruction": "Tap the map to select a location",
+      "placeNamePlaceholder": "Place name",
+      "categoryLabel": "Category",
+      "neighborhoodLabel": "Neighborhood",
+      "customInput": "Enter manually",
+      "neighborhoodPlaceholder": "e.g. Hongdae, Itaewon...",
+      "hiddenSpotLabel": "Local's pick",
+      "hiddenSpotDesc": "Bonus points +15 for registering",
+      "next": "Next",
+      "gpsError": "Could not get location",
+      "currentLocation": "Current location",
+      "selectedLocation": "Selected location"
+    },
+    "type": {
+      "title": "What kind of post?",
+      "visitedTitle": "Been there",
+      "visitedDesc": "Share photos and review of a place you visited",
+      "wantTitle": "Want to go",
+      "wantDesc": "Share a place you'd love to visit someday"
+    },
+    "photos": {
+      "title": "Add photos",
+      "subtitleVisited": "Up to 3 photos",
+      "subtitleWant": "Optional",
+      "skip": "Skip",
+      "next": "Next"
+    },
+    "rating": {
+      "title": "How was it?",
+      "subtitle": "Leave an honest review",
+      "next": "Next"
+    },
+    "memo": {
+      "title": "Add a note",
+      "subtitle": "Optional",
+      "memoPlaceholder": "Say something about this place...",
+      "menuLabel": "Recommended menu",
+      "menuOptional": "optional",
+      "menuPlaceholder": "e.g. Americano, croffle, signature latte",
+      "public": "Public",
+      "private": "Private",
+      "publicDesc": "Visible in feed",
+      "privateDesc": "Only you can see",
+      "submit": "Post",
+      "submitting": "Posting..."
+    }
+  },
+  "placeAdd": {
+    "title": "Save Place",
+    "tabSearch": "Search",
+    "tabGps": "My Location",
+    "tabLink": "Link",
+    "searchPlaceholder": "Search place...",
+    "search": "Search",
+    "linkHint": "Paste a Google Maps or Naver Maps link",
+    "confirm": "Confirm",
+    "gpsButton": "Use current location",
+    "gpsLoading": "Finding location...",
+    "gpsError": "Could not get location",
+    "currentLocation": "Current location",
+    "typeLabel": "What type of place?",
+    "typeWant": "🧡 Want to go",
+    "typeVisited": "✅ Been there",
+    "typeHidden": "🔍 Local's pick",
+    "categoryLabel": "Category",
+    "neighborhoodNotFound": "Neighborhood not found (optional)",
+    "neighborhoodPlaceholder": "e.g. Hongdae, Insadong...",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveError": "Failed to save",
+    "errorGeneral": "An error occurred"
   }
 }

@@ -24,15 +24,13 @@ interface Profile {
 const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
 }
-const NATIONALITY_LABELS: Record<string, string> = {
-  KR: '한국', JP: '일본', US: '미국', CN: '중국', ES: '스페인/남미', RU: '러시아', OTHER: '기타',
-}
 
 export default function SettingsClient({ profile: initial, currentLocale: initialLocale, isAdmin = false }: { profile: Profile; currentLocale: string; isAdmin?: boolean }) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('settings')
   const tCommon = useTranslations('common')
+  const tProfile = useTranslations('profile')
 
   const [profile, setProfile] = useState(initial)
   const [currentLocale, setCurrentLocale] = useState<Locale>(initialLocale as Locale)
@@ -104,9 +102,9 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
       .eq('id', profile.id)
 
     if (error) {
-      if (error.code === '23505') setNicknameError('이미 사용 중인 닉네임이에요')
-      else if (error.code === '23514') setNicknameError('영문, 숫자, ., _, - 만 사용 가능해요')
-      else setNicknameError('저장에 실패했어요')
+      if (error.code === '23505') setNicknameError(t('nicknameErrorDuplicate'))
+      else if (error.code === '23514') setNicknameError(t('nicknameErrorInvalid'))
+      else setNicknameError(t('nicknameErrorFailed'))
     } else {
       setProfile(p => ({ ...p, nickname: nickname.trim() }))
     }
@@ -131,7 +129,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
       await supabase.auth.signOut()
       router.push('/login')
     } else {
-      alert('탈퇴 처리에 실패했어요. 다시 시도해주세요.')
+      alert(t('deleteError'))
     }
   }
 
@@ -206,12 +204,12 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
 
         {/* 자기소개 */}
         <section className="mt-3 bg-white rounded-2xl px-4 py-5">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">자기소개</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">{t('bio')}</p>
           <div className="flex flex-col gap-2">
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value.slice(0, 120))}
-              placeholder="간단한 자기소개를 입력해주세요 (최대 120자)"
+              placeholder={t('bioPlaceholder')}
               rows={3}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 resize-none"
             />
@@ -233,7 +231,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
 
         {/* 생년월일 */}
         <section className="mt-3 bg-white rounded-2xl px-4 py-5">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">생년월일</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">{t('birthDate')}</p>
           <div className="flex gap-2">
             <input
               type="date"
@@ -259,28 +257,24 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
         {/* 성별 */}
         <section className="mt-3 bg-white rounded-2xl px-4 py-5">
           <div className="flex items-center gap-2 mb-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">성별</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('gender')}</p>
             {!canChangeGender && (
-              <span className="text-xs text-gray-300">변경 불가 (1회 완료)</span>
+              <span className="text-xs text-gray-300">{t('genderLocked')}</span>
             )}
           </div>
           {canChangeGender ? (
             <div className="flex gap-2">
-              {([
-                { value: 'female' as const, label: '여자' },
-                { value: 'male' as const, label: '남자' },
-                { value: 'other' as const, label: '기타' },
-              ]).map(g => (
+              {(['female', 'male', 'other'] as const).map(g => (
                 <button
-                  key={g.value}
-                  onClick={() => setGender(prev => prev === g.value ? null : g.value)}
+                  key={g}
+                  onClick={() => setGender(prev => prev === g ? null : g)}
                   className={`flex-1 py-2.5 rounded-xl border text-sm transition-colors ${
-                    gender === g.value
+                    gender === g
                       ? 'border-gray-900 bg-gray-900 text-white'
                       : 'border-gray-200 text-gray-700'
                   }`}
                 >
-                  {g.label}
+                  {tProfile(`gender.${g}`)}
                 </button>
               ))}
               <button
@@ -297,7 +291,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
             </div>
           ) : (
             <div className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-700">
-              {profile.gender === 'female' ? '여자' : profile.gender === 'male' ? '남자' : '기타'}
+              {profile.gender ? tProfile(`gender.${profile.gender}`) : ''}
             </div>
           )}
         </section>
@@ -327,7 +321,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">{t('nationality')}</p>
           <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
             <span>{NATIONALITY_FLAGS[profile.nationality]}</span>
-            <span className="text-sm text-gray-700">{NATIONALITY_LABELS[profile.nationality]}</span>
+            <span className="text-sm text-gray-700">{tProfile(`nationality.${profile.nationality}`)}</span>
             <span className="ml-auto text-xs text-gray-400">{t('nationalityReadonly')}</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">{t('nationalityHint')}</p>
@@ -370,7 +364,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
             onClick={() => { setShowInquiry(v => !v); setInquiryDone(false) }}
             className="w-full flex items-center justify-between py-3.5 text-sm text-gray-700 font-medium"
           >
-            문의하기
+            {t('inquiry')}
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className={`transition-transform ${showInquiry ? 'rotate-180' : ''}`}>
               <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -384,27 +378,20 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
                       <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">문의가 접수되었어요</p>
-                  <p className="text-xs text-gray-400">빠른 시일 내에 답변드릴게요</p>
+                  <p className="text-sm font-semibold text-gray-900">{t('inquiryDoneTitle')}</p>
+                  <p className="text-xs text-gray-400">{t('inquiryDoneMsg')}</p>
                 </div>
               ) : (
                 <>
                   {/* 카테고리 */}
                   <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { value: 'bug', label: '🐛 버그/오류' },
-                      { value: 'account', label: '👤 계정' },
-                      { value: 'content', label: '📝 콘텐츠' },
-                      { value: 'points', label: '⭐ 포인트' },
-                      { value: 'suggestion', label: '💡 기능 제안' },
-                      { value: 'other', label: '기타' },
-                    ].map(c => (
+                    {(['bug', 'account', 'content', 'points', 'suggestion', 'other'] as const).map(c => (
                       <button
-                        key={c.value}
-                        onClick={() => setInquiryCategory(c.value)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${inquiryCategory === c.value ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'}`}
+                        key={c}
+                        onClick={() => setInquiryCategory(c)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${inquiryCategory === c ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'}`}
                       >
-                        {c.label}
+                        {t(`inquiryCategory.${c}`)}
                       </button>
                     ))}
                   </div>
@@ -412,13 +399,13 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
                     type="text"
                     value={inquiryTitle}
                     onChange={e => setInquiryTitle(e.target.value)}
-                    placeholder="문의 제목"
+                    placeholder={t('inquiryTitlePlaceholder')}
                     className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                   />
                   <textarea
                     value={inquiryContent}
                     onChange={e => setInquiryContent(e.target.value)}
-                    placeholder="문의 내용을 자세히 적어주세요..."
+                    placeholder={t('inquiryContentPlaceholder')}
                     rows={4}
                     className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 resize-none"
                   />
@@ -427,7 +414,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
                     disabled={inquiryLoading || !inquiryTitle.trim() || !inquiryContent.trim()}
                     className="w-full py-3 bg-gray-900 text-white text-sm rounded-xl font-medium disabled:opacity-40"
                   >
-                    {inquiryLoading ? '전송 중...' : '문의 보내기'}
+                    {inquiryLoading ? t('inquirySending') : t('inquirySend')}
                   </button>
                 </>
               )}
@@ -445,7 +432,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              어드민 페이지
+              {t('adminPage')}
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" className="ml-auto">
                 <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -464,13 +451,13 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
           <div className="border-t border-gray-50" />
           <button
             onClick={() => {
-              if (confirm('정말 탈퇴하시겠어요?\n\n회원 정보와 모든 포스팅이 삭제되며 복구할 수 없어요.')) {
+              if (confirm(t('deleteConfirm'))) {
                 handleDeleteAccount()
               }
             }}
             className="w-full py-3.5 text-sm text-gray-300 font-medium text-left"
           >
-            회원탈퇴
+            {t('deleteAccount')}
           </button>
         </section>
 

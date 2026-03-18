@@ -16,7 +16,31 @@
     "all": "전체",
     "other": "기타",
     "allTab": "전체",
-    "followingTab": "팔로잉"
+    "followingTab": "팔로잉",
+    "viewModePost": "포스팅",
+    "viewModePlace": "장소",
+    "filter": "필터",
+    "filterReset": "초기화",
+    "filterFeed": "피드",
+    "filterSort": "정렬",
+    "filterSortLatest": "🕐 최신순",
+    "filterSortLikes": "❤️ 좋아요순",
+    "filterSortSaves": "📍 저장순",
+    "filterPostType": "포스트 유형",
+    "filterPostVisited": "✅ 방문 후기",
+    "filterPostWant": "🧡 가고싶어",
+    "filterRatingAbove": "평점 이상",
+    "filterAboveSuffix": "이상",
+    "filterCategory": "카테고리",
+    "filterLocalOnly": "🔍 현지인 추천만",
+    "filterNationality": "국적",
+    "filterGender": "성별",
+    "filterAge": "나잇대",
+    "filterAge10s": "10대",
+    "filterAge20s": "20대",
+    "filterAge30s": "30대",
+    "filterAge40s": "40대+",
+    "filterApply": "적용하기"
   },
   "cities": {
     "seoul": "서울",
@@ -110,7 +134,7 @@
   },
   "post": {
     "rating": {
-      "must_go": "또 가고 싶어",
+      "must_go": "또 가고싶은",
       "worth_it": "만족스러워",
       "neutral": "그냥 그래",
       "not_great": "별로야"
@@ -125,7 +149,7 @@
       "nature": "자연/뷰",
       "shopping": "쇼핑"
     },
-    "hiddenSpot": "히든스팟"
+    "hiddenSpot": "현지인 추천"
   },
   "place": {
     "visitorStats": "방문자 통계",
@@ -133,6 +157,7 @@
     "noPostsTitle": "아직 포스팅이 없어요",
     "noPostsSubtitle": "첫 번째로 이 장소를 공유해보세요",
     "meetupButton": "번개",
+    "naverMenu": "네이버에서 메뉴 보기",
     "avgRating": {
       "must_go": "또 가고싶은",
       "worth_it": "한번은 와볼만해",
@@ -148,7 +173,33 @@
     "noPublicPosts": "공개된 포스팅이 없어요",
     "noPosts": "아직 포스팅이 없어요",
     "scent": "향도",
-    "requested": "요청됨"
+    "requested": "요청됨",
+    "nationality": {
+      "KR": "한국",
+      "JP": "일본",
+      "US": "미국",
+      "CN": "중국",
+      "ES": "스페인/남미",
+      "RU": "러시아",
+      "OTHER": "기타"
+    },
+    "gender": {
+      "female": "여자",
+      "male": "남자",
+      "other": "기타"
+    },
+    "styleTag": {
+      "cafe": "카페 탐방러",
+      "restaurant": "맛집 헌터",
+      "photospot": "포토스팟 수집가",
+      "street": "길거리 탐험가",
+      "bar": "바 홀릭",
+      "culture": "문화 탐방러",
+      "nature": "자연 힐러",
+      "shopping": "쇼핑 러버"
+    },
+    "localSpotHunter": "현지인 추천 헌터",
+    "tasteDist": "내 취향 분포보기"
   },
   "settings": {
     "title": "설정",
@@ -162,12 +213,40 @@
     "birthYear": "출생연도",
     "birthYearNone": "선택 안 함",
     "language": "언어",
+    "languageLabel": "언어 / Language",
     "visibility": "계정 공개 설정",
     "public": "공개 계정",
     "publicHint": "누구나 프로필과 포스팅을 볼 수 있어요",
     "private": "비공개 계정",
     "privateHint": "팔로워만 볼 수 있어요",
-    "version": "버전"
+    "version": "버전",
+    "bio": "자기소개",
+    "bioPlaceholder": "간단한 자기소개를 입력해주세요 (최대 120자)",
+    "birthDate": "생년월일",
+    "gender": "성별",
+    "genderLocked": "변경 불가 (1회 완료)",
+    "inquiry": "문의하기",
+    "inquiryCategory": {
+      "bug": "🐛 버그/오류",
+      "account": "👤 계정",
+      "content": "📝 콘텐츠",
+      "points": "⭐ 포인트",
+      "suggestion": "💡 기능 제안",
+      "other": "기타"
+    },
+    "inquiryTitlePlaceholder": "문의 제목",
+    "inquiryContentPlaceholder": "문의 내용을 자세히 적어주세요...",
+    "inquirySend": "문의 보내기",
+    "inquirySending": "전송 중...",
+    "inquiryDoneTitle": "문의가 접수되었어요",
+    "inquiryDoneMsg": "빠른 시일 내에 답변드릴게요",
+    "adminPage": "어드민 페이지",
+    "deleteAccount": "회원탈퇴",
+    "deleteConfirm": "정말 탈퇴하시겠어요?\n\n회원 정보와 모든 포스팅이 삭제되며 복구할 수 없어요.",
+    "deleteError": "탈퇴 처리에 실패했어요. 다시 시도해주세요.",
+    "nicknameErrorDuplicate": "이미 사용 중인 닉네임이에요",
+    "nicknameErrorInvalid": "영문, 숫자, ., _, - 만 사용 가능해요",
+    "nicknameErrorFailed": "저장에 실패했어요"
   },
   "onboarding": {
     "title": "닉네임과 국적을 설정하고 시작해요",
@@ -188,7 +267,11 @@
     "feed": "피드",
     "map": "지도",
     "saved": "저장",
-    "profile": "프로필"
+    "profile": "프로필",
+    "addPost": "포스팅 올리기",
+    "addPostDesc": "방문한 장소나 가고 싶은 곳을 공유해요",
+    "addPlace": "장소 저장하기",
+    "addPlaceDesc": "링크나 검색으로 장소를 내 리스트에 담아요"
   },
   "scent": {
     "label": "향도",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "번개",
     "create": "번개 만들기",
-    "detail": "번개 상세",
+    "detail": {
+      "hostTeam": "주최자 팀",
+      "wantedPartner": "원하는 상대",
+      "openThread": "스레드 열기",
+      "cannotApply": "신청 불가",
+      "conditionMismatchNat": "조건 불일치 (국적)",
+      "conditionMismatchGender": "조건 불일치 (성별)",
+      "restrictionNotMet": "공개 프로필 + 무취 이상만 신청 가능",
+      "inReview": "신청 검토 중",
+      "applyButton": "갈래요"
+    },
     "applyTitle": "참여 신청",
-    "manage": "신청 관리",
+    "manage": {
+      "closed": "마감됨",
+      "pending": "신청 대기",
+      "accepted": "수락됨",
+      "unmatchBtn": "언매치",
+      "rejectUnmatch": "거절/언매치",
+      "reject": "거절",
+      "unmatch": "언매치",
+      "openThread": "스레드 열기",
+      "closeBtn": "번개 마감",
+      "noApplicants": "아직 신청자가 없어요",
+      "accept": "수락"
+    },
     "threadTitle": "번개 스레드",
     "createButton": "+ 번개 만들기",
     "noMeetups": "아직 번개가 없어요",
@@ -279,17 +384,6 @@
       "submit": "만남 등록하기",
       "saveFailed": "저장에 실패했어요"
     },
-    "detail": {
-      "hostTeam": "주최자 팀",
-      "wantedPartner": "원하는 상대",
-      "openThread": "스레드 열기",
-      "cannotApply": "신청 불가",
-      "conditionMismatchNat": "조건 불일치 (국적)",
-      "conditionMismatchGender": "조건 불일치 (성별)",
-      "restrictionNotMet": "공개 프로필 + 무취 이상만 신청 가능",
-      "inReview": "신청 검토 중",
-      "applyButton": "갈래요"
-    },
     "join": {
       "title": "신청 정보",
       "ourCount": "우리 인원 수",
@@ -301,19 +395,6 @@
       "failed": "신청에 실패했어요",
       "submitting": "신청 중...",
       "submit": "신청하기"
-    },
-    "manage": {
-      "closed": "마감됨",
-      "pending": "신청 대기",
-      "accepted": "수락됨",
-      "unmatchBtn": "언매치",
-      "rejectUnmatch": "거절/언매치",
-      "reject": "거절",
-      "unmatch": "언매치",
-      "openThread": "스레드 열기",
-      "closeBtn": "번개 마감",
-      "noApplicants": "아직 신청자가 없어요",
-      "accept": "수락"
     },
     "thread": {
       "openOnDay": "번개 당일에 스레드가 오픈됩니다",
@@ -364,5 +445,105 @@
     "minutesAgo": "{m}분 전",
     "hoursAgo": "{h}시간 전",
     "daysAgo": "{d}일 전"
+  },
+  "report": {
+    "title": "신고 사유를 선택해주세요",
+    "submit": "신고하기",
+    "submitting": "신고 중...",
+    "doneTitle": "신고가 접수되었어요",
+    "doneMsg": "검토 후 처리할게요",
+    "reasons": {
+      "spam": "스팸/광고",
+      "inappropriate": "부적절한 콘텐츠",
+      "false": "허위 정보",
+      "copyright": "저작권 침해",
+      "custom": "직접 입력"
+    },
+    "customPlaceholder": "신고 사유를 입력해주세요..."
+  },
+  "upload": {
+    "title": "포스팅",
+    "failedMsg": "포스팅에 실패했어요. 다시 시도해주세요",
+    "loginRequired": "로그인이 필요해요",
+    "place": {
+      "title": "어디였나요?",
+      "subtitle": "장소를 검색하거나 지도에서 선택하세요",
+      "tabSearch": "검색",
+      "tabMap": "지도 핀",
+      "tabGps": "내 위치",
+      "gpsLoading": "찾는 중...",
+      "searchPlaceholder": "장소명 검색...",
+      "search": "검색",
+      "mapInstruction": "지도를 탭해서 위치를 선택하세요",
+      "placeNamePlaceholder": "장소 이름 입력",
+      "categoryLabel": "카테고리",
+      "neighborhoodLabel": "동네",
+      "customInput": "직접 입력",
+      "neighborhoodPlaceholder": "동네명 입력 (예: 을지로, 북촌...)",
+      "hiddenSpotLabel": "현지인 추천 장소",
+      "hiddenSpotDesc": "등록 시 보너스 포인트 +15",
+      "next": "다음",
+      "gpsError": "위치를 가져올 수 없어요",
+      "currentLocation": "현재 위치",
+      "selectedLocation": "선택한 위치"
+    },
+    "type": {
+      "title": "어떤 포스팅인가요?",
+      "visitedTitle": "갔다온 곳",
+      "visitedDesc": "방문한 장소 후기와 사진을 남겨요",
+      "wantTitle": "가고싶은 곳",
+      "wantDesc": "언젠가 꼭 가보고 싶은 장소를 공유해요"
+    },
+    "photos": {
+      "title": "사진 추가",
+      "subtitleVisited": "최대 3장까지 올릴 수 있어요",
+      "subtitleWant": "선택사항이에요",
+      "skip": "건너뛰기",
+      "next": "다음"
+    },
+    "rating": {
+      "title": "이 장소 어땠나요?",
+      "subtitle": "솔직한 후기를 남겨주세요",
+      "next": "다음"
+    },
+    "memo": {
+      "title": "한마디 남기기",
+      "subtitle": "선택사항이에요",
+      "memoPlaceholder": "이 장소에 대해 한마디 남겨주세요...",
+      "menuLabel": "추천 메뉴",
+      "menuOptional": "선택사항",
+      "menuPlaceholder": "예: 아메리카노, 크로플, 시그니처 라떼",
+      "public": "공개",
+      "private": "비공개",
+      "publicDesc": "피드에 공개돼요",
+      "privateDesc": "나만 볼 수 있어요",
+      "submit": "포스팅 올리기",
+      "submitting": "올리는 중..."
+    }
+  },
+  "placeAdd": {
+    "title": "장소 저장",
+    "tabSearch": "검색",
+    "tabGps": "내 위치",
+    "tabLink": "링크",
+    "searchPlaceholder": "장소명 검색...",
+    "search": "검색",
+    "linkHint": "Google Maps, 네이버 지도 링크를 붙여넣으세요",
+    "confirm": "확인",
+    "gpsButton": "현재 위치 가져오기",
+    "gpsLoading": "위치 찾는 중...",
+    "gpsError": "위치를 가져올 수 없어요",
+    "currentLocation": "현재 위치",
+    "typeLabel": "어떤 장소예요?",
+    "typeWant": "🧡 가고싶어",
+    "typeVisited": "✅ 다녀왔어",
+    "typeHidden": "🔍 현지인 추천",
+    "categoryLabel": "카테고리",
+    "neighborhoodNotFound": "동네를 찾지 못했어요 (선택)",
+    "neighborhoodPlaceholder": "예: 을지로, 북촌...",
+    "save": "저장하기",
+    "saving": "저장 중...",
+    "saveError": "저장에 실패했어요",
+    "errorGeneral": "오류가 발생했어요"
   }
 }

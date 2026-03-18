@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 const MENU_CATEGORIES = new Set(['cafe', 'restaurant', 'bar'])
 
 interface Props {
@@ -15,19 +17,20 @@ interface Props {
 }
 
 export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategory, onMemoChange, onMenuChange, onPublicChange, onSubmit, loading }: Props) {
+  const t = useTranslations('upload')
   const showMenu = placeCategory && MENU_CATEGORIES.has(placeCategory)
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">한마디 남기기</h2>
-        <p className="text-sm text-gray-500 mt-0.5">선택사항이에요</p>
+        <h2 className="text-lg font-semibold text-gray-900">{t('memo.title')}</h2>
+        <p className="text-sm text-gray-500 mt-0.5">{t('memo.subtitle')}</p>
       </div>
 
       <textarea
         value={memo}
         onChange={e => onMemoChange(e.target.value)}
-        placeholder="이 장소에 대해 한마디 남겨주세요..."
+        placeholder={t('memo.memoPlaceholder')}
         maxLength={500}
         rows={4}
         className="px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 resize-none"
@@ -37,13 +40,13 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
       {showMenu && (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-gray-900">
-            추천 메뉴 <span className="text-xs font-normal text-gray-400">선택사항</span>
+            {t('memo.menuLabel')} <span className="text-xs font-normal text-gray-400">{t('memo.menuOptional')}</span>
           </label>
           <input
             type="text"
             value={recommendedMenu}
             onChange={e => onMenuChange(e.target.value)}
-            placeholder="예: 아메리카노, 크로플, 시그니처 라떼"
+            placeholder={t('memo.menuPlaceholder')}
             maxLength={100}
             className="px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
           />
@@ -59,10 +62,10 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
       >
         <div className="flex flex-col items-start gap-0.5">
           <span className="text-sm font-semibold text-gray-900">
-            {isPublic ? '공개' : '비공개'}
+            {isPublic ? t('memo.public') : t('memo.private')}
           </span>
           <span className="text-xs text-gray-400">
-            {isPublic ? '피드에 공개돼요' : '나만 볼 수 있어요'}
+            {isPublic ? t('memo.publicDesc') : t('memo.privateDesc')}
           </span>
         </div>
         <div className={`w-11 h-6 rounded-full transition-colors ${isPublic ? 'bg-gray-900' : 'bg-gray-200'}`}>
@@ -77,7 +80,7 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
         disabled={loading}
         className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
       >
-        {loading ? '올리는 중...' : '포스팅 올리기'}
+        {loading ? t('memo.submitting') : t('memo.submit')}
       </button>
     </div>
   )

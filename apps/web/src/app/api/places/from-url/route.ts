@@ -80,6 +80,7 @@ export async function POST(request: Request) {
           'X-Goog-FieldMask': 'displayName,formattedAddress,location',
           'Accept-Language': 'ko',
         },
+        next: { revalidate: 86400 },
       })
       const data = await res.json()
       if (data.displayName) {

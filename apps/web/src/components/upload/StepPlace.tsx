@@ -1,21 +1,18 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
+import { useState, useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+import { useTranslations } from 'next-intl'
 import type { SelectedPlace } from './types'
 import type { Category, City } from '@/types/database'
 import { getDistricts, inferCityFromAddress, inferDistrictFromAddress } from '@/lib/utils/districts'
 
-const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
-  { value: 'cafe', label: '카페' },
-  { value: 'restaurant', label: '맛집' },
-  { value: 'photospot', label: '포토스팟' },
-  { value: 'street', label: '길거리/골목' },
-  { value: 'bar', label: '유흥/바' },
-  { value: 'culture', label: '전시/문화' },
-  { value: 'nature', label: '자연/뷰' },
-  { value: 'shopping', label: '쇼핑' },
-]
+const CATEGORY_VALUES: Category[] = ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping']
+
+const UploadMapSection = dynamic(() => import('./UploadMapSection'), {
+  ssr: false,
+  loading: () => <div className="rounded-xl overflow-hidden h-52 bg-gray-200 animate-pulse" />,
+})
 
 // 좌표로 도시 자동 감지
 function detectCity(lat: number, lng: number): City {
@@ -33,30 +30,13 @@ interface LocationInfo {
   existingId?: string
 }
 
-function MapPicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
-  const map = useMap()
-  const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(null)
-
-  useEffect(() => {
-    if (!map) return
-    const listener = map.addListener('click', (e: google.maps.MapMouseEvent) => {
-      if (!e.latLng) return
-      const lat = e.latLng.lat()
-      const lng = e.latLng.lng()
-      setMarkerPos({ lat, lng })
-      onPick(lat, lng)
-    })
-    return () => google.maps.event.removeListener(listener)
-  }, [map, onPick])
-
-  return markerPos ? <AdvancedMarker position={markerPos} /> : null
-}
-
 interface Props {
   onSelect: (place: SelectedPlace) => void
 }
 
 export default function StepPlace({ onSelect }: Props) {
+  const t = useTranslations('upload')
+  const tPost = useTranslations('post')
   const [mode, setMode] = useState<'search' | 'map' | 'gps'>('search')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<{ name: string; address: string; lat: number; lng: number }[]>([])
@@ -73,9 +53,8 @@ export default function StepPlace({ onSelect }: Props) {
 
   const executeSearch = useCallback(async (query: string) => {
     if (!query.trim() || query.length < 2) return
-    if (isSearching.current) return  // 이미 검색 중이면 무시 (스로틀링)
+    if (isSearching.current) return
 
-    // 캐시 확인
     if (searchCache.current[query]) {
       setSearchResults(searchCache.current[query])
       return
@@ -87,7 +66,7 @@ export default function StepPlace({ onSelect }: Props) {
       const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
       const results = data.places || []
-      searchCache.current[query] = results  // 캐시 저장
+      searchCache.current[query] = results
       setSearchResults(results)
     } catch {
       setSearchResults([])
@@ -133,18 +112,18 @@ export default function StepPlace({ onSelect }: Props) {
         try {
           const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          setLocation({ name: placeName || '현재 위치', lat, lng, address: data.address || '' })
+          setLocation({ name: placeName || t('place.currentLocation'), lat, lng, address: data.address || '' })
         } catch {
-          setLocation({ name: '현재 위치', lat, lng, address: '' })
+          setLocation({ name: t('place.currentLocation'), lat, lng, address: '' })
         }
         setGpsLoading(false)
       },
-      () => { alert('위치를 가져올 수 없어요'); setGpsLoading(false) }
+      () => { alert(t('place.gpsError')); setGpsLoading(false) }
     )
   }
 
   function handleMapPick(lat: number, lng: number) {
-    setLocation({ name: placeName || '선택한 위치', lat, lng, address: '' })
+    setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address: '' })
   }
 
   function handleConfirm() {
@@ -166,16 +145,16 @@ export default function StepPlace({ onSelect }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">어디였나요?</h2>
-        <p className="text-sm text-gray-500 mt-0.5">장소를 검색하거나 지도에서 선택하세요</p>
+        <h2 className="text-lg font-semibold text-gray-900">{t('place.title')}</h2>
+        <p className="text-sm text-gray-500 mt-0.5">{t('place.subtitle')}</p>
       </div>
 
       {/* 모드 탭 */}
       <div className="flex gap-2">
         {([
-          { key: 'search', label: '검색' },
-          { key: 'map', label: '지도 핀' },
-          { key: 'gps', label: '내 위치' },
+          { key: 'search', label: t('place.tabSearch') },
+          { key: 'map', label: t('place.tabMap') },
+          { key: 'gps', label: t('place.tabGps') },
         ] as const).map(m => (
           <button
             key={m.key}
@@ -184,7 +163,7 @@ export default function StepPlace({ onSelect }: Props) {
               mode === m.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {gpsLoading && m.key === 'gps' ? '찾는 중...' : m.label}
+            {gpsLoading && m.key === 'gps' ? t('place.gpsLoading') : m.label}
           </button>
         ))}
       </div>
@@ -198,7 +177,7 @@ export default function StepPlace({ onSelect }: Props) {
               value={searchQuery}
               onChange={e => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="장소명 검색..."
+              placeholder={t('place.searchPlaceholder')}
               className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
             />
             <button
@@ -206,7 +185,7 @@ export default function StepPlace({ onSelect }: Props) {
               disabled={searchLoading || searchQuery.length < 2}
               className="px-4 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40 shrink-0"
             >
-              {searchLoading ? '...' : '검색'}
+              {searchLoading ? '...' : t('place.search')}
             </button>
           </div>
           {searchResults.length > 0 && (
@@ -238,20 +217,8 @@ export default function StepPlace({ onSelect }: Props) {
       {/* 지도 핀 */}
       {(mode === 'map' || mode === 'gps') && (
         <div className="flex flex-col gap-3">
-          <div className="rounded-xl overflow-hidden h-52">
-            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-              <Map
-                defaultCenter={mapCenter}
-                defaultZoom={15}
-                mapId="locory-upload"
-                gestureHandling="greedy"
-                disableDefaultUI
-              >
-                <MapPicker onPick={handleMapPick} />
-              </Map>
-            </APIProvider>
-          </div>
-          <p className="text-xs text-gray-400 text-center">지도를 탭해서 위치를 선택하세요</p>
+          <UploadMapSection center={mapCenter} onPick={handleMapPick} />
+          <p className="text-xs text-gray-400 text-center">{t('place.mapInstruction')}</p>
           <input
             type="text"
             value={placeName}
@@ -259,7 +226,7 @@ export default function StepPlace({ onSelect }: Props) {
               setPlaceName(e.target.value)
               if (location) setLocation({ ...location, name: e.target.value })
             }}
-            placeholder="장소 이름 입력"
+            placeholder={t('place.placeNamePlaceholder')}
             className="px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
           />
         </div>
@@ -269,17 +236,17 @@ export default function StepPlace({ onSelect }: Props) {
       {(location || (mode !== 'search')) && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">카테고리</label>
+            <label className="text-sm font-medium text-gray-700">{t('place.categoryLabel')}</label>
             <div className="grid grid-cols-4 gap-2">
-              {CATEGORY_OPTIONS.map(c => (
+              {CATEGORY_VALUES.map(val => (
                 <button
-                  key={c.value}
-                  onClick={() => setCategory(c.value)}
+                  key={val}
+                  onClick={() => setCategory(val)}
                   className={`py-2 rounded-lg text-xs font-medium transition-colors ${
-                    category === c.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                    category === val ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {c.label}
+                  {tPost(`category.${val}`)}
                 </button>
               ))}
             </div>
@@ -287,7 +254,7 @@ export default function StepPlace({ onSelect }: Props) {
 
           {/* 동네 선택 */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">동네</label>
+            <label className="text-sm font-medium text-gray-700">{t('place.neighborhoodLabel')}</label>
             {(() => {
               const districtList = getDistricts(location ? detectCity(location.lat, location.lng) : 'seoul')
               const isCustom = district === '__custom__' || (district != null && !districtList.find(d => d.value === district))
@@ -311,7 +278,7 @@ export default function StepPlace({ onSelect }: Props) {
                         isCustom ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      직접 입력
+                      {t('place.customInput')}
                     </button>
                   </div>
                   {isCustom && (
@@ -319,7 +286,7 @@ export default function StepPlace({ onSelect }: Props) {
                       type="text"
                       value={district === '__custom__' ? '' : district ?? ''}
                       onChange={e => setDistrict(e.target.value || '__custom__')}
-                      placeholder="동네명 입력 (예: 을지로, 북촌...)"
+                      placeholder={t('place.neighborhoodPlaceholder')}
                       className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                       autoFocus
                     />
@@ -336,8 +303,8 @@ export default function StepPlace({ onSelect }: Props) {
             }`}
           >
             <div className="flex flex-col items-start">
-              <span className="text-sm font-medium text-gray-900">나만 아는 히든스팟</span>
-              <span className="text-xs text-gray-400">등록 시 보너스 포인트 +15</span>
+              <span className="text-sm font-medium text-gray-900">{t('place.hiddenSpotLabel')}</span>
+              <span className="text-xs text-gray-400">{t('place.hiddenSpotDesc')}</span>
             </div>
             <div className={`w-5 h-5 rounded-full border-2 transition-colors ${
               isHidden ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
@@ -349,7 +316,7 @@ export default function StepPlace({ onSelect }: Props) {
             disabled={!location || !category || !district}
             className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
           >
-            다음
+            {t('place.next')}
           </button>
         </div>
       )}

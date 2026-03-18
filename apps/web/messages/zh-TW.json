@@ -16,7 +16,31 @@
     "all": "全部",
     "other": "其他",
     "allTab": "全部",
-    "followingTab": "追蹤中"
+    "followingTab": "追蹤中",
+    "viewModePost": "貼文",
+    "viewModePlace": "地點",
+    "filter": "篩選",
+    "filterReset": "重設",
+    "filterFeed": "動態",
+    "filterSort": "排序",
+    "filterSortLatest": "🕐 最新",
+    "filterSortLikes": "❤️ 最多讚",
+    "filterSortSaves": "📍 最多儲存",
+    "filterPostType": "貼文類型",
+    "filterPostVisited": "✅ 去過了",
+    "filterPostWant": "🧡 想去",
+    "filterRatingAbove": "最低評分",
+    "filterAboveSuffix": "以上",
+    "filterCategory": "類別",
+    "filterLocalOnly": "🔍 只看在地推薦",
+    "filterNationality": "國籍",
+    "filterGender": "性別",
+    "filterAge": "年齡層",
+    "filterAge10s": "10幾歲",
+    "filterAge20s": "20幾歲",
+    "filterAge30s": "30幾歲",
+    "filterAge40s": "40歲+",
+    "filterApply": "套用"
   },
   "cities": {
     "seoul": "首爾",
@@ -125,7 +149,7 @@
       "nature": "自然景觀",
       "shopping": "購物"
     },
-    "hiddenSpot": "隱藏景點"
+    "hiddenSpot": "在地推薦"
   },
   "place": {
     "visitorStats": "訪客統計",
@@ -133,6 +157,7 @@
     "noPostsTitle": "還沒有貼文",
     "noPostsSubtitle": "成為第一個分享此地點的人",
     "meetupButton": "閃聚",
+    "naverMenu": "在Naver查看菜單",
     "avgRating": {
       "must_go": "非常推薦",
       "worth_it": "值得一去",
@@ -148,7 +173,33 @@
     "noPublicPosts": "沒有公開貼文",
     "noPosts": "還沒有貼文",
     "scent": "香氣值",
-    "requested": "已申請"
+    "requested": "已申請",
+    "nationality": {
+      "KR": "韓國",
+      "JP": "日本",
+      "US": "美國",
+      "CN": "中國",
+      "ES": "西班牙/拉丁美洲",
+      "RU": "俄羅斯",
+      "OTHER": "其他"
+    },
+    "gender": {
+      "female": "女性",
+      "male": "男性",
+      "other": "其他"
+    },
+    "styleTag": {
+      "cafe": "咖啡廳探險家",
+      "restaurant": "美食獵人",
+      "photospot": "打卡景點收藏家",
+      "street": "街道探險家",
+      "bar": "酒吧愛好者",
+      "culture": "文化探索者",
+      "nature": "自然愛好者",
+      "shopping": "購物狂"
+    },
+    "localSpotHunter": "在地景點獵人",
+    "tasteDist": "我的喜好分布"
   },
   "settings": {
     "title": "設定",
@@ -162,12 +213,40 @@
     "birthYear": "出生年份",
     "birthYearNone": "不填寫",
     "language": "語言",
+    "languageLabel": "語言 / Language",
     "visibility": "帳號公開設定",
     "public": "公開帳號",
     "publicHint": "所有人都可以看到你的主頁和貼文",
     "private": "私密帳號",
     "privateHint": "僅追蹤者可見",
-    "version": "版本"
+    "version": "版本",
+    "bio": "自我介紹",
+    "bioPlaceholder": "簡短自我介紹（最多120字）",
+    "birthDate": "生日",
+    "gender": "性別",
+    "genderLocked": "無法更改（已完成一次）",
+    "inquiry": "聯絡我們",
+    "inquiryCategory": {
+      "bug": "🐛 錯誤/問題",
+      "account": "👤 帳號",
+      "content": "📝 內容",
+      "points": "⭐ 點數",
+      "suggestion": "💡 功能建議",
+      "other": "其他"
+    },
+    "inquiryTitlePlaceholder": "標題",
+    "inquiryContentPlaceholder": "請詳細描述您的問題...",
+    "inquirySend": "送出",
+    "inquirySending": "送出中...",
+    "inquiryDoneTitle": "已收到您的問題！",
+    "inquiryDoneMsg": "我們會盡快回覆您",
+    "adminPage": "管理頁面",
+    "deleteAccount": "刪除帳號",
+    "deleteConfirm": "確定要刪除帳號嗎？\n\n所有資料和貼文將永久刪除。",
+    "deleteError": "刪除帳號失敗，請重試。",
+    "nicknameErrorDuplicate": "暱稱已被使用",
+    "nicknameErrorInvalid": "只能使用字母、數字、. _ -",
+    "nicknameErrorFailed": "儲存失敗"
   },
   "onboarding": {
     "title": "設定暱稱和國籍後開始使用",
@@ -188,7 +267,11 @@
     "feed": "探索",
     "map": "地圖",
     "saved": "收藏",
-    "profile": "我"
+    "profile": "我",
+    "addPost": "新增貼文",
+    "addPostDesc": "分享你去過或想去的地方",
+    "addPlace": "儲存地點",
+    "addPlaceDesc": "透過連結或搜尋儲存地點"
   },
   "scent": {
     "label": "香氣值",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "閃聚",
     "create": "建立閃聚",
-    "detail": "閃聚詳情",
+    "detail": {
+      "hostTeam": "主辦隊伍",
+      "wantedPartner": "希望對方",
+      "openThread": "開啟討論串",
+      "cannotApply": "無法申請",
+      "conditionMismatchNat": "條件不符（國籍）",
+      "conditionMismatchGender": "條件不符（性別）",
+      "restrictionNotMet": "需要公開個人檔案 + 無臭等級以上",
+      "inReview": "審核中",
+      "applyButton": "我要去"
+    },
     "applyTitle": "申請參加",
-    "manage": "管理",
+    "manage": {
+      "closed": "已結束",
+      "pending": "待審核",
+      "accepted": "已接受",
+      "unmatchBtn": "取消配對",
+      "rejectUnmatch": "拒絕/取消配對",
+      "reject": "拒絕",
+      "unmatch": "取消配對",
+      "openThread": "開啟討論串",
+      "closeBtn": "結束閃聚",
+      "noApplicants": "還沒有申請者",
+      "accept": "接受"
+    },
     "threadTitle": "討論串",
     "createButton": "+ 建立閃聚",
     "noMeetups": "還沒有閃聚",
@@ -279,17 +384,6 @@
       "submit": "登錄活動",
       "saveFailed": "儲存失敗"
     },
-    "detail": {
-      "hostTeam": "主辦隊伍",
-      "wantedPartner": "希望對方",
-      "openThread": "開啟討論串",
-      "cannotApply": "無法申請",
-      "conditionMismatchNat": "條件不符（國籍）",
-      "conditionMismatchGender": "條件不符（性別）",
-      "restrictionNotMet": "需要公開個人檔案 + 無臭等級以上",
-      "inReview": "審核中",
-      "applyButton": "我要去"
-    },
     "join": {
       "title": "申請資訊",
       "ourCount": "我們的人數",
@@ -301,19 +395,6 @@
       "failed": "申請失敗",
       "submitting": "申請中...",
       "submit": "申請"
-    },
-    "manage": {
-      "closed": "已結束",
-      "pending": "待審核",
-      "accepted": "已接受",
-      "unmatchBtn": "取消配對",
-      "rejectUnmatch": "拒絕/取消配對",
-      "reject": "拒絕",
-      "unmatch": "取消配對",
-      "openThread": "開啟討論串",
-      "closeBtn": "結束閃聚",
-      "noApplicants": "還沒有申請者",
-      "accept": "接受"
     },
     "thread": {
       "openOnDay": "討論串將在當天開啟",
@@ -364,5 +445,105 @@
     "minutesAgo": "{m}分鐘前",
     "hoursAgo": "{h}小時前",
     "daysAgo": "{d}天前"
+  },
+  "report": {
+    "title": "請選擇檢舉原因",
+    "submit": "檢舉",
+    "submitting": "檢舉中...",
+    "doneTitle": "已收到您的檢舉",
+    "doneMsg": "我們將審核並處理",
+    "reasons": {
+      "spam": "垃圾訊息/廣告",
+      "inappropriate": "不當內容",
+      "false": "虛假資訊",
+      "copyright": "侵犯著作權",
+      "custom": "自行填寫"
+    },
+    "customPlaceholder": "請描述原因..."
+  },
+  "upload": {
+    "title": "發文",
+    "failedMsg": "發文失敗，請重試",
+    "loginRequired": "請先登入",
+    "place": {
+      "title": "在哪裡？",
+      "subtitle": "搜尋或在地圖上選擇地點",
+      "tabSearch": "搜尋",
+      "tabMap": "地圖標記",
+      "tabGps": "我的位置",
+      "gpsLoading": "搜尋中...",
+      "searchPlaceholder": "搜尋地點...",
+      "search": "搜尋",
+      "mapInstruction": "點擊地圖選擇位置",
+      "placeNamePlaceholder": "地點名稱",
+      "categoryLabel": "類別",
+      "neighborhoodLabel": "區域",
+      "customInput": "手動輸入",
+      "neighborhoodPlaceholder": "例：弘大、梨泰院...",
+      "hiddenSpotLabel": "在地推薦",
+      "hiddenSpotDesc": "登記可獲得獎勵點數 +15",
+      "next": "下一步",
+      "gpsError": "無法獲取位置",
+      "currentLocation": "目前位置",
+      "selectedLocation": "選擇的位置"
+    },
+    "type": {
+      "title": "這是什麼類型的貼文？",
+      "visitedTitle": "去過了",
+      "visitedDesc": "分享你拜訪過的地方的照片和評論",
+      "wantTitle": "想去",
+      "wantDesc": "分享你有朝一日想去的地方"
+    },
+    "photos": {
+      "title": "新增照片",
+      "subtitleVisited": "最多3張",
+      "subtitleWant": "選填",
+      "skip": "略過",
+      "next": "下一步"
+    },
+    "rating": {
+      "title": "這個地方如何？",
+      "subtitle": "留下誠實的評價",
+      "next": "下一步"
+    },
+    "memo": {
+      "title": "留言",
+      "subtitle": "選填",
+      "memoPlaceholder": "說說這個地方...",
+      "menuLabel": "推薦菜單",
+      "menuOptional": "選填",
+      "menuPlaceholder": "例：美式咖啡、可頌",
+      "public": "公開",
+      "private": "私密",
+      "publicDesc": "顯示在動態",
+      "privateDesc": "只有你看得到",
+      "submit": "發文",
+      "submitting": "發文中..."
+    }
+  },
+  "placeAdd": {
+    "title": "儲存地點",
+    "tabSearch": "搜尋",
+    "tabGps": "我的位置",
+    "tabLink": "連結",
+    "searchPlaceholder": "搜尋地點...",
+    "search": "搜尋",
+    "linkHint": "貼上 Google 地圖或 Naver 地圖連結",
+    "confirm": "確認",
+    "gpsButton": "使用目前位置",
+    "gpsLoading": "獲取位置中...",
+    "gpsError": "無法獲取位置",
+    "currentLocation": "目前位置",
+    "typeLabel": "這是什麼類型的地點？",
+    "typeWant": "🧡 想去",
+    "typeVisited": "✅ 去過了",
+    "typeHidden": "🔍 在地推薦",
+    "categoryLabel": "類別",
+    "neighborhoodNotFound": "找不到區域（選填）",
+    "neighborhoodPlaceholder": "例：弘大、仁寺洞...",
+    "save": "儲存",
+    "saving": "儲存中...",
+    "saveError": "儲存失敗",
+    "errorGeneral": "發生錯誤"
   }
 }

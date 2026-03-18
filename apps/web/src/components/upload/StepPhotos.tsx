@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import type { PostType } from '@/types/database'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function StepPhotos({ postType, photos, onChange, onNext }: Props) {
+  const t = useTranslations('upload')
   const inputRef = useRef<HTMLInputElement>(null)
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -28,9 +30,9 @@ export default function StepPhotos({ postType, photos, onChange, onNext }: Props
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">사진 추가</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('photos.title')}</h2>
         <p className="text-sm text-gray-500 mt-0.5">
-          {postType === 'visited' ? '최대 3장까지 올릴 수 있어요' : '선택사항이에요'}
+          {postType === 'visited' ? t('photos.subtitleVisited') : t('photos.subtitleWant')}
         </p>
       </div>
 
@@ -82,7 +84,7 @@ export default function StepPhotos({ postType, photos, onChange, onNext }: Props
             onClick={onNext}
             className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600"
           >
-            건너뛰기
+            {t('photos.skip')}
           </button>
         )}
         <button
@@ -90,7 +92,7 @@ export default function StepPhotos({ postType, photos, onChange, onNext }: Props
           disabled={!canSkip && photos.length === 0}
           className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
         >
-          다음
+          {t('photos.next')}
         </button>
       </div>
     </div>

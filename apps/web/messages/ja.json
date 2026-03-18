@@ -16,7 +16,31 @@
     "all": "すべて",
     "other": "その他",
     "allTab": "すべて",
-    "followingTab": "フォロー中"
+    "followingTab": "フォロー中",
+    "viewModePost": "投稿",
+    "viewModePlace": "場所",
+    "filter": "フィルター",
+    "filterReset": "リセット",
+    "filterFeed": "フィード",
+    "filterSort": "並び替え",
+    "filterSortLatest": "🕐 新着順",
+    "filterSortLikes": "❤️ いいね順",
+    "filterSortSaves": "📍 保存順",
+    "filterPostType": "投稿タイプ",
+    "filterPostVisited": "✅ 訪問済み",
+    "filterPostWant": "🧡 行きたい",
+    "filterRatingAbove": "最低評価",
+    "filterAboveSuffix": "以上",
+    "filterCategory": "カテゴリー",
+    "filterLocalOnly": "🔍 地元のおすすめのみ",
+    "filterNationality": "国籍",
+    "filterGender": "性別",
+    "filterAge": "年齢層",
+    "filterAge10s": "10代",
+    "filterAge20s": "20代",
+    "filterAge30s": "30代",
+    "filterAge40s": "40代+",
+    "filterApply": "適用する"
   },
   "cities": {
     "seoul": "ソウル",
@@ -125,7 +149,7 @@
       "nature": "自然・景色",
       "shopping": "ショッピング"
     },
-    "hiddenSpot": "穴場スポット"
+    "hiddenSpot": "地元のおすすめ"
   },
   "place": {
     "visitorStats": "訪問者統計",
@@ -133,6 +157,7 @@
     "noPostsTitle": "まだ投稿がありません",
     "noPostsSubtitle": "この場所を最初にシェアしてみましょう",
     "meetupButton": "ミートアップ",
+    "naverMenu": "Naverでメニューを見る",
     "avgRating": {
       "must_go": "また行きたい",
       "worth_it": "一度は行く価値あり",
@@ -148,7 +173,33 @@
     "noPublicPosts": "公開投稿がありません",
     "noPosts": "まだ投稿がありません",
     "scent": "香り度",
-    "requested": "申請中"
+    "requested": "申請中",
+    "nationality": {
+      "KR": "韓国",
+      "JP": "日本",
+      "US": "アメリカ",
+      "CN": "中国",
+      "ES": "スペイン/中南米",
+      "RU": "ロシア",
+      "OTHER": "その他"
+    },
+    "gender": {
+      "female": "女性",
+      "male": "男性",
+      "other": "その他"
+    },
+    "styleTag": {
+      "cafe": "カフェ巡り",
+      "restaurant": "グルメハンター",
+      "photospot": "フォトスポット収集家",
+      "street": "街歩き探検家",
+      "bar": "バーホッパー",
+      "culture": "文化探訪家",
+      "nature": "自然ヒーラー",
+      "shopping": "ショッピング好き"
+    },
+    "localSpotHunter": "地元スポットハンター",
+    "tasteDist": "私の好みの分布"
   },
   "settings": {
     "title": "設定",
@@ -162,12 +213,40 @@
     "birthYear": "生まれ年",
     "birthYearNone": "指定しない",
     "language": "言語",
+    "languageLabel": "言語 / Language",
     "visibility": "アカウント公開設定",
     "public": "公開アカウント",
     "publicHint": "誰でもプロフィールと投稿を見られます",
     "private": "非公開アカウント",
     "privateHint": "フォロワーのみ閲覧できます",
-    "version": "バージョン"
+    "version": "バージョン",
+    "bio": "自己紹介",
+    "bioPlaceholder": "簡単な自己紹介を入力してください（最大120字）",
+    "birthDate": "生年月日",
+    "gender": "性別",
+    "genderLocked": "変更不可（1回のみ）",
+    "inquiry": "お問い合わせ",
+    "inquiryCategory": {
+      "bug": "🐛 バグ/エラー",
+      "account": "👤 アカウント",
+      "content": "📝 コンテンツ",
+      "points": "⭐ ポイント",
+      "suggestion": "💡 機能提案",
+      "other": "その他"
+    },
+    "inquiryTitlePlaceholder": "お問い合わせのタイトル",
+    "inquiryContentPlaceholder": "詳しく教えてください...",
+    "inquirySend": "送信する",
+    "inquirySending": "送信中...",
+    "inquiryDoneTitle": "お問い合わせを受け付けました",
+    "inquiryDoneMsg": "できるだけ早くご返信いたします",
+    "adminPage": "管理ページ",
+    "deleteAccount": "退会する",
+    "deleteConfirm": "本当に退会しますか？\n\nアカウント情報とすべての投稿が削除されます。",
+    "deleteError": "退会処理に失敗しました。もう一度お試しください。",
+    "nicknameErrorDuplicate": "このニックネームはすでに使われています",
+    "nicknameErrorInvalid": "英字・数字・. _ - のみ使用できます",
+    "nicknameErrorFailed": "保存に失敗しました"
   },
   "onboarding": {
     "title": "ニックネームと国籍を設定して始めましょう",
@@ -188,7 +267,11 @@
     "feed": "フィード",
     "map": "地図",
     "saved": "保存済み",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "addPost": "投稿する",
+    "addPostDesc": "訪れた場所や行きたい場所をシェアしよう",
+    "addPlace": "場所を保存",
+    "addPlaceDesc": "リンクや検索で場所をリストに追加"
   },
   "scent": {
     "label": "香り度",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "ミートアップ",
     "create": "作成",
-    "detail": "詳細",
+    "detail": {
+      "hostTeam": "主催チーム",
+      "wantedPartner": "希望条件",
+      "openThread": "スレッドを開く",
+      "cannotApply": "申請不可",
+      "conditionMismatchNat": "条件不一致（国籍）",
+      "conditionMismatchGender": "条件不一致（性別）",
+      "restrictionNotMet": "公開プロフィール + 無臭以上が必要",
+      "inReview": "審査中",
+      "applyButton": "参加する"
+    },
     "applyTitle": "参加申請",
-    "manage": "管理",
+    "manage": {
+      "closed": "終了",
+      "pending": "申請待ち",
+      "accepted": "承認済み",
+      "unmatchBtn": "アンマッチ",
+      "rejectUnmatch": "拒否/アンマッチ",
+      "reject": "拒否",
+      "unmatch": "アンマッチ",
+      "openThread": "スレッドを開く",
+      "closeBtn": "ミートアップを終了",
+      "noApplicants": "まだ申請者がいません",
+      "accept": "承認"
+    },
     "threadTitle": "スレッド",
     "createButton": "+ ミートアップを作る",
     "noMeetups": "まだミートアップがありません",
@@ -279,17 +384,6 @@
       "submit": "ミートアップを登録",
       "saveFailed": "保存に失敗しました"
     },
-    "detail": {
-      "hostTeam": "主催チーム",
-      "wantedPartner": "希望条件",
-      "openThread": "スレッドを開く",
-      "cannotApply": "申請不可",
-      "conditionMismatchNat": "条件不一致（国籍）",
-      "conditionMismatchGender": "条件不一致（性別）",
-      "restrictionNotMet": "公開プロフィール + 無臭以上が必要",
-      "inReview": "審査中",
-      "applyButton": "参加する"
-    },
     "join": {
       "title": "申請情報",
       "ourCount": "私たちの人数",
@@ -301,19 +395,6 @@
       "failed": "申請に失敗しました",
       "submitting": "申請中...",
       "submit": "申請する"
-    },
-    "manage": {
-      "closed": "終了",
-      "pending": "申請待ち",
-      "accepted": "承認済み",
-      "unmatchBtn": "アンマッチ",
-      "rejectUnmatch": "拒否/アンマッチ",
-      "reject": "拒否",
-      "unmatch": "アンマッチ",
-      "openThread": "スレッドを開く",
-      "closeBtn": "ミートアップを終了",
-      "noApplicants": "まだ申請者がいません",
-      "accept": "承認"
     },
     "thread": {
       "openOnDay": "当日にスレッドがオープンします",
@@ -364,5 +445,105 @@
     "minutesAgo": "{m}分前",
     "hoursAgo": "{h}時間前",
     "daysAgo": "{d}日前"
+  },
+  "report": {
+    "title": "通報理由を選択してください",
+    "submit": "通報する",
+    "submitting": "通報中...",
+    "doneTitle": "通報を受け付けました",
+    "doneMsg": "確認後、対応いたします",
+    "reasons": {
+      "spam": "スパム/広告",
+      "inappropriate": "不適切なコンテンツ",
+      "false": "虚偽情報",
+      "copyright": "著作権侵害",
+      "custom": "その他の理由"
+    },
+    "customPlaceholder": "理由を入力してください..."
+  },
+  "upload": {
+    "title": "投稿",
+    "failedMsg": "投稿に失敗しました。もう一度お試しください",
+    "loginRequired": "ログインが必要です",
+    "place": {
+      "title": "どこでしたか？",
+      "subtitle": "場所を検索またはマップで選択",
+      "tabSearch": "検索",
+      "tabMap": "マップピン",
+      "tabGps": "現在地",
+      "gpsLoading": "探しています...",
+      "searchPlaceholder": "場所名を検索...",
+      "search": "検索",
+      "mapInstruction": "マップをタップして場所を選択",
+      "placeNamePlaceholder": "場所名を入力",
+      "categoryLabel": "カテゴリー",
+      "neighborhoodLabel": "エリア",
+      "customInput": "直接入力",
+      "neighborhoodPlaceholder": "例: 弘大、梨泰院...",
+      "hiddenSpotLabel": "地元のおすすめ",
+      "hiddenSpotDesc": "登録でボーナスポイント +15",
+      "next": "次へ",
+      "gpsError": "位置情報を取得できません",
+      "currentLocation": "現在地",
+      "selectedLocation": "選択した場所"
+    },
+    "type": {
+      "title": "どんな投稿ですか？",
+      "visitedTitle": "行ってきた",
+      "visitedDesc": "訪れた場所の写真とレビューを残しましょう",
+      "wantTitle": "行きたい",
+      "wantDesc": "いつか行きたい場所をシェアしましょう"
+    },
+    "photos": {
+      "title": "写真を追加",
+      "subtitleVisited": "最大3枚",
+      "subtitleWant": "任意",
+      "skip": "スキップ",
+      "next": "次へ"
+    },
+    "rating": {
+      "title": "この場所はどうでしたか？",
+      "subtitle": "正直な感想を教えてください",
+      "next": "次へ"
+    },
+    "memo": {
+      "title": "一言メモ",
+      "subtitle": "任意",
+      "memoPlaceholder": "この場所について一言...",
+      "menuLabel": "おすすめメニュー",
+      "menuOptional": "任意",
+      "menuPlaceholder": "例: アメリカーノ、クロッフル",
+      "public": "公開",
+      "private": "非公開",
+      "publicDesc": "フィードに公開されます",
+      "privateDesc": "自分だけ見られます",
+      "submit": "投稿する",
+      "submitting": "投稿中..."
+    }
+  },
+  "placeAdd": {
+    "title": "場所を保存",
+    "tabSearch": "検索",
+    "tabGps": "現在地",
+    "tabLink": "リンク",
+    "searchPlaceholder": "場所名を検索...",
+    "search": "検索",
+    "linkHint": "Google マップまたはNaver マップのリンクを貼り付け",
+    "confirm": "確認",
+    "gpsButton": "現在地を取得",
+    "gpsLoading": "位置情報を取得中...",
+    "gpsError": "位置情報を取得できません",
+    "currentLocation": "現在地",
+    "typeLabel": "どんな場所ですか？",
+    "typeWant": "🧡 行きたい",
+    "typeVisited": "✅ 行ってきた",
+    "typeHidden": "🔍 地元のおすすめ",
+    "categoryLabel": "カテゴリー",
+    "neighborhoodNotFound": "エリアが見つかりません（任意）",
+    "neighborhoodPlaceholder": "例: 弘大、仁寺洞...",
+    "save": "保存する",
+    "saving": "保存中...",
+    "saveError": "保存に失敗しました",
+    "errorGeneral": "エラーが発生しました"
   }
 }

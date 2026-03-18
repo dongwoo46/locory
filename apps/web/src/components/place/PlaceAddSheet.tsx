@@ -2,19 +2,15 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslations } from 'next-intl'
 import { inferCityFromAddress, inferDistrictFromAddress } from '@/lib/utils/districts'
 import type { Category, City } from '@/types/database'
 
-const CATEGORY_OPTIONS: { value: Category; label: string; emoji: string }[] = [
-  { value: 'cafe',       label: '카페',     emoji: '☕' },
-  { value: 'restaurant', label: '맛집',     emoji: '🍽️' },
-  { value: 'photospot',  label: '포토스팟', emoji: '📸' },
-  { value: 'street',     label: '길거리',   emoji: '🚶' },
-  { value: 'bar',        label: '유흥/바',  emoji: '🍻' },
-  { value: 'culture',    label: '문화',     emoji: '🎨' },
-  { value: 'nature',     label: '자연',     emoji: '🌿' },
-  { value: 'shopping',   label: '쇼핑',     emoji: '🛍️' },
-]
+const CATEGORY_EMOJIS: Record<Category, string> = {
+  cafe: '☕', restaurant: '🍽️', photospot: '📸', street: '🚶',
+  bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
+}
+const CATEGORY_VALUES: Category[] = ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping']
 
 function detectCity(lat: number, lng: number): City {
   if (lat >= 33.0 && lat <= 34.0) return 'jeju'
@@ -46,6 +42,8 @@ interface Props {
 
 export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
   const supabase = createClient()
+  const t = useTranslations('placeAdd')
+  const tPost = useTranslations('post')
 
   const [tab, setTab] = useState<'search' | 'gps' | 'link'>('search')
   const [linkInput, setLinkInput] = useState('')
@@ -72,14 +70,14 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
         try {
           const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          selectPlace({ name: data.placeName || '현재 위치', address: data.address || '', lat, lng })
+          selectPlace({ name: data.placeName || t('currentLocation'), address: data.address || '', lat, lng })
         } catch {
-          selectPlace({ name: '현재 위치', address: '', lat, lng })
+          selectPlace({ name: t('currentLocation'), address: '', lat, lng })
         } finally {
           setGpsLoading(false)
         }
       },
-      () => { setError('위치를 가져올 수 없어요'); setGpsLoading(false) }
+      () => { setError(t('gpsError')); setGpsLoading(false) }
     )
   }
 
@@ -98,7 +96,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
       if (data.error) { setError(data.error); return }
       selectPlace(data)
     } catch {
-      setError('오류가 발생했어요')
+      setError(t('errorGeneral'))
     } finally {
       setLoading(false)
     }
@@ -190,7 +188,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
       onSaved({ id: place.id, name: found.name, category, city, district: effectiveDistrict })
       onClose()
     } catch (e) {
-      setError('저장에 실패했어요')
+      setError(t('saveError'))
     } finally {
       setSaving(false)
     }
@@ -210,23 +208,23 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
         </div>
 
         <div className="px-4 pb-8">
-          <h2 className="text-base font-bold text-gray-900 mb-4 mt-2">장소 저장</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-4 mt-2">{t('title')}</h2>
 
           {/* 탭 */}
           <div className="flex border-b border-gray-100 mb-4">
             {([
-              { key: 'search', label: '검색' },
-              { key: 'gps', label: '내 위치' },
-              { key: 'link', label: '링크' },
-            ] as const).map(t => (
+              { key: 'search', label: t('tabSearch') },
+              { key: 'gps', label: t('tabGps') },
+              { key: 'link', label: t('tabLink') },
+            ] as const).map(item => (
               <button
-                key={t.key}
-                onClick={() => { setTab(t.key); setFound(null); setError('') }}
+                key={item.key}
+                onClick={() => { setTab(item.key); setFound(null); setError('') }}
                 className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t.key ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
+                  tab === item.key ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
                 }`}
               >
-                {t.label}
+                {item.label}
               </button>
             ))}
           </div>
@@ -243,7 +241,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                   <svg width="16" height="16" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" strokeLinecap="round" />
                   </svg>
-                  {gpsLoading ? '위치 찾는 중...' : '현재 위치 가져오기'}
+                  {gpsLoading ? t('gpsLoading') : t('gpsButton')}
                 </button>
               ) : (
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl">
@@ -263,7 +261,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
           {/* 링크 탭 */}
           {tab === 'link' && (
             <div className="flex flex-col gap-3">
-              <p className="text-xs text-gray-400">Google Maps, 네이버 지도 링크를 붙여넣으세요</p>
+              <p className="text-xs text-gray-400">{t('linkHint')}</p>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -277,7 +275,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                   disabled={loading || !linkInput.trim()}
                   className="px-4 py-2.5 bg-gray-900 text-white text-sm rounded-xl disabled:opacity-40 shrink-0"
                 >
-                  {loading ? '...' : '확인'}
+                  {loading ? '...' : t('confirm')}
                 </button>
               </div>
               {error && <p className="text-xs text-red-500">{error}</p>}
@@ -293,7 +291,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch(searchQuery)}
-                  placeholder="장소명 검색..."
+                  placeholder={t('searchPlaceholder')}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                 />
                 <button
@@ -301,7 +299,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                   disabled={loading || searchQuery.length < 2}
                   className="px-4 py-2.5 bg-gray-900 text-white text-sm rounded-xl disabled:opacity-40 shrink-0"
                 >
-                  {loading ? '...' : '검색'}
+                  {loading ? '...' : t('search')}
                 </button>
               </div>
               {searchResults.length > 0 && (
@@ -336,12 +334,12 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
 
               {/* 저장 타입 */}
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold text-gray-500">어떤 장소예요?</p>
+                <p className="text-xs font-semibold text-gray-500">{t('typeLabel')}</p>
                 <div className="flex gap-2">
                   {([
-                    { key: 'want', label: '🧡 가고싶어' },
-                    { key: 'visited', label: '✅ 다녀왔어' },
-                    { key: 'hidden_spot', label: '🔍 나만아는장소' },
+                    { key: 'want', label: t('typeWant') },
+                    { key: 'visited', label: t('typeVisited') },
+                    { key: 'hidden_spot', label: t('typeHidden') },
                   ] as const).map(opt => (
                     <button
                       key={opt.key}
@@ -358,18 +356,18 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
 
               {/* 카테고리 */}
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold text-gray-500">카테고리</p>
+                <p className="text-xs font-semibold text-gray-500">{t('categoryLabel')}</p>
                 <div className="grid grid-cols-4 gap-2">
-                  {CATEGORY_OPTIONS.map(c => (
+                  {CATEGORY_VALUES.map(val => (
                     <button
-                      key={c.value}
-                      onClick={() => setCategory(c.value)}
+                      key={val}
+                      onClick={() => setCategory(val)}
                       className={`py-2 rounded-xl text-xs font-medium flex flex-col items-center gap-0.5 transition-colors ${
-                        category === c.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                        category === val ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      <span>{c.emoji}</span>
-                      <span>{c.label}</span>
+                      <span>{CATEGORY_EMOJIS[val]}</span>
+                      <span>{tPost(`category.${val}`)}</span>
                     </button>
                   ))}
                 </div>
@@ -385,12 +383,12 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                 </div>
               ) : (
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-xs text-gray-400">동네를 찾지 못했어요 (선택)</p>
+                  <p className="text-xs text-gray-400">{t('neighborhoodNotFound')}</p>
                   <input
                     type="text"
                     value={customDistrict}
                     onChange={e => setCustomDistrict(e.target.value)}
-                    placeholder="예: 을지로, 북촌..."
+                    placeholder={t('neighborhoodPlaceholder')}
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                   />
                 </div>
@@ -401,7 +399,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                 disabled={!canSave || saving}
                 className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
               >
-                {saving ? '저장 중...' : '저장하기'}
+                {saving ? t('saving') : t('save')}
               </button>
             </div>
           )}

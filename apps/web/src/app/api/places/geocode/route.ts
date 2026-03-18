@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ko&key=${apiKey}`
 
-  const res = await fetch(url)
+  const res = await fetch(url, { next: { revalidate: 86400 } }) // 24시간 캐싱
   const data = await res.json()
 
   const result = data.results?.[0]
@@ -24,5 +24,7 @@ export async function GET(request: Request) {
     types.reduce<string>((acc, t) => acc || components.find((c: any) => c.types.includes(t))?.long_name || '', '')
   const placeName = find('sublocality_level_2', 'sublocality_level_1', 'neighborhood', 'sublocality', 'locality')
 
-  return NextResponse.json({ address, placeName })
+  return NextResponse.json({ address, placeName }, {
+    headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800' },
+  })
 }

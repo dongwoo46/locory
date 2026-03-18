@@ -16,7 +16,31 @@
     "all": "Все",
     "other": "Другое",
     "allTab": "Все",
-    "followingTab": "Подписки"
+    "followingTab": "Подписки",
+    "viewModePost": "Посты",
+    "viewModePlace": "Места",
+    "filter": "Фильтр",
+    "filterReset": "Сбросить",
+    "filterFeed": "Лента",
+    "filterSort": "Сортировка",
+    "filterSortLatest": "🕐 Сначала новые",
+    "filterSortLikes": "❤️ По лайкам",
+    "filterSortSaves": "📍 По сохранениям",
+    "filterPostType": "Тип поста",
+    "filterPostVisited": "✅ Посещённые",
+    "filterPostWant": "🧡 Хочу сходить",
+    "filterRatingAbove": "Минимальный рейтинг",
+    "filterAboveSuffix": "и выше",
+    "filterCategory": "Категория",
+    "filterLocalOnly": "🔍 Только местные рекомендации",
+    "filterNationality": "Национальность",
+    "filterGender": "Пол",
+    "filterAge": "Возраст",
+    "filterAge10s": "Подростки",
+    "filterAge20s": "20-е",
+    "filterAge30s": "30-е",
+    "filterAge40s": "40+",
+    "filterApply": "Применить"
   },
   "cities": {
     "seoul": "Сеул",
@@ -125,7 +149,7 @@
       "nature": "Природа/Виды",
       "shopping": "Шопинг"
     },
-    "hiddenSpot": "Скрытое место"
+    "hiddenSpot": "Местная рекомендация"
   },
   "place": {
     "visitorStats": "Статистика посетителей",
@@ -133,6 +157,7 @@
     "noPostsTitle": "Постов пока нет",
     "noPostsSubtitle": "Поделитесь этим местом первым",
     "meetupButton": "Встреча",
+    "naverMenu": "Посмотреть меню на Naver",
     "avgRating": {
       "must_go": "Вернусь обязательно",
       "worth_it": "Стоит посетить",
@@ -148,7 +173,33 @@
     "noPublicPosts": "Нет публичных постов",
     "noPosts": "Постов пока нет",
     "scent": "Аромат",
-    "requested": "Запрошено"
+    "requested": "Запрошено",
+    "nationality": {
+      "KR": "Кореец",
+      "JP": "Японец",
+      "US": "Американец",
+      "CN": "Китаец",
+      "ES": "Испанец/Латиноамериканец",
+      "RU": "Русский",
+      "OTHER": "Другое"
+    },
+    "gender": {
+      "female": "Женский",
+      "male": "Мужской",
+      "other": "Другой"
+    },
+    "styleTag": {
+      "cafe": "Любитель кафе",
+      "restaurant": "Гурман",
+      "photospot": "Коллекционер фотолокаций",
+      "street": "Городской исследователь",
+      "bar": "Тусовщик",
+      "culture": "Культурный исследователь",
+      "nature": "Любитель природы",
+      "shopping": "Шопоголик"
+    },
+    "localSpotHunter": "Охотник за местными местами",
+    "tasteDist": "Мои вкусовые предпочтения"
   },
   "settings": {
     "title": "Настройки",
@@ -162,12 +213,40 @@
     "birthYear": "Год рождения",
     "birthYearNone": "Не указано",
     "language": "Язык",
+    "languageLabel": "Язык / Language",
     "visibility": "Настройки видимости аккаунта",
     "public": "Публичный аккаунт",
     "publicHint": "Профиль и посты видны всем",
     "private": "Закрытый аккаунт",
     "privateHint": "Только подписчики могут просматривать",
-    "version": "Версия"
+    "version": "Версия",
+    "bio": "О себе",
+    "bioPlaceholder": "Напишите краткое описание (макс. 120 символов)",
+    "birthDate": "Дата рождения",
+    "gender": "Пол",
+    "genderLocked": "Нельзя изменить (выполнено однажды)",
+    "inquiry": "Обратная связь",
+    "inquiryCategory": {
+      "bug": "🐛 Баг/Ошибка",
+      "account": "👤 Аккаунт",
+      "content": "📝 Контент",
+      "points": "⭐ Очки",
+      "suggestion": "💡 Предложение",
+      "other": "Другое"
+    },
+    "inquiryTitlePlaceholder": "Тема",
+    "inquiryContentPlaceholder": "Подробно опишите ваш вопрос...",
+    "inquirySend": "Отправить",
+    "inquirySending": "Отправка...",
+    "inquiryDoneTitle": "Обращение принято!",
+    "inquiryDoneMsg": "Ответим как можно скорее",
+    "adminPage": "Панель администратора",
+    "deleteAccount": "Удалить аккаунт",
+    "deleteConfirm": "Вы уверены, что хотите удалить аккаунт?\n\nВсе данные и посты будут удалены навсегда.",
+    "deleteError": "Не удалось удалить аккаунт. Попробуйте ещё раз.",
+    "nicknameErrorDuplicate": "Никнейм уже используется",
+    "nicknameErrorInvalid": "Допустимы только буквы, цифры, . _ -",
+    "nicknameErrorFailed": "Не удалось сохранить"
   },
   "onboarding": {
     "title": "Задайте никнейм и гражданство для начала",
@@ -188,7 +267,11 @@
     "feed": "Лента",
     "map": "Карта",
     "saved": "Сохранённое",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "addPost": "Создать пост",
+    "addPostDesc": "Делитесь местами, которые посетили или хотите посетить",
+    "addPlace": "Сохранить место",
+    "addPlaceDesc": "Добавляйте места по ссылке или поиску"
   },
   "scent": {
     "label": "Аромат",
@@ -244,9 +327,31 @@
   "meetup": {
     "title": "Встреча",
     "create": "Создать встречу",
-    "detail": "Детали",
+    "detail": {
+      "hostTeam": "Команда организатора",
+      "wantedPartner": "Ищу",
+      "openThread": "Открыть чат",
+      "cannotApply": "Нельзя подать заявку",
+      "conditionMismatchNat": "Условие не выполнено (гражданство)",
+      "conditionMismatchGender": "Условие не выполнено (пол)",
+      "restrictionNotMet": "Нужен публичный профиль + уровень «Без запаха»",
+      "inReview": "На рассмотрении",
+      "applyButton": "Иду!"
+    },
     "applyTitle": "Подать заявку",
-    "manage": "Управление",
+    "manage": {
+      "closed": "Закрыто",
+      "pending": "Ожидающие",
+      "accepted": "Принятые",
+      "unmatchBtn": "Размэтчить",
+      "rejectUnmatch": "Отклонить/Размэтчить",
+      "reject": "Отклонить",
+      "unmatch": "Размэтчить",
+      "openThread": "Открыть чат",
+      "closeBtn": "Закрыть встречу",
+      "noApplicants": "Заявок ещё нет",
+      "accept": "Принять"
+    },
     "threadTitle": "Переписка",
     "createButton": "+ Создать встречу",
     "noMeetups": "Встреч ещё нет",
@@ -279,17 +384,6 @@
       "submit": "Создать встречу",
       "saveFailed": "Ошибка сохранения"
     },
-    "detail": {
-      "hostTeam": "Команда организатора",
-      "wantedPartner": "Ищу",
-      "openThread": "Открыть чат",
-      "cannotApply": "Нельзя подать заявку",
-      "conditionMismatchNat": "Условие не выполнено (гражданство)",
-      "conditionMismatchGender": "Условие не выполнено (пол)",
-      "restrictionNotMet": "Нужен публичный профиль + уровень «Без запаха»",
-      "inReview": "На рассмотрении",
-      "applyButton": "Иду!"
-    },
     "join": {
       "title": "Данные заявки",
       "ourCount": "Нас",
@@ -301,19 +395,6 @@
       "failed": "Ошибка при подаче заявки",
       "submitting": "Отправка...",
       "submit": "Подать заявку"
-    },
-    "manage": {
-      "closed": "Закрыто",
-      "pending": "Ожидающие",
-      "accepted": "Принятые",
-      "unmatchBtn": "Размэтчить",
-      "rejectUnmatch": "Отклонить/Размэтчить",
-      "reject": "Отклонить",
-      "unmatch": "Размэтчить",
-      "openThread": "Открыть чат",
-      "closeBtn": "Закрыть встречу",
-      "noApplicants": "Заявок ещё нет",
-      "accept": "Принять"
     },
     "thread": {
       "openOnDay": "Чат откроется в день встречи",
@@ -364,5 +445,105 @@
     "minutesAgo": "{m} мин. назад",
     "hoursAgo": "{h} ч. назад",
     "daysAgo": "{d} дн. назад"
+  },
+  "report": {
+    "title": "Выберите причину жалобы",
+    "submit": "Пожаловаться",
+    "submitting": "Отправка...",
+    "doneTitle": "Жалоба принята",
+    "doneMsg": "Мы рассмотрим её в ближайшее время",
+    "reasons": {
+      "spam": "Спам / Реклама",
+      "inappropriate": "Неприемлемый контент",
+      "false": "Ложная информация",
+      "copyright": "Нарушение авторских прав",
+      "custom": "Написать свою причину"
+    },
+    "customPlaceholder": "Опишите причину..."
+  },
+  "upload": {
+    "title": "Пост",
+    "failedMsg": "Не удалось опубликовать. Попробуйте ещё раз",
+    "loginRequired": "Требуется авторизация",
+    "place": {
+      "title": "Где это было?",
+      "subtitle": "Найдите или отметьте на карте",
+      "tabSearch": "Поиск",
+      "tabMap": "Метка на карте",
+      "tabGps": "Моё местоположение",
+      "gpsLoading": "Поиск...",
+      "searchPlaceholder": "Поиск места...",
+      "search": "Найти",
+      "mapInstruction": "Нажмите на карту для выбора",
+      "placeNamePlaceholder": "Название места",
+      "categoryLabel": "Категория",
+      "neighborhoodLabel": "Район",
+      "customInput": "Ввести вручную",
+      "neighborhoodPlaceholder": "Напр.: Хондэ, Итэвон...",
+      "hiddenSpotLabel": "Местная рекомендация",
+      "hiddenSpotDesc": "Бонусные очки +15 при регистрации",
+      "next": "Далее",
+      "gpsError": "Не удалось получить местоположение",
+      "currentLocation": "Текущее местоположение",
+      "selectedLocation": "Выбранное место"
+    },
+    "type": {
+      "title": "Какой тип поста?",
+      "visitedTitle": "Уже был",
+      "visitedDesc": "Поделитесь фото и отзывом",
+      "wantTitle": "Хочу посетить",
+      "wantDesc": "Поделитесь местом, которое хотите посетить"
+    },
+    "photos": {
+      "title": "Добавить фото",
+      "subtitleVisited": "До 3 фотографий",
+      "subtitleWant": "Необязательно",
+      "skip": "Пропустить",
+      "next": "Далее"
+    },
+    "rating": {
+      "title": "Как вам это место?",
+      "subtitle": "Оставьте честный отзыв",
+      "next": "Далее"
+    },
+    "memo": {
+      "title": "Добавить заметку",
+      "subtitle": "Необязательно",
+      "memoPlaceholder": "Расскажите об этом месте...",
+      "menuLabel": "Рекомендуемое блюдо",
+      "menuOptional": "необязательно",
+      "menuPlaceholder": "Напр.: американо, кроффл",
+      "public": "Публично",
+      "private": "Приватно",
+      "publicDesc": "Видно в ленте",
+      "privateDesc": "Видно только вам",
+      "submit": "Опубликовать",
+      "submitting": "Публикация..."
+    }
+  },
+  "placeAdd": {
+    "title": "Сохранить место",
+    "tabSearch": "Поиск",
+    "tabGps": "Моё местоположение",
+    "tabLink": "Ссылка",
+    "searchPlaceholder": "Поиск места...",
+    "search": "Найти",
+    "linkHint": "Вставьте ссылку Google Maps или Naver Maps",
+    "confirm": "Подтвердить",
+    "gpsButton": "Использовать текущее местоположение",
+    "gpsLoading": "Получение местоположения...",
+    "gpsError": "Не удалось получить местоположение",
+    "currentLocation": "Текущее местоположение",
+    "typeLabel": "Какой тип места?",
+    "typeWant": "🧡 Хочу посетить",
+    "typeVisited": "✅ Уже был",
+    "typeHidden": "🔍 Местная рекомендация",
+    "categoryLabel": "Категория",
+    "neighborhoodNotFound": "Район не найден (необязательно)",
+    "neighborhoodPlaceholder": "Напр.: Хондэ, Инсадон...",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "saveError": "Не удалось сохранить",
+    "errorGeneral": "Произошла ошибка"
   }
 }

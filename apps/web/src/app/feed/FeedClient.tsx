@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
@@ -55,16 +56,15 @@ interface Props {
 export default function FeedClient({ profile, userId, followingUserIds }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const queryClient = useQueryClient()
   const t = useTranslations('feed')
   const tPost = useTranslations('post')
+  const tProfile = useTranslations('profile')
   const tCities = useTranslations('cities')
   const tDistricts = useTranslations('districts')
 
-  // 위치 필터 (항상 상단)
   const [city, setCity] = useState<City | null>(null)
   const [district, setDistrict] = useState<string | null>(null)
-
-  // 필터 패널 상태
   const [showFilters, setShowFilters] = useState(false)
   const [feedTab, setFeedTab] = useState<'all' | 'following'>('all')
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
@@ -77,110 +77,113 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const [ageRange, setAgeRange] = useState<string | null>(null)
   const [genderFilter, setGenderFilter] = useState<string | null>(null)
 
-  const [posts, setPosts] = useState<any[]>([])
-  const [savedPostIds, setSavedPostIds] = useState<Set<string>>(new Set())
-  const [savedPlaceIds, setSavedPlaceIds] = useState<Set<string>>(new Set())
-  const [savedPlaceMap, setSavedPlaceMap] = useState<Record<string, boolean>>({})
-  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set())
-  const [likedPlaceIds, setLikedPlaceIds] = useState<Set<string>>(new Set())
-  const [likedPlaceMap, setLikedPlaceMap] = useState<Record<string, boolean>>({})
-  const [loading, setLoading] = useState(true)
-
   const allDistricts = city ? [...getMainDistricts(city), ...getExtraDistricts(city)] : []
   const cityScroll = useDragScroll()
   const districtScroll = useDragScroll()
 
-  useEffect(() => { fetchPosts() }, [city, district, feedTab])
-  useEffect(() => { fetchSaved() }, [])
+  // saved/liked 상태 — 5분 캐싱
+  const { data: savedData } = useQuery({
+    queryKey: ['user-saved', userId],
+    queryFn: async () => {
+      const [{ data: ps }, { data: pls }, { data: pl }, { data: pll }] = await Promise.all([
+        supabase.from('post_saves').select('post_id').eq('user_id', userId),
+        supabase.from('place_saves').select('place_id').eq('user_id', userId),
+        supabase.from('post_likes').select('post_id').eq('user_id', userId),
+        supabase.from('place_likes').select('place_id').eq('user_id', userId),
+      ])
+      return {
+        savedPostIds: new Set((ps || []).map((s: any) => s.post_id)),
+        savedPlaceIds: new Set((pls || []).map((s: any) => s.place_id)),
+        likedPostIds: new Set((pl || []).map((s: any) => s.post_id)),
+        likedPlaceIds: new Set((pll || []).map((s: any) => s.place_id)),
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  })
 
-  async function fetchSaved() {
-    const [{ data: postSaves }, { data: placeSaves }, { data: postLikes }, { data: placeLikes }] = await Promise.all([
-      supabase.from('post_saves').select('post_id').eq('user_id', userId),
-      supabase.from('place_saves').select('place_id').eq('user_id', userId),
-      supabase.from('post_likes').select('post_id').eq('user_id', userId),
-      supabase.from('place_likes').select('place_id').eq('user_id', userId),
-    ])
-    setSavedPostIds(new Set((postSaves || []).map(s => s.post_id)))
-    const placeIds = new Set((placeSaves || []).map(s => s.place_id))
-    setSavedPlaceIds(placeIds)
-    setSavedPlaceMap(Object.fromEntries([...placeIds].map(id => [id, true])))
-    setLikedPostIds(new Set((postLikes || []).map(s => s.post_id)))
-    const likedIds = new Set((placeLikes || []).map(s => s.place_id))
-    setLikedPlaceIds(likedIds)
-    setLikedPlaceMap(Object.fromEntries([...likedIds].map(id => [id, true])))
-  }
+  const savedPostIds = savedData?.savedPostIds ?? new Set<string>()
+  const savedPlaceIds = savedData?.savedPlaceIds ?? new Set<string>()
+  const likedPostIds = savedData?.likedPostIds ?? new Set<string>()
+  const likedPlaceIds = savedData?.likedPlaceIds ?? new Set<string>()
 
-  async function fetchPosts() {
-    setLoading(true)
+  // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
+  const { data: posts = [], isLoading: loading } = useQuery({
+    queryKey: ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
+    queryFn: async () => {
+      if (feedTab === 'following') {
+        if (followingUserIds.length === 0) return []
+        const { data } = await supabase
+          .from('posts')
+          .select(`
+            id, type, rating, memo, photos, recommended_menu, created_at,
+            profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
+            places!place_id (id, name, category, district, city, place_type),
+            post_likes (count),
+            post_saves (count)
+          `)
+          .eq('is_public', true)
+          .in('user_id', followingUserIds)
+          .order('created_at', { ascending: false })
+          .limit(60)
+        return data || []
+      }
 
-    if (feedTab === 'following') {
-      if (followingUserIds.length === 0) { setPosts([]); setLoading(false); return }
+      let placesQuery = supabase.from('places').select('id')
+      if (city) placesQuery = placesQuery.eq('city', city)
+      if (city && district && district !== OTHER_DISTRICT) {
+        placesQuery = placesQuery.eq('district', district)
+      } else if (city && district === OTHER_DISTRICT) {
+        const knownDistricts = getDistricts(city).map(d => d.value)
+        placesQuery = placesQuery.or(`district.is.null,district.not.in.(${knownDistricts.join(',')})`)
+      }
+      const { data: matchedPlaces } = await placesQuery
+      const placeIds = (matchedPlaces || []).map((p: any) => p.id)
+      if (placeIds.length === 0) return []
+
       const { data } = await supabase
         .from('posts')
         .select(`
           id, type, rating, memo, photos, recommended_menu, created_at,
           profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
           places!place_id (id, name, category, district, city, place_type),
-          post_likes (count),
-          post_saves (count)
+          post_likes (count)
         `)
         .eq('is_public', true)
-        .in('user_id', followingUserIds)
+        .in('place_id', placeIds)
         .order('created_at', { ascending: false })
         .limit(60)
-      setPosts(data || [])
-      setLoading(false)
-      return
-    }
-
-    let placesQuery = supabase.from('places').select('id')
-    if (city) placesQuery = placesQuery.eq('city', city)
-    if (city && district && district !== OTHER_DISTRICT) {
-      placesQuery = placesQuery.eq('district', district)
-    } else if (city && district === OTHER_DISTRICT) {
-      const knownDistricts = getDistricts(city).map(d => d.value)
-      placesQuery = placesQuery.or(`district.is.null,district.not.in.(${knownDistricts.join(',')})`)
-    }
-    const { data: matchedPlaces } = await placesQuery
-    const placeIds = (matchedPlaces || []).map(p => p.id)
-    if (placeIds.length === 0) { setPosts([]); setLoading(false); return }
-
-    const { data } = await supabase
-      .from('posts')
-      .select(`
-        id, type, rating, memo, photos, recommended_menu, created_at,
-        profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
-        places!place_id (id, name, category, district, city, place_type),
-        post_likes (count)
-      `)
-      .eq('is_public', true)
-      .in('place_id', placeIds)
-      .order('created_at', { ascending: false })
-      .limit(60)
-
-    setPosts(data || [])
-    setLoading(false)
-  }
+      return data || []
+    },
+    staleTime: 60 * 1000,
+  })
 
   async function togglePlaceSave(placeId: string) {
-    const saved = savedPlaceMap[placeId]
+    const saved = savedPlaceIds.has(placeId)
+    queryClient.setQueryData(['user-saved', userId], (old: any) => {
+      if (!old) return old
+      const newSet = new Set(old.savedPlaceIds)
+      saved ? newSet.delete(placeId) : newSet.add(placeId)
+      return { ...old, savedPlaceIds: newSet }
+    })
     if (saved) {
       await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
-      setSavedPlaceMap(m => ({ ...m, [placeId]: false }))
     } else {
       await supabase.from('place_saves').insert({ user_id: userId, place_id: placeId })
-      setSavedPlaceMap(m => ({ ...m, [placeId]: true }))
     }
   }
 
   async function togglePlaceLike(placeId: string) {
-    const liked = likedPlaceMap[placeId]
+    const liked = likedPlaceIds.has(placeId)
+    queryClient.setQueryData(['user-saved', userId], (old: any) => {
+      if (!old) return old
+      const newSet = new Set(old.likedPlaceIds)
+      liked ? newSet.delete(placeId) : newSet.add(placeId)
+      return { ...old, likedPlaceIds: newSet }
+    })
     if (liked) {
       await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', placeId)
-      setLikedPlaceMap(m => ({ ...m, [placeId]: false }))
     } else {
       await supabase.from('place_likes').insert({ user_id: userId, place_id: placeId })
-      setLikedPlaceMap(m => ({ ...m, [placeId]: true }))
     }
   }
 
@@ -272,8 +275,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               {/* 포스팅/장소 pill */}
               <div className="flex items-center bg-gray-100 rounded-full p-0.5">
                 {([
-                  { key: 'posts', label: '포스팅' },
-                  { key: 'places', label: '장소' },
+                  { key: 'posts', label: t('viewModePost') },
+                  { key: 'places', label: t('viewModePlace') },
                 ] as const).map(opt => (
                   <button
                     key={opt.key}
@@ -296,7 +299,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
-                필터
+                {t('filter')}
                 {activeFilterCount > 0 && (
                   <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[10px] font-bold flex items-center justify-center">
                     {activeFilterCount}
@@ -404,7 +407,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
             <div className="px-4 pb-8 pt-2 flex flex-col gap-4">
 
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900">필터</h2>
+                <h2 className="text-sm font-bold text-gray-900">{t('filter')}</h2>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={() => {
@@ -414,18 +417,18 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     }}
                     className="text-xs text-gray-400 underline"
                   >
-                    초기화
+                    {t('filterReset')}
                   </button>
                 )}
               </div>
 
               {/* 전체/팔로잉 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">피드</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterFeed')}</p>
                 <div className="flex gap-2">
                   {([
-                    { key: 'all', label: '전체' },
-                    { key: 'following', label: '팔로잉' },
+                    { key: 'all', label: t('all') },
+                    { key: 'following', label: t('followingTab') },
                   ] as const).map(opt => (
                     <button key={opt.key} onClick={() => setFeedTab(opt.key)}
                       className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${feedTab === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
@@ -437,12 +440,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               {/* 정렬 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">정렬</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterSort')}</p>
                 <div className="flex gap-2">
                   {([
-                    { key: 'latest', label: '🕐 최신순' },
-                    { key: 'likes', label: '❤️ 좋아요순' },
-                    { key: 'saves', label: '📍 저장순' },
+                    { key: 'latest', label: t('filterSortLatest') },
+                    { key: 'likes', label: t('filterSortLikes') },
+                    { key: 'saves', label: t('filterSortSaves') },
                   ] as const).map(opt => (
                     <button key={opt.key} onClick={() => setSortBy(opt.key)}
                       className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${sortBy === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
@@ -454,12 +457,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               {/* 방문/가고싶어 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">포스트 유형</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterPostType')}</p>
                 <div className="flex gap-2">
                   {([
-                    { key: 'all', label: '전체' },
-                    { key: 'visited', label: '✅ 방문 후기' },
-                    { key: 'want', label: '🧡 가고싶어' },
+                    { key: 'all', label: t('all') },
+                    { key: 'visited', label: t('filterPostVisited') },
+                    { key: 'want', label: t('filterPostWant') },
                   ] as const).map(opt => (
                     <button key={opt.key} onClick={() => { setPostType(opt.key); if (opt.key !== 'visited') setMinRating(null) }}
                       className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${postType === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
@@ -472,11 +475,11 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               {/* 평점 (방문 후기일때) */}
               {postType !== 'want' && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 mb-2">평점 이상</p>
+                  <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterRatingAbove')}</p>
                   <div className="flex gap-2 flex-wrap">
                     <button onClick={() => setMinRating(null)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${minRating == null ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      전체
+                      {t('all')}
                     </button>
                     {[
                       { score: 4, key: 'must_go' },
@@ -489,7 +492,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                           ? { backgroundColor: RATING_COLORS[r.key], color: 'white', borderColor: 'transparent' }
                           : { backgroundColor: 'white', color: '#4B5563', borderColor: '#E5E7EB' }
                         }>
-                        {tPost(`rating.${r.key}`)} 이상
+                        {tPost(`rating.${r.key}`)} {t('filterAboveSuffix')}
                       </button>
                     ))}
                   </div>
@@ -498,7 +501,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               {/* 카테고리 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">카테고리</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterCategory')}</p>
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(CATEGORY_COLORS).map(cat => (
                     <button key={cat} onClick={() => toggleCategory(cat)}
@@ -511,19 +514,19 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </div>
               </div>
 
-              {/* 히든스팟 */}
+              {/* 현지인 추천 */}
               <div>
                 <button
                   onClick={() => setHiddenOnly(v => !v)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors border ${hiddenOnly ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
                 >
-                  🔍 히든스팟만
+                  {t('filterLocalOnly')}
                 </button>
               </div>
 
               {/* 국적 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">국적</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterNationality')}</p>
                 <div className="flex flex-wrap gap-2">
                   {NATIONALITY_CHIPS.map(({ code, flag }) => (
                     <button key={code} onClick={() => toggleNationality(code)}
@@ -536,16 +539,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               {/* 성별 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">성별</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterGender')}</p>
                 <div className="flex gap-2">
-                  {([
-                    { key: null, label: '전체' },
-                    { key: 'female', label: '여자' },
-                    { key: 'male', label: '남자' },
-                  ] as const).map(opt => (
-                    <button key={String(opt.key)} onClick={() => setGenderFilter(opt.key)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${genderFilter === opt.key ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {opt.label}
+                  {([null, 'female', 'male'] as const).map(g => (
+                    <button key={String(g)} onClick={() => setGenderFilter(g)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${genderFilter === g ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
+                      {g === null ? t('all') : tProfile(`gender.${g}`)}
                     </button>
                   ))}
                 </div>
@@ -553,14 +552,14 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               {/* 나잇대 */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">나잇대</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterAge')}</p>
                 <div className="flex gap-2 flex-wrap">
                   {([
-                    { key: null, label: '전체' },
-                    { key: '10s', label: '10대' },
-                    { key: '20s', label: '20대' },
-                    { key: '30s', label: '30대' },
-                    { key: '40s+', label: '40대+' },
+                    { key: null, label: t('all') },
+                    { key: '10s', label: t('filterAge10s') },
+                    { key: '20s', label: t('filterAge20s') },
+                    { key: '30s', label: t('filterAge30s') },
+                    { key: '40s+', label: t('filterAge40s') },
                   ] as const).map(opt => (
                     <button key={String(opt.key)} onClick={() => setAgeRange(opt.key)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${ageRange === opt.key ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
@@ -572,7 +571,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
               <button onClick={() => setShowFilters(false)}
                 className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold">
-                적용하기
+                {t('filterApply')}
               </button>
             </div>
           </div>
@@ -616,16 +615,16 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <div className="flex items-center gap-2 shrink-0 pl-2">
                   <button onClick={() => togglePlaceLike(place.id)}>
                     <svg width="18" height="18" viewBox="0 0 24 24"
-                      fill={likedPlaceMap[place.id] ? '#ef4444' : 'none'}
-                      stroke={likedPlaceMap[place.id] ? '#ef4444' : '#9CA3AF'}
+                      fill={likedPlaceIds.has(place.id) ? '#ef4444' : 'none'}
+                      stroke={likedPlaceIds.has(place.id) ? '#ef4444' : '#9CA3AF'}
                       strokeWidth={2}>
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
                   </button>
                   <button onClick={() => togglePlaceSave(place.id)}>
                     <svg width="18" height="18" viewBox="0 0 24 24"
-                      fill={savedPlaceMap[place.id] ? '#111' : 'none'}
-                      stroke={savedPlaceMap[place.id] ? '#111' : '#9CA3AF'}
+                      fill={savedPlaceIds.has(place.id) ? '#111' : 'none'}
+                      stroke={savedPlaceIds.has(place.id) ? '#111' : '#9CA3AF'}
                       strokeWidth={2}>
                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                     </svg>
