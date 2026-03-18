@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import { useTranslations } from 'next-intl'
-import { createClient } from '@/lib/supabase/client'
-import { containsProfanity } from '@/lib/utils/profanity'
+import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
+import { createClient } from '@/lib/supabase/client';
+import { containsProfanity } from '@/lib/utils/profanity';
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
@@ -15,93 +15,95 @@ const NATIONALITY_OPTS = [
   { value: 'ES', label: '🇪🇸 스페인/남미' },
   { value: 'RU', label: '🇷🇺 러시아' },
   { value: 'OTHER', label: '🌍 기타' },
-]
+];
 
 const AGE_GROUPS = [
-  { value: 'teens',     label: '10대' },
+  { value: 'teens', label: '10대' },
   { value: '20s_early', label: '20대 초' },
-  { value: '20s_mid',   label: '20대 중' },
-  { value: '20s_late',  label: '20대 후' },
+  { value: '20s_mid', label: '20대 중' },
+  { value: '20s_late', label: '20대 후' },
   { value: '30s_early', label: '30대 초' },
-  { value: '30s_mid',   label: '30대 중' },
-  { value: '30s_late',  label: '30대 후' },
-  { value: '40s_plus',  label: '40대+' },
-]
+  { value: '30s_mid', label: '30대 중' },
+  { value: '30s_late', label: '30대 후' },
+  { value: '40s_plus', label: '40대+' },
+];
 
 const ACTIVITIES = [
-  { value: 'chat',  label: '수다' },
-  { value: 'food',  label: '맛집탐방' },
+  { value: 'chat', label: '수다' },
+  { value: 'food', label: '맛집탐방' },
   { value: 'photo', label: '사진/포토' },
-  { value: 'tour',  label: '관광' },
+  { value: 'tour', label: '관광' },
   { value: 'drink', label: '술한잔' },
-  { value: 'game',  label: '게임/오락' },
+  { value: 'game', label: '게임/오락' },
   { value: 'other', label: '기타' },
-]
+];
 
 const VIBES = [
-  { value: 'casual',  label: '가벼운' },
-  { value: 'fun',     label: '유쾌한' },
+  { value: 'casual', label: '가벼운' },
+  { value: 'fun', label: '유쾌한' },
   { value: 'serious', label: '진지한' },
-]
+];
 
 const GENDER_OPTS = [
   { value: 'female', label: '여자' },
-  { value: 'male',   label: '남자' },
-  { value: 'mixed',  label: '혼성' },
-]
+  { value: 'male', label: '남자' },
+  { value: 'mixed', label: '혼성' },
+];
 
 const WANTED_GENDER_OPTS = [
   { value: 'female', label: '여자' },
-  { value: 'male',   label: '남자' },
-  { value: 'any',    label: '무관' },
-]
+  { value: 'male', label: '남자' },
+  { value: 'any', label: '무관' },
+];
 
-const COUNT_OPTS = [1, 2, 3, 4]
+const COUNT_OPTS = [1, 2, 3, 4];
 
 function ageGroupLabel(v: string) {
-  return AGE_GROUPS.find(a => a.value === v)?.label ?? v
+  return AGE_GROUPS.find((a) => a.value === v)?.label ?? v;
 }
 function activityLabel(v: string) {
-  return ACTIVITIES.find(a => a.value === v)?.label ?? v
+  return ACTIVITIES.find((a) => a.value === v)?.label ?? v;
 }
 function vibeLabel(v: string) {
-  return VIBES.find(a => a.value === v)?.label ?? v
+  return VIBES.find((a) => a.value === v)?.label ?? v;
 }
 
 function getAgeGroup(birthDate: string | null): string | null {
-  if (!birthDate) return null
-  const age = new Date().getFullYear() - new Date(birthDate).getFullYear()
-  if (age < 20) return 'teens'
-  if (age <= 23) return '20s_early'
-  if (age <= 26) return '20s_mid'
-  if (age <= 29) return '20s_late'
-  if (age <= 33) return '30s_early'
-  if (age <= 36) return '30s_mid'
-  if (age <= 39) return '30s_late'
-  return '40s_plus'
+  if (!birthDate) return null;
+  const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
+  if (age < 20) return 'teens';
+  if (age <= 23) return '20s_early';
+  if (age <= 26) return '20s_mid';
+  if (age <= 29) return '20s_late';
+  if (age <= 33) return '30s_early';
+  if (age <= 36) return '30s_mid';
+  if (age <= 39) return '30s_late';
+  return '40s_plus';
 }
 
 function formatScheduled(iso: string) {
-  const d = new Date(iso)
-  const mm = d.getMonth() + 1
-  const dd = d.getDate()
-  const hh = d.getHours().toString().padStart(2, '0')
-  const min = d.getMinutes().toString().padStart(2, '0')
-  return `${mm}/${dd} ${hh}:${min}`
+  const d = new Date(iso);
+  const mm = d.getMonth() + 1;
+  const dd = d.getDate();
+  const hh = d.getHours().toString().padStart(2, '0');
+  const min = d.getMinutes().toString().padStart(2, '0');
+  return `${mm}/${dd} ${hh}:${min}`;
 }
 
 // ─── 칩 컴포넌트 ─────────────────────────────────────────────────────────────
 
 function ChipSelect({
-  options, value, onChange,
+  options,
+  value,
+  onChange,
 }: {
-  options: { value: string; label: string }[]
-  value: string | null
-  onChange: (v: string) => void
+  options: { value: string; label: string }[];
+  value: string | null;
+  onChange: (v: string) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {options.map(o => (
+      {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
@@ -115,21 +117,25 @@ function ChipSelect({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
 function MultiChipSelect({
-  options, values, onChange,
+  options,
+  values,
+  onChange,
 }: {
-  options: { value: string; label: string }[]
-  values: string[]
-  onChange: (v: string[]) => void
+  options: { value: string; label: string }[];
+  values: string[];
+  onChange: (v: string[]) => void;
 }) {
   const toggle = (v: string) =>
-    onChange(values.includes(v) ? values.filter(x => x !== v) : [...values, v])
+    onChange(
+      values.includes(v) ? values.filter((x) => x !== v) : [...values, v],
+    );
   return (
     <div className="flex flex-wrap gap-1.5">
-      {options.map(o => (
+      {options.map((o) => (
         <button
           key={o.value}
           onClick={() => toggle(o.value)}
@@ -143,18 +149,26 @@ function MultiChipSelect({
         </button>
       ))}
     </div>
-  )
+  );
 }
 
-function CountSelect({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function CountSelect({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
   return (
     <div className="flex gap-1.5">
-      {COUNT_OPTS.map(n => (
+      {COUNT_OPTS.map((n) => (
         <button
           key={n}
           onClick={() => onChange(n)}
           className={`w-10 h-10 rounded-xl text-sm font-medium border transition-colors ${
-            value === n ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'
+            value === n
+              ? 'bg-gray-900 text-white border-transparent'
+              : 'border-gray-200 text-gray-600'
           }`}
         >
           {n}
@@ -163,125 +177,163 @@ function CountSelect({ value, onChange }: { value: number; onChange: (v: number)
       <button
         onClick={() => onChange(5)}
         className={`px-3 h-10 rounded-xl text-sm font-medium border transition-colors ${
-          value >= 5 ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'
+          value >= 5
+            ? 'bg-gray-900 text-white border-transparent'
+            : 'border-gray-200 text-gray-600'
         }`}
       >
         5+
       </button>
     </div>
-  )
+  );
 }
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
 interface Meetup {
-  id: string
-  organizer_id: string
-  scheduled_at: string
-  host_count: number
-  host_gender: string
-  host_age_groups: string[]
-  activities: string[]
-  vibe: string
-  description: string | null
-  wanted_gender: string
-  wanted_age_groups: string[] | null
-  wanted_count: number | null
-  wanted_nationalities: string[] | null
-  status: string
-  profiles: { id: string; nickname: string; avatar_url: string | null; gender: string | null; birth_date: string | null }
-  meetup_joins?: { status: string; applicant_id: string }[]
+  id: string;
+  organizer_id: string;
+  scheduled_at: string;
+  host_count: number;
+  host_gender: string;
+  host_age_groups: string[];
+  activities: string[];
+  vibe: string;
+  description: string | null;
+  wanted_gender: string;
+  wanted_age_groups: string[] | null;
+  wanted_count: number | null;
+  wanted_nationalities: string[] | null;
+  status: string;
+  profiles: {
+    id: string;
+    nickname: string;
+    avatar_url: string | null;
+    gender: string | null;
+    birth_date: string | null;
+  };
+  meetup_joins?: { status: string; applicant_id: string }[];
 }
 
 interface JoinRow {
-  id: string
-  applicant_id: string
-  join_count: number
-  join_gender: string
-  join_age_groups: string[]
-  message: string | null
-  status: string
-  profiles: { id: string; nickname: string; avatar_url: string | null; gender: string | null; birth_date: string | null }
+  id: string;
+  applicant_id: string;
+  join_count: number;
+  join_gender: string;
+  join_age_groups: string[];
+  message: string | null;
+  status: string;
+  profiles: {
+    id: string;
+    nickname: string;
+    avatar_url: string | null;
+    gender: string | null;
+    birth_date: string | null;
+  };
 }
 
 interface Props {
-  placeId: string
-  placeName: string
-  userId: string
-  userBirthDate: string | null
-  userGender: string | null
-  userNationality: string | null
-  userIsPublic: boolean
-  userTrustScore: number
-  onClose: () => void
+  placeId: string;
+  placeName: string;
+  userId: string;
+  userBirthDate: string | null;
+  userGender: string | null;
+  userNationality: string | null;
+  userIsPublic: boolean;
+  userTrustScore: number;
+  onClose: () => void;
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-type View = 'list' | 'create' | 'detail' | 'join' | 'manage' | 'thread'
+type View = 'list' | 'create' | 'detail' | 'join' | 'manage' | 'thread';
 
-export default function MeetupSheet({ placeId, placeName, userId, userBirthDate, userGender, userNationality, userIsPublic, userTrustScore, onClose }: Props) {
-  const supabase = createClient()
-  const t = useTranslations('meetup')
-  const [view, setView] = useState<View>('list')
-  const [meetups, setMeetups] = useState<Meetup[]>([])
-  const [selected, setSelected] = useState<Meetup | null>(null)
-  const [joins, setJoins] = useState<JoinRow[]>([])
-  const [loading, setLoading] = useState(false)
+export default function MeetupSheet({
+  placeId,
+  placeName,
+  userId,
+  userBirthDate,
+  userGender,
+  userNationality,
+  userIsPublic,
+  userTrustScore,
+  onClose,
+}: Props) {
+  const supabase = createClient();
+  const t = useTranslations('meetup');
+  const [view, setView] = useState<View>('list');
+  const [meetups, setMeetups] = useState<Meetup[]>([]);
+  const [selected, setSelected] = useState<Meetup | null>(null);
+  const [joins, setJoins] = useState<JoinRow[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const myAgeGroup = getAgeGroup(userBirthDate)
-  const canParticipate = userIsPublic && userTrustScore >= 3
+  const myAgeGroup = getAgeGroup(userBirthDate);
+  const canParticipate = userIsPublic && userTrustScore >= 3;
 
   // ── 목록 로드 ──────────────────────────────────────────────────────────────
 
   async function loadMeetups() {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const { data } = await supabase
       .from('place_meetups')
-      .select(`
+      .select(
+        `
         *,
         profiles!organizer_id (id, nickname, avatar_url, gender, birth_date),
         meetup_joins (status, applicant_id)
-      `)
+      `,
+      )
       .eq('place_id', placeId)
       .eq('status', 'open')
       .gt('scheduled_at', now)
-      .order('scheduled_at', { ascending: true })
-    setMeetups((data as any[]) ?? [])
+      .order('scheduled_at', { ascending: true });
+    setMeetups((data as any[]) ?? []);
   }
 
-  useEffect(() => { loadMeetups() }, [])
+  useEffect(() => {
+    loadMeetups();
+  }, []);
 
   // ── 미팅 선택 (상세/신청) ──────────────────────────────────────────────────
 
   async function openDetail(m: Meetup) {
-    setSelected(m)
+    setSelected(m);
     if (m.organizer_id === userId) {
       // 주최자 → 신청 목록 로드
       const { data } = await supabase
         .from('meetup_joins')
-        .select('*, profiles!applicant_id (id, nickname, avatar_url, gender, birth_date)')
+        .select(
+          '*, profiles!applicant_id (id, nickname, avatar_url, gender, birth_date)',
+        )
         .eq('meetup_id', m.id)
-        .order('created_at', { ascending: true })
-      setJoins((data as any[]) ?? [])
-      setView('manage')
+        .order('created_at', { ascending: true });
+      setJoins((data as any[]) ?? []);
+      setView('manage');
     } else {
-      setView('detail')
+      setView('detail');
     }
   }
 
   // ── 수락/거절/언매치 ────────────────────────────────────────────────────────
 
-  async function updateJoinStatus(joinId: string, status: 'accepted' | 'rejected' | 'unmatched') {
-    await supabase.from('meetup_joins').update({ status }).eq('id', joinId)
-    setJoins(j => j.map(x => x.id === joinId ? { ...x, status } : x))
+  async function updateJoinStatus(
+    joinId: string,
+    status: 'accepted' | 'rejected' | 'unmatched',
+  ) {
+    await supabase.from('meetup_joins').update({ status }).eq('id', joinId);
+    setJoins((j) => j.map((x) => (x.id === joinId ? { ...x, status } : x)));
 
     // 수락 → 모집 인원 충족 시 자동 마감
     if (status === 'accepted' && selected) {
-      const accepted = joins.filter(x => x.status === 'accepted' || x.id === joinId).length + 1
+      const accepted =
+        joins.filter((x) => x.status === 'accepted' || x.id === joinId).length +
+        1;
       if (selected.wanted_count && accepted >= selected.wanted_count) {
-        await supabase.from('place_meetups').update({ status: 'closed' }).eq('id', selected.id)
-        setSelected(s => s ? { ...s, status: 'closed' } : s)
+        await supabase
+          .from('place_meetups')
+          .update({ status: 'closed' })
+          .eq('id', selected.id);
+        setSelected((s) => (s ? { ...s, status: 'closed' } : s));
       }
     }
   }
@@ -303,9 +355,23 @@ export default function MeetupSheet({ placeId, placeName, userId, userBirthDate,
         {/* 헤더 */}
         <div className="flex items-center px-4 py-3 border-b border-gray-100">
           {view !== 'list' && (
-            <button onClick={() => setView('list')} className="p-1 mr-2 text-gray-400">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            <button
+              onClick={() => setView('list')}
+              className="p-1 mr-2 text-gray-400"
+            >
+              <svg
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 12H5M12 5l-7 7 7 7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           )}
@@ -318,8 +384,19 @@ export default function MeetupSheet({ placeId, placeName, userId, userBirthDate,
             {view === 'thread' && t('thread.title')}
           </h2>
           <button onClick={onClose} className="p-1 text-gray-400">
-            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M18 6L6 18M6 6l12 12"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
         </div>
@@ -341,7 +418,10 @@ export default function MeetupSheet({ placeId, placeName, userId, userBirthDate,
               userId={userId}
               myAgeGroup={myAgeGroup}
               myGender={userGender}
-              onDone={async () => { await loadMeetups(); setView('list') }}
+              onDone={async () => {
+                await loadMeetups();
+                setView('list');
+              }}
             />
           )}
 
@@ -363,7 +443,10 @@ export default function MeetupSheet({ placeId, placeName, userId, userBirthDate,
               userId={userId}
               myAgeGroup={myAgeGroup}
               myGender={userGender}
-              onDone={async () => { await loadMeetups(); setView('list') }}
+              onDone={async () => {
+                await loadMeetups();
+                setView('list');
+              }}
             />
           )}
           {view === 'manage' && selected && (
@@ -373,33 +456,43 @@ export default function MeetupSheet({ placeId, placeName, userId, userBirthDate,
               userId={userId}
               onUpdateStatus={updateJoinStatus}
               onThread={() => setView('thread')}
-              onClose={() => supabase.from('place_meetups').update({ status: 'closed' }).eq('id', selected.id).then(() => { loadMeetups(); setView('list') })}
+              onClose={() =>
+                supabase
+                  .from('place_meetups')
+                  .update({ status: 'closed' })
+                  .eq('id', selected.id)
+                  .then(() => {
+                    loadMeetups();
+                    setView('list');
+                  })
+              }
             />
           )}
           {view === 'thread' && selected && (
-            <MeetupThread
-              meetup={selected}
-              userId={userId}
-            />
+            <MeetupThread meetup={selected} userId={userId} />
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // ─── 목록 뷰 ─────────────────────────────────────────────────────────────────
 
 function MeetupList({
-  meetups, userId, canParticipate, onSelect, onCreate,
+  meetups,
+  userId,
+  canParticipate,
+  onSelect,
+  onCreate,
 }: {
-  meetups: Meetup[]
-  userId: string
-  canParticipate: boolean
-  onSelect: (m: Meetup) => void
-  onCreate: () => void
+  meetups: Meetup[];
+  userId: string;
+  canParticipate: boolean;
+  onSelect: (m: Meetup) => void;
+  onCreate: () => void;
 }) {
-  const t = useTranslations('meetup')
+  const t = useTranslations('meetup');
   return (
     <div className="px-4 py-4 flex flex-col gap-3">
       {canParticipate ? (
@@ -420,9 +513,9 @@ function MeetupList({
           {t('noMeetups')}
         </div>
       ) : (
-        meetups.map(m => {
-          const myJoin = m.meetup_joins?.find(j => j.applicant_id === userId)
-          const isOrganizer = m.organizer_id === userId
+        meetups.map((m) => {
+          const myJoin = m.meetup_joins?.find((j) => j.applicant_id === userId);
+          const isOrganizer = m.organizer_id === userId;
           return (
             <div
               key={m.id}
@@ -431,14 +524,29 @@ function MeetupList({
             >
               {/* 상단: 시간 + 주최자 */}
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-gray-900">{formatScheduled(m.scheduled_at)}</span>
+                <span className="text-xs font-semibold text-gray-900">
+                  {formatScheduled(m.scheduled_at)}
+                </span>
                 <div className="flex items-center gap-1.5">
-                  {m.profiles.avatar_url
-                    ? <img src={m.profiles.avatar_url} className="w-5 h-5 rounded-full object-cover" alt="" />
-                    : <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">{m.profiles.nickname[0]}</div>
-                  }
-                  <span className="text-xs text-gray-500">{m.profiles.nickname}</span>
-                  {isOrganizer && <span className="text-xs text-blue-500 font-medium">{t('myMeetup')}</span>}
+                  {m.profiles.avatar_url ? (
+                    <img
+                      src={m.profiles.avatar_url}
+                      className="w-5 h-5 rounded-full object-cover"
+                      alt=""
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
+                      {m.profiles.nickname[0]}
+                    </div>
+                  )}
+                  <span className="text-xs text-gray-500">
+                    {m.profiles.nickname}
+                  </span>
+                  {isOrganizer && (
+                    <span className="text-xs text-blue-500 font-medium">
+                      {t('myMeetup')}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -452,90 +560,131 @@ function MeetupList({
                     {t(`gender.${m.host_gender}`)}
                   </span>
                 )}
-                {m.host_age_groups.map(a => (
-                  <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">{t(`ageGroup.${a}`)}</span>
+                {m.host_age_groups.map((a) => (
+                  <span
+                    key={a}
+                    className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700"
+                  >
+                    {t(`ageGroup.${a}`)}
+                  </span>
                 ))}
-                {m.activities.slice(0, 2).map(a => (
-                  <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">{t(`activity.${a}`)}</span>
+                {m.activities.slice(0, 2).map((a) => (
+                  <span
+                    key={a}
+                    className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600"
+                  >
+                    {t(`activity.${a}`)}
+                  </span>
                 ))}
                 {m.vibe && (
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">{t(`vibe.${m.vibe}`)}</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">
+                    {t(`vibe.${m.vibe}`)}
+                  </span>
                 )}
               </div>
 
               {/* 원하는 상대 */}
               <div className="flex items-center gap-1 flex-wrap">
-                <span className="text-xs text-gray-400">{t('wantedLabel')}</span>
+                <span className="text-xs text-gray-400">
+                  {t('wantedLabel')}
+                </span>
                 <span className="text-xs text-gray-600">
                   {t(`gender.${m.wanted_gender}`)}
                 </span>
-                {m.wanted_age_groups?.map(a => (
-                  <span key={a} className="text-xs text-gray-600">{t(`ageGroup.${a}`)}</span>
+                {m.wanted_age_groups?.map((a) => (
+                  <span key={a} className="text-xs text-gray-600">
+                    {t(`ageGroup.${a}`)}
+                  </span>
                 ))}
-                {m.wanted_count && <span className="text-xs text-gray-600">{m.wanted_count}명</span>}
+                {m.wanted_count && (
+                  <span className="text-xs text-gray-600">
+                    {m.wanted_count}명
+                  </span>
+                )}
               </div>
 
               {/* 신청 상태 배지 */}
               {myJoin && (
                 <div className="mt-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    myJoin.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                    myJoin.status === 'rejected' ? 'bg-red-50 text-red-500' :
-                    myJoin.status === 'unmatched' ? 'bg-gray-100 text-gray-400' :
-                    'bg-yellow-50 text-yellow-600'
-                  }`}>
-                    {myJoin.status === 'accepted' ? t('status.accepted') :
-                     myJoin.status === 'rejected' ? t('status.rejected') :
-                     myJoin.status === 'unmatched' ? t('status.unmatched') : t('status.pending')}
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      myJoin.status === 'accepted'
+                        ? 'bg-green-100 text-green-700'
+                        : myJoin.status === 'rejected'
+                          ? 'bg-red-50 text-red-500'
+                          : myJoin.status === 'unmatched'
+                            ? 'bg-gray-100 text-gray-400'
+                            : 'bg-yellow-50 text-yellow-600'
+                    }`}
+                  >
+                    {myJoin.status === 'accepted'
+                      ? t('status.accepted')
+                      : myJoin.status === 'rejected'
+                        ? t('status.rejected')
+                        : myJoin.status === 'unmatched'
+                          ? t('status.unmatched')
+                          : t('status.pending')}
                   </span>
                 </div>
               )}
             </div>
-          )
+          );
         })
       )}
     </div>
-  )
+  );
 }
 
 // ─── 만들기 폼 ────────────────────────────────────────────────────────────────
 
 function MeetupCreateForm({
-  placeId, userId, myAgeGroup, myGender, onDone,
+  placeId,
+  userId,
+  myAgeGroup,
+  myGender,
+  onDone,
 }: {
-  placeId: string
-  userId: string
-  myAgeGroup: string | null
-  myGender: string | null
-  onDone: () => void
+  placeId: string;
+  userId: string;
+  myAgeGroup: string | null;
+  myGender: string | null;
+  onDone: () => void;
 }) {
-  const supabase = createClient()
-  const t = useTranslations('meetup')
+  const supabase = createClient();
+  const t = useTranslations('meetup');
+  const tCommon = useTranslations('common');
 
   const defaultDatetime = () => {
-    const d = new Date(); d.setHours(d.getHours() + 1, 0, 0, 0)
-    return d.toISOString().slice(0, 16)
-  }
+    const d = new Date();
+    d.setHours(d.getHours() + 1, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  };
 
-  const [scheduledAt, setScheduledAt] = useState(defaultDatetime())
-  const [hostCount, setHostCount] = useState(1)
-  const [hostGender, setHostGender] = useState<string>(myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed')
-  const [hostAgeGroups, setHostAgeGroups] = useState<string[]>(myAgeGroup ? [myAgeGroup] : [])
-  const [activities, setActivities] = useState<string[]>([])
-  const [vibe, setVibe] = useState<string | null>(null)
-  const [description, setDescription] = useState('')
-  const [wantedGender, setWantedGender] = useState<string>('any')
-  const [wantedAgeGroups, setWantedAgeGroups] = useState<string[]>([])
-  const [wantedCount, setWantedCount] = useState<number | null>(null)
-  const [wantedNationalities, setWantedNationalities] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [scheduledAt, setScheduledAt] = useState(defaultDatetime());
+  const [hostCount, setHostCount] = useState(1);
+  const [hostGender, setHostGender] = useState<string>(
+    myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed',
+  );
+  const [hostAgeGroups, setHostAgeGroups] = useState<string[]>(
+    myAgeGroup ? [myAgeGroup] : [],
+  );
+  const [activities, setActivities] = useState<string[]>([]);
+  const [vibe, setVibe] = useState<string | null>(null);
+  const [description, setDescription] = useState('');
+  const [wantedGender, setWantedGender] = useState<string>('any');
+  const [wantedAgeGroups, setWantedAgeGroups] = useState<string[]>([]);
+  const [wantedCount, setWantedCount] = useState<number | null>(null);
+  const [wantedNationalities, setWantedNationalities] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const canSubmit = scheduledAt && hostAgeGroups.length > 0 && activities.length > 0
+  const canSubmit =
+    scheduledAt && hostAgeGroups.length > 0 && activities.length > 0;
 
   async function handleSubmit() {
-    if (!canSubmit) return
-    setLoading(true)
+    if (!canSubmit) return;
+    if (containsProfanity(description)) { setError(tCommon('profanityError')); return; }
+    setLoading(true);
     const { error: err } = await supabase.from('place_meetups').insert({
       place_id: placeId,
       organizer_id: userId,
@@ -549,112 +698,191 @@ function MeetupCreateForm({
       wanted_gender: wantedGender,
       wanted_age_groups: wantedAgeGroups.length > 0 ? wantedAgeGroups : null,
       wanted_count: wantedCount,
-      wanted_nationalities: wantedNationalities.length > 0 ? wantedNationalities : null,
-    })
-    if (err) { setError(t('form.saveFailed')); setLoading(false); return }
-    onDone()
+      wanted_nationalities:
+        wantedNationalities.length > 0 ? wantedNationalities : null,
+    });
+    if (err) {
+      setError(t('form.saveFailed'));
+      setLoading(false);
+      return;
+    }
+    onDone();
   }
 
   return (
     <div className="px-4 py-4 flex flex-col gap-5">
       {/* 날짜/시간 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.dateTime')}</p>
+        <p className="text-xs font-semibold text-gray-500 mb-2">
+          {t('form.dateTime')}
+        </p>
         <input
           type="datetime-local"
           value={scheduledAt}
           min={new Date().toISOString().slice(0, 16)}
-          onChange={e => setScheduledAt(e.target.value)}
+          onChange={(e) => setScheduledAt(e.target.value)}
           className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white"
         />
       </div>
 
       {/* 우리 측 */}
       <div className="flex flex-col gap-4">
-        <p className="text-xs font-semibold text-gray-900">{t('form.ourTeam')}</p>
+        <p className="text-xs font-semibold text-gray-900">
+          {t('form.ourTeam')}
+        </p>
 
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">{t('form.memberCount')}</p>
+          <p className="text-xs text-gray-400 mb-1.5">
+            {t('form.memberCount')}
+          </p>
           <CountSelect value={hostCount} onChange={setHostCount} />
         </div>
 
         <div>
           <p className="text-xs text-gray-400 mb-1.5">{t('form.genderComp')}</p>
-          <ChipSelect options={GENDER_OPTS.map(g => ({ value: g.value, label: t(`gender.${g.value}`) }))} value={hostGender} onChange={setHostGender} />
+          <ChipSelect
+            options={GENDER_OPTS.map((g) => ({
+              value: g.value,
+              label: t(`gender.${g.value}`),
+            }))}
+            value={hostGender}
+            onChange={setHostGender}
+          />
         </div>
 
         <div>
           <p className="text-xs text-gray-400 mb-1.5">{t('form.ageGroups')}</p>
-          <MultiChipSelect options={AGE_GROUPS.map(a => ({ value: a.value, label: t(`ageGroup.${a.value}`) }))} values={hostAgeGroups} onChange={setHostAgeGroups} />
+          <MultiChipSelect
+            options={AGE_GROUPS.map((a) => ({
+              value: a.value,
+              label: t(`ageGroup.${a.value}`),
+            }))}
+            values={hostAgeGroups}
+            onChange={setHostAgeGroups}
+          />
         </div>
       </div>
 
       {/* 활동 / 분위기 */}
       <div className="flex flex-col gap-4">
-        <p className="text-xs font-semibold text-gray-900">{t('form.activitiesVibe')}</p>
+        <p className="text-xs font-semibold text-gray-900">
+          {t('form.activitiesVibe')}
+        </p>
         <div>
           <p className="text-xs text-gray-400 mb-1.5">{t('form.whatToDo')}</p>
-          <MultiChipSelect options={ACTIVITIES.map(a => ({ value: a.value, label: t(`activity.${a.value}`) }))} values={activities} onChange={setActivities} />
+          <MultiChipSelect
+            options={ACTIVITIES.map((a) => ({
+              value: a.value,
+              label: t(`activity.${a.value}`),
+            }))}
+            values={activities}
+            onChange={setActivities}
+          />
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1.5">{t('form.vibe')}</p>
-          <ChipSelect options={VIBES.map(v => ({ value: v.value, label: t(`vibe.${v.value}`) }))} value={vibe} onChange={v => setVibe(prev => prev === v ? null : v)} />
+          <ChipSelect
+            options={VIBES.map((v) => ({
+              value: v.value,
+              label: t(`vibe.${v.value}`),
+            }))}
+            value={vibe}
+            onChange={(v) => setVibe((prev) => (prev === v ? null : v))}
+          />
         </div>
       </div>
 
       {/* 한마디 */}
       <div>
-        <p className="text-xs font-semibold text-gray-900 mb-2">{t('form.description')}</p>
+        <p className="text-xs font-semibold text-gray-900 mb-2">
+          {t('form.description')}
+        </p>
         <textarea
           value={description}
-          onChange={e => setDescription(e.target.value.slice(0, 100))}
+          onChange={(e) => setDescription(e.target.value.slice(0, 100))}
           placeholder={t('form.descriptionPlaceholder')}
           rows={2}
           className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none resize-none"
         />
-        <p className="text-right text-xs text-gray-300 mt-0.5">{description.length}/100</p>
+        <p className="text-right text-xs text-gray-300 mt-0.5">
+          {description.length}/100
+        </p>
       </div>
 
       {/* 원하는 상대 */}
       <div className="flex flex-col gap-4">
-        <p className="text-xs font-semibold text-gray-900">{t('form.wantedConditions')}</p>
+        <p className="text-xs font-semibold text-gray-900">
+          {t('form.wantedConditions')}
+        </p>
 
         <div>
           <p className="text-xs text-gray-400 mb-1.5">{t('form.gender')}</p>
-          <ChipSelect options={WANTED_GENDER_OPTS.map(g => ({ value: g.value, label: t(`gender.${g.value}`) }))} value={wantedGender} onChange={setWantedGender} />
+          <ChipSelect
+            options={WANTED_GENDER_OPTS.map((g) => ({
+              value: g.value,
+              label: t(`gender.${g.value}`),
+            }))}
+            value={wantedGender}
+            onChange={setWantedGender}
+          />
         </div>
 
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">{t('form.ageGroupsOptional')}</p>
-          <MultiChipSelect options={AGE_GROUPS.map(a => ({ value: a.value, label: t(`ageGroup.${a.value}`) }))} values={wantedAgeGroups} onChange={setWantedAgeGroups} />
+          <p className="text-xs text-gray-400 mb-1.5">
+            {t('form.ageGroupsOptional')}
+          </p>
+          <MultiChipSelect
+            options={AGE_GROUPS.map((a) => ({
+              value: a.value,
+              label: t(`ageGroup.${a.value}`),
+            }))}
+            values={wantedAgeGroups}
+            onChange={setWantedAgeGroups}
+          />
         </div>
 
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">{t('form.countOptional')}</p>
+          <p className="text-xs text-gray-400 mb-1.5">
+            {t('form.countOptional')}
+          </p>
           <div className="flex gap-1.5">
-            {COUNT_OPTS.map(n => (
+            {COUNT_OPTS.map((n) => (
               <button
                 key={n}
-                onClick={() => setWantedCount(prev => prev === n ? null : n)}
+                onClick={() =>
+                  setWantedCount((prev) => (prev === n ? null : n))
+                }
                 className={`w-10 h-10 rounded-xl text-sm font-medium border transition-colors ${
-                  wantedCount === n ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'
+                  wantedCount === n
+                    ? 'bg-gray-900 text-white border-transparent'
+                    : 'border-gray-200 text-gray-600'
                 }`}
               >
                 {n}
               </button>
             ))}
             <button
-              onClick={() => setWantedCount(prev => prev === 5 ? null : 5)}
+              onClick={() => setWantedCount((prev) => (prev === 5 ? null : 5))}
               className={`px-3 h-10 rounded-xl text-sm font-medium border transition-colors ${
-                (wantedCount ?? 0) >= 5 ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-600'
+                (wantedCount ?? 0) >= 5
+                  ? 'bg-gray-900 text-white border-transparent'
+                  : 'border-gray-200 text-gray-600'
               }`}
-            >5+</button>
+            >
+              5+
+            </button>
           </div>
         </div>
 
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">{t('form.nationalityOptional')}</p>
-          <MultiChipSelect options={NATIONALITY_OPTS} values={wantedNationalities} onChange={setWantedNationalities} />
+          <p className="text-xs text-gray-400 mb-1.5">
+            {t('form.nationalityOptional')}
+          </p>
+          <MultiChipSelect
+            options={NATIONALITY_OPTS}
+            values={wantedNationalities}
+            onChange={setWantedNationalities}
+          />
         </div>
       </div>
 
@@ -668,86 +896,159 @@ function MeetupCreateForm({
         {loading ? t('form.saving') : t('form.submit')}
       </button>
     </div>
-  )
+  );
 }
 
 // ─── 상세 뷰 (신청자용) ───────────────────────────────────────────────────────
 
 function MeetupDetailView({
-  meetup, userId, myAgeGroup, myGender, myNationality, canParticipate, onJoin, onThread,
+  meetup,
+  userId,
+  myAgeGroup,
+  myGender,
+  myNationality,
+  canParticipate,
+  onJoin,
+  onThread,
 }: {
-  meetup: Meetup
-  userId: string
-  myAgeGroup: string | null
-  myGender: string | null
-  myNationality: string | null
-  canParticipate: boolean
-  onJoin: () => void
-  onThread: () => void
+  meetup: Meetup;
+  userId: string;
+  myAgeGroup: string | null;
+  myGender: string | null;
+  myNationality: string | null;
+  canParticipate: boolean;
+  onJoin: () => void;
+  onThread: () => void;
 }) {
-  const t = useTranslations('meetup')
-  const myJoin = meetup.meetup_joins?.find(j => j.applicant_id === userId)
-  const isUnmatched = myJoin?.status === 'unmatched' || myJoin?.status === 'rejected'
-  const isPending = myJoin?.status === 'pending'
-  const isAccepted = myJoin?.status === 'accepted'
+  const t = useTranslations('meetup');
+  const myJoin = meetup.meetup_joins?.find((j) => j.applicant_id === userId);
+  const isUnmatched =
+    myJoin?.status === 'unmatched' || myJoin?.status === 'rejected';
+  const isPending = myJoin?.status === 'pending';
+  const isAccepted = myJoin?.status === 'accepted';
 
   // 조건 미충족 여부
-  const natMismatch = meetup.wanted_nationalities && myNationality
-    ? !meetup.wanted_nationalities.includes(myNationality)
-    : false
-  const genderMismatch = meetup.wanted_gender !== 'any' && myGender
-    ? meetup.wanted_gender !== myGender
-    : false
-  const conditionBlocked = natMismatch || genderMismatch
+  const natMismatch =
+    meetup.wanted_nationalities && myNationality
+      ? !meetup.wanted_nationalities.includes(myNationality)
+      : false;
+  const genderMismatch =
+    meetup.wanted_gender !== 'any' && myGender
+      ? meetup.wanted_gender !== myGender
+      : false;
+  const conditionBlocked = natMismatch || genderMismatch;
 
   return (
     <div className="px-4 py-4 flex flex-col gap-4">
       {/* 주최자 프로필 카드 */}
       <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-        {meetup.profiles.avatar_url
-          ? <img src={meetup.profiles.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-          : <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-lg text-gray-400">{meetup.profiles.nickname[0]}</div>
-        }
+        {meetup.profiles.avatar_url ? (
+          <img
+            src={meetup.profiles.avatar_url}
+            className="w-12 h-12 rounded-full object-cover"
+            alt=""
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-lg text-gray-400">
+            {meetup.profiles.nickname[0]}
+          </div>
+        )}
         <div>
-          <p className="text-sm font-bold text-gray-900">{meetup.profiles.nickname}</p>
+          <p className="text-sm font-bold text-gray-900">
+            {meetup.profiles.nickname}
+          </p>
           <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-400">
             {meetup.profiles.gender && (
-              <span>{meetup.profiles.gender === 'female' ? t('gender.female') : meetup.profiles.gender === 'male' ? t('gender.male') : t('gender.other')}</span>
+              <span>
+                {meetup.profiles.gender === 'female'
+                  ? t('gender.female')
+                  : meetup.profiles.gender === 'male'
+                    ? t('gender.male')
+                    : t('gender.other')}
+              </span>
             )}
             {meetup.profiles.birth_date && (
-              <span>{new Date().getFullYear() - new Date(meetup.profiles.birth_date).getFullYear()}세</span>
+              <span>
+                {new Date().getFullYear() -
+                  new Date(meetup.profiles.birth_date).getFullYear()}
+                세
+              </span>
             )}
           </div>
         </div>
         <div className="ml-auto text-right">
-          <p className="text-xs font-semibold text-gray-900">{formatScheduled(meetup.scheduled_at)}</p>
+          <p className="text-xs font-semibold text-gray-900">
+            {formatScheduled(meetup.scheduled_at)}
+          </p>
         </div>
       </div>
 
       {/* 우리 팀 정보 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-2">{t('detail.hostTeam')}</p>
+        <p className="text-xs font-semibold text-gray-500 mb-2">
+          {t('detail.hostTeam')}
+        </p>
         <div className="flex flex-wrap gap-1.5">
-          <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">{meetup.host_count}명</span>
-          {meetup.host_gender && <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">{t(`gender.${meetup.host_gender}`)}</span>}
-          {meetup.host_age_groups.map(a => <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">{t(`ageGroup.${a}`)}</span>)}
-          {meetup.activities.map(a => <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-blue-50 text-blue-600">{t(`activity.${a}`)}</span>)}
-          {meetup.vibe && <span className="px-2.5 py-1 rounded-full text-xs bg-purple-50 text-purple-600">{t(`vibe.${meetup.vibe}`)}</span>}
+          <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+            {meetup.host_count}명
+          </span>
+          {meetup.host_gender && (
+            <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+              {t(`gender.${meetup.host_gender}`)}
+            </span>
+          )}
+          {meetup.host_age_groups.map((a) => (
+            <span
+              key={a}
+              className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+            >
+              {t(`ageGroup.${a}`)}
+            </span>
+          ))}
+          {meetup.activities.map((a) => (
+            <span
+              key={a}
+              className="px-2.5 py-1 rounded-full text-xs bg-blue-50 text-blue-600"
+            >
+              {t(`activity.${a}`)}
+            </span>
+          ))}
+          {meetup.vibe && (
+            <span className="px-2.5 py-1 rounded-full text-xs bg-purple-50 text-purple-600">
+              {t(`vibe.${meetup.vibe}`)}
+            </span>
+          )}
         </div>
       </div>
 
       {/* 원하는 상대 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-2">{t('detail.wantedPartner')}</p>
+        <p className="text-xs font-semibold text-gray-500 mb-2">
+          {t('detail.wantedPartner')}
+        </p>
         <div className="flex flex-wrap gap-1.5">
           <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
             {t(`gender.${meetup.wanted_gender}`)}
           </span>
-          {meetup.wanted_age_groups?.map(a => <span key={a} className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">{t(`ageGroup.${a}`)}</span>)}
-          {meetup.wanted_count && <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">{meetup.wanted_count}명</span>}
-          {meetup.wanted_nationalities?.map(n => (
-            <span key={n} className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
-              {NATIONALITY_OPTS.find(o => o.value === n)?.label ?? n}
+          {meetup.wanted_age_groups?.map((a) => (
+            <span
+              key={a}
+              className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+            >
+              {t(`ageGroup.${a}`)}
+            </span>
+          ))}
+          {meetup.wanted_count && (
+            <span className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+              {meetup.wanted_count}명
+            </span>
+          )}
+          {meetup.wanted_nationalities?.map((n) => (
+            <span
+              key={n}
+              className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+            >
+              {NATIONALITY_OPTS.find((o) => o.value === n)?.label ?? n}
             </span>
           ))}
         </div>
@@ -762,51 +1063,81 @@ function MeetupDetailView({
 
       {/* 신청/스레드 버튼 */}
       {isAccepted ? (
-        <button onClick={onThread} className="w-full py-3.5 bg-green-600 text-white rounded-xl text-sm font-medium">
+        <button
+          onClick={onThread}
+          className="w-full py-3.5 bg-green-600 text-white rounded-xl text-sm font-medium"
+        >
           {t('detail.openThread')}
         </button>
       ) : isUnmatched ? (
-        <div className="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl text-sm text-center">{t('detail.cannotApply')}</div>
+        <div className="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl text-sm text-center">
+          {t('detail.cannotApply')}
+        </div>
       ) : conditionBlocked ? (
         <div className="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl text-sm text-center">
-          {natMismatch ? t('detail.conditionMismatchNat') : t('detail.conditionMismatchGender')}
+          {natMismatch
+            ? t('detail.conditionMismatchNat')
+            : t('detail.conditionMismatchGender')}
         </div>
       ) : !canParticipate ? (
-        <div className="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl text-sm text-center">{t('detail.restrictionNotMet')}</div>
+        <div className="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl text-sm text-center">
+          {t('detail.restrictionNotMet')}
+        </div>
       ) : isPending ? (
-        <div className="w-full py-3.5 bg-yellow-50 text-yellow-600 rounded-xl text-sm text-center">{t('detail.inReview')}</div>
+        <div className="w-full py-3.5 bg-yellow-50 text-yellow-600 rounded-xl text-sm text-center">
+          {t('detail.inReview')}
+        </div>
       ) : (
-        <button onClick={onJoin} className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-medium">
+        <button
+          onClick={onJoin}
+          className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-medium"
+        >
           {t('detail.applyButton')}
         </button>
       )}
     </div>
-  )
+  );
 }
 
 // ─── 신청 폼 (신청자용) ───────────────────────────────────────────────────────
 
 function MeetupJoinForm({
-  meetup, userId, myAgeGroup, myGender, onDone,
+  meetup,
+  userId,
+  myAgeGroup,
+  myGender,
+  onDone,
 }: {
-  meetup: Meetup
-  userId: string
-  myAgeGroup: string | null
-  myGender: string | null
-  onDone: () => void
+  meetup: Meetup;
+  userId: string;
+  myAgeGroup: string | null;
+  myGender: string | null;
+  onDone: () => void;
 }) {
-  const supabase = createClient()
-  const t = useTranslations('meetup')
-  const [joinCount, setJoinCount] = useState(1)
-  const [joinGender, setJoinGender] = useState<string>(myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed')
-  const [joinAgeGroups, setJoinAgeGroups] = useState<string[]>(myAgeGroup ? [myAgeGroup] : [])
-  const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const supabase = createClient();
+  const t = useTranslations('meetup');
+  const tCommon = useTranslations('common');
+  const [joinCount, setJoinCount] = useState(1);
+  const [joinGender, setJoinGender] = useState<string>(
+    myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed',
+  );
+  const [joinAgeGroups, setJoinAgeGroups] = useState<string[]>(
+    myAgeGroup ? [myAgeGroup] : [],
+  );
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit() {
-    if (joinAgeGroups.length === 0) { setError(t('join.selectAgeGroup')); return }
-    setLoading(true)
+    if (joinAgeGroups.length === 0) {
+      setError(t('join.selectAgeGroup'));
+      return;
+    }
+    if (containsProfanity(message)) {
+      setError(tCommon('profanityError'));
+      return;
+    }
+    setLoading(true);
     const { error: err } = await supabase.from('meetup_joins').insert({
       meetup_id: meetup.id,
       applicant_id: userId,
@@ -814,41 +1145,69 @@ function MeetupJoinForm({
       join_gender: joinGender,
       join_age_groups: joinAgeGroups,
       message: message.trim() || null,
-    })
-    if (err) { setError(t('join.failed')); setLoading(false); return }
-    onDone()
+    });
+    if (err) {
+      setError(t('join.failed'));
+      setLoading(false);
+      return;
+    }
+    onDone();
   }
 
   return (
     <div className="px-4 py-4 flex flex-col gap-5">
       <div>
-        <p className="text-xs font-semibold text-gray-900 mb-3">{t('join.title')}</p>
+        <p className="text-xs font-semibold text-gray-900 mb-3">
+          {t('join.title')}
+        </p>
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-xs text-gray-400 mb-1.5">{t('join.ourCount')}</p>
             <CountSelect value={joinCount} onChange={setJoinCount} />
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1.5">{t('join.genderComp')}</p>
-            <ChipSelect options={GENDER_OPTS.map(g => ({ value: g.value, label: t(`gender.${g.value}`) }))} value={joinGender} onChange={setJoinGender} />
+            <p className="text-xs text-gray-400 mb-1.5">
+              {t('join.genderComp')}
+            </p>
+            <ChipSelect
+              options={GENDER_OPTS.map((g) => ({
+                value: g.value,
+                label: t(`gender.${g.value}`),
+              }))}
+              value={joinGender}
+              onChange={setJoinGender}
+            />
           </div>
           <div>
-            <p className="text-xs text-gray-400 mb-1.5">{t('join.ageGroups')}</p>
-            <MultiChipSelect options={AGE_GROUPS.map(a => ({ value: a.value, label: t(`ageGroup.${a.value}`) }))} values={joinAgeGroups} onChange={setJoinAgeGroups} />
+            <p className="text-xs text-gray-400 mb-1.5">
+              {t('join.ageGroups')}
+            </p>
+            <MultiChipSelect
+              options={AGE_GROUPS.map((a) => ({
+                value: a.value,
+                label: t(`ageGroup.${a.value}`),
+              }))}
+              values={joinAgeGroups}
+              onChange={setJoinAgeGroups}
+            />
           </div>
         </div>
       </div>
 
       <div>
-        <p className="text-xs font-semibold text-gray-900 mb-2">{t('join.description')}</p>
+        <p className="text-xs font-semibold text-gray-900 mb-2">
+          {t('join.description')}
+        </p>
         <textarea
           value={message}
-          onChange={e => setMessage(e.target.value.slice(0, 80))}
+          onChange={(e) => setMessage(e.target.value.slice(0, 80))}
           placeholder={t('join.descriptionPlaceholder')}
           rows={2}
           className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none resize-none"
         />
-        <p className="text-right text-xs text-gray-300 mt-0.5">{message.length}/80</p>
+        <p className="text-right text-xs text-gray-300 mt-0.5">
+          {message.length}/80
+        </p>
       </div>
 
       {error && <p className="text-xs text-red-500">{error}</p>}
@@ -861,34 +1220,52 @@ function MeetupJoinForm({
         {loading ? t('join.submitting') : t('join.submit')}
       </button>
     </div>
-  )
+  );
 }
 
 // ─── 관리 뷰 (주최자용) ───────────────────────────────────────────────────────
 
 function MeetupManageView({
-  meetup, joins, userId, onUpdateStatus, onThread, onClose,
+  meetup,
+  joins,
+  userId,
+  onUpdateStatus,
+  onThread,
+  onClose,
 }: {
-  meetup: Meetup
-  joins: JoinRow[]
-  userId: string
-  onUpdateStatus: (id: string, status: 'accepted' | 'rejected' | 'unmatched') => void
-  onThread: () => void
-  onClose: () => void
+  meetup: Meetup;
+  joins: JoinRow[];
+  userId: string;
+  onUpdateStatus: (
+    id: string,
+    status: 'accepted' | 'rejected' | 'unmatched',
+  ) => void;
+  onThread: () => void;
+  onClose: () => void;
 }) {
-  const t = useTranslations('meetup')
-  const pending = joins.filter(j => j.status === 'pending')
-  const accepted = joins.filter(j => j.status === 'accepted')
-  const others = joins.filter(j => j.status === 'rejected' || j.status === 'unmatched')
+  const t = useTranslations('meetup');
+  const pending = joins.filter((j) => j.status === 'pending');
+  const accepted = joins.filter((j) => j.status === 'accepted');
+  const others = joins.filter(
+    (j) => j.status === 'rejected' || j.status === 'unmatched',
+  );
 
   return (
     <div className="px-4 py-4 flex flex-col gap-4">
       {/* 내 만남 요약 */}
       <div className="p-3 bg-gray-50 rounded-xl flex flex-wrap gap-1.5">
-        <span className="text-xs text-gray-600 font-medium">{formatScheduled(meetup.scheduled_at)}</span>
-        {meetup.activities.map(a => <span key={a} className="text-xs text-gray-500">{t(`activity.${a}`)}</span>)}
+        <span className="text-xs text-gray-600 font-medium">
+          {formatScheduled(meetup.scheduled_at)}
+        </span>
+        {meetup.activities.map((a) => (
+          <span key={a} className="text-xs text-gray-500">
+            {t(`activity.${a}`)}
+          </span>
+        ))}
         {meetup.status === 'closed' && (
-          <span className="ml-auto text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">{t('manage.closed')}</span>
+          <span className="ml-auto text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+            {t('manage.closed')}
+          </span>
         )}
       </div>
 
@@ -896,7 +1273,14 @@ function MeetupManageView({
       {pending.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-900 mb-2">{`${t('manage.pending')} ${pending.length}`}</p>
-          {pending.map(j => <JoinCard key={j.id} join={j} onAccept={() => onUpdateStatus(j.id, 'accepted')} onReject={() => onUpdateStatus(j.id, 'rejected')} />)}
+          {pending.map((j) => (
+            <JoinCard
+              key={j.id}
+              join={j}
+              onAccept={() => onUpdateStatus(j.id, 'accepted')}
+              onReject={() => onUpdateStatus(j.id, 'rejected')}
+            />
+          ))}
         </div>
       )}
 
@@ -904,13 +1288,18 @@ function MeetupManageView({
       {accepted.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-900 mb-2">{`${t('manage.accepted')} ${accepted.length}`}</p>
-          {accepted.map(j => (
-            <div key={j.id} className="flex items-center gap-3 p-3 border border-green-100 rounded-xl mb-2">
+          {accepted.map((j) => (
+            <div
+              key={j.id}
+              className="flex items-center gap-3 p-3 border border-green-100 rounded-xl mb-2"
+            >
               <JoinInfo join={j} />
               <button
                 onClick={() => onUpdateStatus(j.id, 'unmatched')}
                 className="ml-auto text-xs text-gray-300 px-2 py-1 border border-gray-200 rounded-lg"
-              >{t('manage.unmatchBtn')}</button>
+              >
+                {t('manage.unmatchBtn')}
+              </button>
             </div>
           ))}
         </div>
@@ -919,11 +1308,20 @@ function MeetupManageView({
       {/* 거절/언매치 */}
       {others.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 mb-2">{t('manage.rejectUnmatch')}</p>
-          {others.map(j => (
-            <div key={j.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-2 opacity-50">
+          <p className="text-xs font-semibold text-gray-400 mb-2">
+            {t('manage.rejectUnmatch')}
+          </p>
+          {others.map((j) => (
+            <div
+              key={j.id}
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-2 opacity-50"
+            >
               <JoinInfo join={j} />
-              <span className="ml-auto text-xs text-gray-400">{j.status === 'rejected' ? t('manage.reject') : t('manage.unmatch')}</span>
+              <span className="ml-auto text-xs text-gray-400">
+                {j.status === 'rejected'
+                  ? t('manage.reject')
+                  : t('manage.unmatch')}
+              </span>
             </div>
           ))}
         </div>
@@ -947,158 +1345,225 @@ function MeetupManageView({
       </div>
 
       {pending.length === 0 && accepted.length === 0 && (
-        <div className="text-center py-8 text-gray-400 text-sm">{t('manage.noApplicants')}</div>
+        <div className="text-center py-8 text-gray-400 text-sm">
+          {t('manage.noApplicants')}
+        </div>
       )}
     </div>
-  )
+  );
 }
 
 function JoinInfo({ join }: { join: JoinRow }) {
-  const t = useTranslations('meetup')
+  const t = useTranslations('meetup');
   return (
     <div className="flex items-center gap-2 flex-1 min-w-0">
-      {join.profiles.avatar_url
-        ? <img src={join.profiles.avatar_url} className="w-9 h-9 rounded-full object-cover shrink-0" alt="" />
-        : <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm text-gray-400 shrink-0">{join.profiles.nickname[0]}</div>
-      }
+      {join.profiles.avatar_url ? (
+        <img
+          src={join.profiles.avatar_url}
+          className="w-9 h-9 rounded-full object-cover shrink-0"
+          alt=""
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm text-gray-400 shrink-0">
+          {join.profiles.nickname[0]}
+        </div>
+      )}
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{join.profiles.nickname}</p>
+        <p className="text-sm font-medium text-gray-900 truncate">
+          {join.profiles.nickname}
+        </p>
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-xs text-gray-400">{join.join_count}명</span>
-          {join.join_gender && <span className="text-xs text-gray-400">{t(`gender.${join.join_gender}`)}</span>}
-          {join.join_age_groups.map(a => <span key={a} className="text-xs text-gray-400">{t(`ageGroup.${a}`)}</span>)}
+          {join.join_gender && (
+            <span className="text-xs text-gray-400">
+              {t(`gender.${join.join_gender}`)}
+            </span>
+          )}
+          {join.join_age_groups.map((a) => (
+            <span key={a} className="text-xs text-gray-400">
+              {t(`ageGroup.${a}`)}
+            </span>
+          ))}
         </div>
-        {join.message && <p className="text-xs text-gray-500 truncate mt-0.5">{join.message}</p>}
+        {join.message && (
+          <p className="text-xs text-gray-500 truncate mt-0.5">
+            {join.message}
+          </p>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-function JoinCard({ join, onAccept, onReject }: { join: JoinRow; onAccept: () => void; onReject: () => void }) {
-  const t = useTranslations('meetup')
+function JoinCard({
+  join,
+  onAccept,
+  onReject,
+}: {
+  join: JoinRow;
+  onAccept: () => void;
+  onReject: () => void;
+}) {
+  const t = useTranslations('meetup');
   return (
     <div className="p-3 border border-gray-100 rounded-xl mb-2">
       <div className="flex items-start gap-2 mb-3">
         <JoinInfo join={join} />
       </div>
       <div className="flex gap-2">
-        <button onClick={onReject} className="flex-1 py-2 border border-gray-200 text-gray-500 rounded-xl text-xs">{t('manage.reject')}</button>
-        <button onClick={onAccept} className="flex-1 py-2 bg-gray-900 text-white rounded-xl text-xs">{t('manage.accept')}</button>
+        <button
+          onClick={onReject}
+          className="flex-1 py-2 border border-gray-200 text-gray-500 rounded-xl text-xs"
+        >
+          {t('manage.reject')}
+        </button>
+        <button
+          onClick={onAccept}
+          className="flex-1 py-2 bg-gray-900 text-white rounded-xl text-xs"
+        >
+          {t('manage.accept')}
+        </button>
       </div>
     </div>
-  )
+  );
 }
 
 // ─── 스레드 뷰 ────────────────────────────────────────────────────────────────
 
 interface Message {
-  id: string
-  sender_id: string
-  content: string
-  created_at: string
-  profiles: { id: string; nickname: string; avatar_url: string | null }
+  id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  profiles: { id: string; nickname: string; avatar_url: string | null };
 }
 
 function MeetupThread({ meetup, userId }: { meetup: Meetup; userId: string }) {
-  const supabase = createClient()
-  const t = useTranslations('meetup')
-  const [messages, setMessages] = useState<Message[]>([])
-  const [text, setText] = useState('')
-  const [sending, setSending] = useState(false)
-  const [locked, setLocked] = useState(false)
-  const endRef = useRef<HTMLDivElement>(null)
+  const supabase = createClient();
+  const t = useTranslations('meetup');
+  const tCommon = useTranslations('common');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const endRef = useRef<HTMLDivElement>(null);
 
   // 스레드 오픈 여부: 번개 당일(KST 기준) 0시부터
-  const toKST = (d: Date) => new Date(d.getTime() + 9 * 3600000)
-  const scheduledMs = new Date(meetup.scheduled_at).getTime()
-  const now = Date.now()
-  const meetupKST = toKST(new Date(meetup.scheduled_at))
-  const nowKST = toKST(new Date())
-  const isOpen = meetupKST.toDateString() === nowKST.toDateString()
+  const toKST = (d: Date) => new Date(d.getTime() + 9 * 3600000);
+  const scheduledMs = new Date(meetup.scheduled_at).getTime();
+  const now = Date.now();
+  const meetupKST = toKST(new Date(meetup.scheduled_at));
+  const nowKST = toKST(new Date());
+  const isOpen = meetupKST.toDateString() === nowKST.toDateString();
 
   useEffect(() => {
-    if (!isOpen) return
-    loadMessages()
+    if (!isOpen) return;
+    loadMessages();
 
     // 실시간 구독
     const channel = supabase
       .channel(`meetup_messages:${meetup.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'meetup_messages',
-        filter: `meetup_id=eq.${meetup.id}`,
-      }, payload => {
-        // 새 메시지 추가 (sender 프로필은 별도 fetch)
-        supabase.from('meetup_messages')
-          .select('*, profiles!sender_id(id, nickname, avatar_url)')
-          .eq('id', payload.new.id)
-          .single()
-          .then(({ data }) => {
-            if (data) setMessages(prev => [...prev, data as any])
-          })
-      })
-      .subscribe()
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'meetup_messages',
+          filter: `meetup_id=eq.${meetup.id}`,
+        },
+        (payload) => {
+          // 새 메시지 추가 (sender 프로필은 별도 fetch)
+          supabase
+            .from('meetup_messages')
+            .select('*, profiles!sender_id(id, nickname, avatar_url)')
+            .eq('id', payload.new.id)
+            .single()
+            .then(({ data }) => {
+              if (data) setMessages((prev) => [...prev, data as any]);
+            });
+        },
+      )
+      .subscribe();
 
-    return () => { supabase.removeChannel(channel) }
-  }, [isOpen])
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   async function loadMessages() {
     const { data } = await supabase
       .from('meetup_messages')
       .select('*, profiles!sender_id(id, nickname, avatar_url)')
       .eq('meetup_id', meetup.id)
-      .order('created_at', { ascending: true })
-    setMessages((data as any[]) ?? [])
+      .order('created_at', { ascending: true });
+    setMessages((data as any[]) ?? []);
   }
 
   async function handleSend() {
-    if (!text.trim() || sending) return
-    setSending(true)
+    if (!text.trim() || sending) return;
+    if (containsProfanity(text)) { setSendError(tCommon('profanityError')); return; }
+    setSendError('');
+    setSending(true);
     const { error } = await supabase.from('meetup_messages').insert({
       meetup_id: meetup.id,
       sender_id: userId,
       content: text.trim(),
-    })
+    });
     if (error) {
-      if (error.code === '42501') setLocked(true) // RLS 차단 (아직 오픈 안됨)
+      if (error.code === '42501') setLocked(true); // RLS 차단 (아직 오픈 안됨)
     } else {
-      setText('')
+      setText('');
     }
-    setSending(false)
+    setSending(false);
   }
 
   function formatTime(iso: string) {
-    const d = new Date(iso)
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+    const d = new Date(iso);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
   if (!isOpen) {
     // 번개 날짜까지 남은 날 계산
-    const meetupDate = new Date(meetup.scheduled_at)
-    const diffMs = meetupDate.getTime() - Date.now()
-    const diffDays = Math.floor(diffMs / 86400000)
-    const diffH = Math.floor((diffMs % 86400000) / 3600000)
-    const diffM = Math.floor((diffMs % 3600000) / 60000)
+    const meetupDate = new Date(meetup.scheduled_at);
+    const diffMs = meetupDate.getTime() - Date.now();
+    const diffDays = Math.floor(diffMs / 86400000);
+    const diffH = Math.floor((diffMs % 86400000) / 3600000);
+    const diffM = Math.floor((diffMs % 3600000) / 60000);
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 px-4">
         <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg width="24" height="24" fill="none" stroke="#9CA3AF" strokeWidth={2} viewBox="0 0 24 24">
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="#9CA3AF"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
             <circle cx="12" cy="12" r="10" />
             <path d="M12 6v6l4 2" strokeLinecap="round" />
           </svg>
         </div>
-        <p className="text-sm font-medium text-gray-700">{t('thread.openOnDay')}</p>
-        <p className="text-xs text-gray-400">
-          {diffDays > 0 ? t('thread.daysUntil', { days: diffDays, hours: diffH }) : diffH > 0 ? t('thread.hoursUntil', { hours: diffH, minutes: diffM }) : t('thread.minutesUntil', { minutes: diffM })}
+        <p className="text-sm font-medium text-gray-700">
+          {t('thread.openOnDay')}
         </p>
-        <p className="text-xs text-gray-400">{formatScheduled(meetup.scheduled_at)}</p>
+        <p className="text-xs text-gray-400">
+          {diffDays > 0
+            ? t('thread.daysUntil', { days: diffDays, hours: diffH })
+            : diffH > 0
+              ? t('thread.hoursUntil', { hours: diffH, minutes: diffM })
+              : t('thread.minutesUntil', { minutes: diffM })}
+        </p>
+        <p className="text-xs text-gray-400">
+          {formatScheduled(meetup.scheduled_at)}
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -1110,24 +1575,44 @@ function MeetupThread({ meetup, userId }: { meetup: Meetup; userId: string }) {
             {t('thread.firstMessage')}
           </div>
         )}
-        {messages.map(msg => {
-          const isMe = msg.sender_id === userId
+        {messages.map((msg) => {
+          const isMe = msg.sender_id === userId;
           return (
-            <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
-              {!isMe && (
-                msg.profiles.avatar_url
-                  ? <img src={msg.profiles.avatar_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
-                  : <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">{msg.profiles.nickname[0]}</div>
-              )}
-              <div className={`flex flex-col gap-0.5 max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}>
-                {!isMe && <span className="text-xs text-gray-400 px-1">{msg.profiles.nickname}</span>}
-                <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-gray-900 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'}`}>
+            <div
+              key={msg.id}
+              className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}
+            >
+              {!isMe &&
+                (msg.profiles.avatar_url ? (
+                  <img
+                    src={msg.profiles.avatar_url}
+                    className="w-7 h-7 rounded-full object-cover shrink-0"
+                    alt=""
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">
+                    {msg.profiles.nickname[0]}
+                  </div>
+                ))}
+              <div
+                className={`flex flex-col gap-0.5 max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}
+              >
+                {!isMe && (
+                  <span className="text-xs text-gray-400 px-1">
+                    {msg.profiles.nickname}
+                  </span>
+                )}
+                <div
+                  className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-gray-900 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'}`}
+                >
                   {msg.content}
                 </div>
-                <span className="text-[10px] text-gray-300 px-1">{formatTime(msg.created_at)}</span>
+                <span className="text-[10px] text-gray-300 px-1">
+                  {formatTime(msg.created_at)}
+                </span>
               </div>
             </div>
-          )
+          );
         })}
         <div ref={endRef} />
       </div>
@@ -1135,14 +1620,19 @@ function MeetupThread({ meetup, userId }: { meetup: Meetup; userId: string }) {
       {/* 입력창 */}
       <div className="px-4 py-3 border-t border-gray-100 flex gap-2">
         {locked ? (
-          <div className="flex-1 text-center text-xs text-gray-400 py-2">{t('thread.cannotSend')}</div>
+          <div className="flex-1 text-center text-xs text-gray-400 py-2">
+            {t('thread.cannotSend')}
+          </div>
         ) : (
           <>
+            {sendError && <p className="w-full text-xs text-red-500 px-1">{sendError}</p>}
             <input
               type="text"
               value={text}
-              onChange={e => setText(e.target.value.slice(0, 300))}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              onChange={(e) => { setText(e.target.value.slice(0, 300)); setSendError('') }}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && !e.shiftKey && handleSend()
+              }
               placeholder={t('thread.placeholder')}
               className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none"
             />
@@ -1157,5 +1647,5 @@ function MeetupThread({ meetup, userId }: { meetup: Meetup; userId: string }) {
         )}
       </div>
     </div>
-  )
+  );
 }
