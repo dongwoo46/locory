@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { containsProfanity } from '@/lib/utils/profanity'
 
 const MENU_CATEGORIES = new Set(['cafe', 'restaurant', 'bar'])
 
@@ -18,7 +20,18 @@ interface Props {
 
 export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategory, onMemoChange, onMenuChange, onPublicChange, onSubmit, loading }: Props) {
   const t = useTranslations('upload')
+  const tCommon = useTranslations('common')
+  const [error, setError] = useState('')
   const showMenu = placeCategory && MENU_CATEGORIES.has(placeCategory)
+
+  function handleSubmit() {
+    if (containsProfanity(memo) || containsProfanity(recommendedMenu)) {
+      setError(tCommon('profanityError'))
+      return
+    }
+    setError('')
+    onSubmit()
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -29,7 +42,7 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
 
       <textarea
         value={memo}
-        onChange={e => onMemoChange(e.target.value)}
+        onChange={e => { onMemoChange(e.target.value); setError('') }}
         placeholder={t('memo.memoPlaceholder')}
         maxLength={500}
         rows={4}
@@ -45,7 +58,7 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
           <input
             type="text"
             value={recommendedMenu}
-            onChange={e => onMenuChange(e.target.value)}
+            onChange={e => { onMenuChange(e.target.value); setError('') }}
             placeholder={t('memo.menuPlaceholder')}
             maxLength={100}
             className="px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
@@ -75,8 +88,10 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
         </div>
       </button>
 
+      {error && <p className="text-xs text-red-500 -mt-3">{error}</p>}
+
       <button
-        onClick={onSubmit}
+        onClick={handleSubmit}
         disabled={loading}
         className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
       >

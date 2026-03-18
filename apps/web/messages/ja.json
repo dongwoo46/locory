@@ -7,7 +7,8 @@
     "logout": "ログアウト",
     "follow": "フォロー",
     "following": "フォロー中",
-    "back": "戻る"
+    "back": "戻る",
+    "profanityError": "不適切な内容が含まれています"
   },
   "feed": {
     "noPostsTitle": "まだ投稿がありません",
@@ -149,7 +150,8 @@
       "nature": "自然・景色",
       "shopping": "ショッピング"
     },
-    "hiddenSpot": "地元のおすすめ"
+    "hiddenSpot": "地元のおすすめ",
+    "hiddenSpotOnly": "地元のおすすめのみ"
   },
   "place": {
     "visitorStats": "訪問者統計",

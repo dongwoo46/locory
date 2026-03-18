@@ -12,7 +12,16 @@
       "Bash(mkdir -p c:/Users/dw/Desktop/locory/apps/web/src/types)",
       "Bash(mkdir -p c:/Users/dw/Desktop/locory/apps/web/supabase/migrations)",
       "Bash(npm install:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(grep -n '\"\"hiddenSpot\"\"' messages/ko.json)",
+      "Bash(grep -n '\"\"hiddenSpot\"\"' messages/en.json messages/ja.json messages/zh-TW.json messages/es.json messages/ru.json)",
+      "Bash(grep -A1 '\"\"hiddenSpot\"\"' messages/en.json messages/ja.json messages/zh-TW.json messages/es.json messages/ru.json)",
+      "Bash(grep -n '\"\"back\"\"' messages/en.json messages/ja.json messages/zh-TW.json messages/es.json messages/ru.json)",
+      "Bash(sed -i 's/\"\"back\"\": \"\"Back\"\"/\"\"back\"\": \"\"Back\"\",\\\\n    \"\"profanityError\"\": \"\"Inappropriate content detected\"\"/' messages/en.json)",
+      "Bash(sed -i 's/\"\"back\"\": \"\"戻る\"\"/\"\"back\"\": \"\"戻る\"\",\\\\n    \"\"profanityError\"\": \"\"不適切な内容が含まれています\"\"/' messages/ja.json)",
+      "Bash(sed -i 's/\"\"back\"\": \"\"返回\"\"/\"\"back\"\": \"\"返回\"\",\\\\n    \"\"profanityError\"\": \"\"包含不適當的內容\"\"/' messages/zh-TW.json)",
+      "Bash(sed -i 's/\"\"back\"\": \"\"Volver\"\"/\"\"back\"\": \"\"Volver\"\",\\\\n    \"\"profanityError\"\": \"\"Contenido inapropiado detectado\"\"/' messages/es.json)",
+      "Bash(sed -i 's/\"\"back\"\": \"\"Назад\"\"/\"\"back\"\": \"\"Назад\"\",\\\\n    \"\"profanityError\"\": \"\"Обнаружен неподходящий контент\"\"/' messages/ru.json)"
     ]
   }
 }

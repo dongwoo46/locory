@@ -141,7 +141,7 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
                 )}
                 {place?.place_type === 'hidden_spot' && (
                   <div className="absolute bottom-1.5 left-1.5 bg-purple-600/80 text-white text-[9px] px-1.5 py-0.5 rounded-full">
-                    🔍 히든스팟
+                    🔍 {tPost('hiddenSpot')}
                   </div>
                 )}
                 {place?.id && (

@@ -7,7 +7,8 @@
     "logout": "로그아웃",
     "follow": "팔로우",
     "following": "팔로잉",
-    "back": "뒤로"
+    "back": "뒤로",
+    "profanityError": "부적절한 내용이 포함되어 있어요"
   },
   "feed": {
     "noPostsTitle": "아직 포스팅이 없어요",
@@ -149,7 +150,8 @@
       "nature": "자연/뷰",
       "shopping": "쇼핑"
     },
-    "hiddenSpot": "현지인 추천"
+    "hiddenSpot": "현지인 추천",
+    "hiddenSpotOnly": "현지인 추천만"
   },
   "place": {
     "visitorStats": "방문자 통계",

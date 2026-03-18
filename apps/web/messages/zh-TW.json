@@ -7,7 +7,8 @@
     "logout": "登出",
     "follow": "追蹤",
     "following": "追蹤中",
-    "back": "返回"
+    "back": "返回",
+    "profanityError": "包含不適當的內容"
   },
   "feed": {
     "noPostsTitle": "還沒有貼文",
@@ -149,7 +150,8 @@
       "nature": "自然景觀",
       "shopping": "購物"
     },
-    "hiddenSpot": "在地推薦"
+    "hiddenSpot": "在地推薦",
+    "hiddenSpotOnly": "只看在地推薦"
   },
   "place": {
     "visitorStats": "訪客統計",

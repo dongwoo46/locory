@@ -7,7 +7,8 @@
     "logout": "Log out",
     "follow": "Follow",
     "following": "Following",
-    "back": "Back"
+    "back": "Back",
+    "profanityError": "Inappropriate content detected"
   },
   "feed": {
     "noPostsTitle": "No posts yet",
@@ -149,7 +150,8 @@
       "nature": "Nature",
       "shopping": "Shopping"
     },
-    "hiddenSpot": "Local's pick"
+    "hiddenSpot": "Local's pick",
+    "hiddenSpotOnly": "Local's pick only"
   },
   "place": {
     "visitorStats": "Visitor stats",

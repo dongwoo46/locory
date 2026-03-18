@@ -861,7 +861,7 @@ export default function MapClient({ userId }: Props) {
                     {hiddenOnly && (
                       <button onClick={() => setHiddenOnly(false)}
                         className="flex items-center gap-1 px-2.5 py-1 bg-gray-900 text-white text-xs rounded-full font-medium">
-                        히든스팟
+                        {tPost('hiddenSpot')}
                         <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" strokeLinecap="round"/></svg>
                       </button>
                     )}
@@ -935,7 +935,7 @@ export default function MapClient({ userId }: Props) {
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${hiddenOnly ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
                   >
                     <span>🔍</span>
-                    히든스팟만
+                    {tPost('hiddenSpotOnly')}
                   </button>
                 </div>
 
@@ -1073,7 +1073,7 @@ export default function MapClient({ userId }: Props) {
                   <p className="text-xs text-gray-400 mt-0.5">
                     {tPost(`category.${selected.category}`)} · {tCities(selected.city)}
                     {selected.district ? ` · ${tDistricts(`${selected.city}.${selected.district}`)}` : ''}
-                    {selected.place_type === 'hidden_spot' && <span className="ml-1 text-purple-400">히든스팟</span>}
+                    {selected.place_type === 'hidden_spot' && <span className="ml-1 text-purple-400">{tPost('hiddenSpot')}</span>}
                   </p>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {selected.google_rating != null && (
