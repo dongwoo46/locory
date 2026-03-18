@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { containsProfanity } from '@/lib/utils/profanity'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
