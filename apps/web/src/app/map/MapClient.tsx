@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
@@ -110,10 +111,7 @@ interface CourseSettings {
 }
 
 interface Props {
-  allPlaces: Place[]
-  savedPlaceIds: Set<string>
   userId: string
-  savedCourses: any[]
 }
 
 function PinMarker({
@@ -286,13 +284,83 @@ function RoutePolyline({ points, color = '#1a1a1a', onActivate }: { points: { la
   return null
 }
 
-export default function MapClient({ allPlaces, savedPlaceIds, userId, savedCourses: initialSavedCourses }: Props) {
+export default function MapClient({ userId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('map')
   const tPost = useTranslations('post')
   const tCities = useTranslations('cities')
   const tDistricts = useTranslations('districts')
+
+  // 지도 데이터 — 3분 캐싱 (재방문 시 즉시 로드)
+  const { data: mapData } = useQuery({
+    queryKey: ['map-data', userId],
+    queryFn: async () => {
+      const [{ data: posts }, { data: savedRows }, { data: courses }] = await Promise.all([
+        supabase
+          .from('posts')
+          .select('place_id, photos, type, rating, profiles!user_id(nationality, gender), places!place_id(id, name, lat, lng, category, city, district, place_type, avg_rating)')
+          .eq('is_public', true)
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase.from('place_saves').select('place_id').eq('user_id', userId),
+        supabase.from('saved_courses').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+      ])
+
+      const placeMap = new Map<string, any>()
+      for (const post of posts || []) {
+        const place = (post as any).places
+        if (!place) continue
+        if (!placeMap.has(place.id)) {
+          placeMap.set(place.id, {
+            ...place,
+            postCount: 0,
+            photoUrl: null,
+            rating: null,
+            avg_rating: place.avg_rating ?? null,
+            hasVisited: false,
+            hasWant: false,
+            _nationalitySet: new Set<string>(),
+            _genderSet: new Set<string>(),
+            _ratingCounts: {} as Record<string, number>,
+          })
+        }
+        const entry = placeMap.get(place.id)!
+        entry.postCount++
+        if (!entry.photoUrl && (post.photos as string[])?.length > 0) {
+          entry.photoUrl = (post.photos as string[])[0]
+        }
+        const nationality = (post.profiles as any)?.nationality
+        if (nationality) entry._nationalitySet.add(nationality)
+        const gender = (post.profiles as any)?.gender
+        if (gender) entry._genderSet.add(gender)
+        if ((post as any).type === 'visited') {
+          entry.hasVisited = true
+          const r = (post as any).rating as string
+          if (r) entry._ratingCounts[r] = (entry._ratingCounts[r] || 0) + 1
+        } else if ((post as any).type === 'want') {
+          entry.hasWant = true
+        }
+      }
+
+      const allPlaces = Array.from(placeMap.values()).map(({ _nationalitySet, _genderSet, _ratingCounts, ...rest }) => ({
+        ...rest,
+        nationalities: Array.from(_nationalitySet),
+        genders: Array.from(_genderSet),
+        rating: (Object.entries(_ratingCounts) as [string, number][]).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
+      }))
+
+      return {
+        allPlaces,
+        savedPlaceIds: new Set((savedRows || []).map(r => r.place_id)),
+        savedCourses: courses || [],
+      }
+    },
+    staleTime: 3 * 60 * 1000,
+  })
+
+  const allPlaces: Place[] = mapData?.allPlaces ?? []
+  const savedPlaceIds: Set<string> = mapData?.savedPlaceIds ?? new Set()
 
   // 기본 상태
   const [mode, setMode] = useState<'all' | 'saved'>('all')
@@ -326,7 +394,10 @@ export default function MapClient({ allPlaces, savedPlaceIds, userId, savedCours
   const [courseLoading, setCourseLoading] = useState(false)
   const [courseTitle, setCourseTitle] = useState('')
   const [saving, setSaving] = useState(false)
-  const [savedCourses, setSavedCourses] = useState(initialSavedCourses)
+  // savedCourses: null = 아직 로드 전, 배열 = 로드됨 or 로컬 수정됨
+  const [savedCoursesOverride, setSavedCoursesOverride] = useState<any[] | null>(null)
+  const savedCourses = savedCoursesOverride ?? mapData?.savedCourses ?? []
+  const setSavedCourses = (v: any[]) => setSavedCoursesOverride(v)
   const [showSavedCourses, setShowSavedCourses] = useState(false)
   const [viewingCourseDay, setViewingCourseDay] = useState(1)
   const [selectedCoursePlace, setSelectedCoursePlace] = useState<string | null>(null)

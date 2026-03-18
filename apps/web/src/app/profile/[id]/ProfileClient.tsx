@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
@@ -87,7 +88,6 @@ interface Profile {
 
 interface Props {
   profile: Profile
-  posts: any[]
   followersCount: number
   followingCount: number
   isMe: boolean
@@ -98,7 +98,6 @@ interface Props {
 
 export default function ProfileClient({
   profile: initialProfile,
-  posts,
   followersCount: initialFollowers,
   followingCount,
   isMe,
@@ -115,6 +114,25 @@ export default function ProfileClient({
 
   const [profile, setProfile] = useState(initialProfile)
   const [followersCount, setFollowersCount] = useState(initialFollowers)
+
+  // 포스팅 — 2분 캐싱
+  const { data: posts = [] } = useQuery({
+    queryKey: ['profile-posts', profile.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('posts')
+        .select(`
+          id, type, rating, memo, photos, created_at, is_public,
+          places!place_id (id, name, category, district, city, place_type),
+          profiles!user_id (id, nickname, nationality, avatar_url, trust_score),
+          post_likes (count)
+        `)
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false })
+      return data || []
+    },
+    staleTime: 2 * 60 * 1000,
+  })
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [followStatus, setFollowStatus] = useState(initialFollowStatus)
   const [showTaste, setShowTaste] = useState(false)

@@ -11,23 +11,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const targetId = id === 'me' ? user.id : id
 
-  const [{ data: profile }, { data: posts }, { count: followersCount }, { count: followingCount }] =
+  const [{ data: profile }, { count: followersCount }, { count: followingCount }] =
     await Promise.all([
       supabase
         .from('profiles')
         .select('id, nickname, nationality, avatar_url, trust_score, is_public, created_at, gender, birth_date, bio')
         .eq('id', targetId)
         .single(),
-      supabase
-        .from('posts')
-        .select(`
-          id, type, rating, memo, photos, created_at, is_public,
-          places!place_id (id, name, category, district, city, place_type),
-          profiles!user_id (id, nickname, nationality, avatar_url, trust_score),
-          post_likes (count)
-        `)
-        .eq('user_id', targetId)
-        .order('created_at', { ascending: false }),
       supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
@@ -40,7 +30,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         .eq('status', 'accepted'),
     ])
 
-  // 팔로우 상태 확인
+  // 팔로우 상태 확인 (본인이 아닐 때만)
   let followStatus: 'none' | 'pending' | 'accepted' = 'none'
   if (user.id !== targetId) {
     const { data: followRow } = await supabase
@@ -57,7 +47,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   return (
     <ProfileClient
       profile={profile}
-      posts={posts || []}
       followersCount={followersCount ?? 0}
       followingCount={followingCount ?? 0}
       isMe={user.id === targetId}
