@@ -30,7 +30,7 @@ interface Props {
   onClose: () => void
 }
 
-const TYPE_ICON: Record<NotifType, JSX.Element> = {
+const TYPE_ICON: Record<NotifType, React.ReactNode> = {
   meetup_today: (
     <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
       <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
