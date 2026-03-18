@@ -1,0 +1,368 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "logout": "ログアウト",
+    "follow": "フォロー",
+    "following": "フォロー中",
+    "back": "戻る"
+  },
+  "feed": {
+    "noPostsTitle": "まだ投稿がありません",
+    "noPostsSubtitle": "最初の場所をシェアしてみましょう",
+    "wantTag": "行きたい",
+    "all": "すべて",
+    "other": "その他",
+    "allTab": "すべて",
+    "followingTab": "フォロー中"
+  },
+  "cities": {
+    "seoul": "ソウル",
+    "busan": "釜山",
+    "jeju": "済州",
+    "gyeongju": "慶州",
+    "jeonju": "全州",
+    "gangneung": "江陵",
+    "sokcho": "束草",
+    "yeosu": "麗水",
+    "incheon": "仁川"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "弘大",
+      "myeongdong": "明洞",
+      "itaewon": "梨泰院",
+      "gangnam": "江南",
+      "seongsu": "聖水",
+      "hapjeong": "合井",
+      "yeonnam": "延南洞",
+      "bukchon": "北村",
+      "insadong": "仁寺洞",
+      "hannam": "漢南",
+      "jongno": "鍾路",
+      "apgujeong": "狎鴎亭",
+      "konkuk": "建大",
+      "jamsil": "蚕室",
+      "dongdaemun": "東大門"
+    },
+    "busan": {
+      "haeundae": "海雲台",
+      "gwangalli": "広安里",
+      "nampo": "南浦洞",
+      "seomyeon": "西面",
+      "songjeong": "松亭",
+      "gamcheon": "甘川文化村",
+      "gijang": "機張",
+      "dalmaji": "タルマジ峠",
+      "yeongdo": "影島",
+      "centum": "センタムシティ",
+      "mangmi": "マンミ",
+      "millak": "ミラク",
+      "dadaepo": "タデポ",
+      "busanstation": "釜山駅前"
+    },
+    "jeju": {
+      "jejusi": "済州市",
+      "aewol": "涯月",
+      "seogwipo": "西帰浦",
+      "seongsan": "城山",
+      "udo": "牛島",
+      "hyeopjae": "挟才",
+      "hamdeok": "咸徳"
+    },
+    "gyeongju": {
+      "hwangridangil": "ファンリダンギル",
+      "downtown": "市内",
+      "bomun": "普門湖畔",
+      "bulguksa": "仏国寺"
+    },
+    "jeonju": {
+      "hanok": "韓屋村",
+      "downtown": "市内",
+      "nambu": "南部市場"
+    },
+    "gangneung": {
+      "downtown": "市内",
+      "gyeongpo": "鏡浦台",
+      "anmok": "安木海辺",
+      "jumunjin": "注文津"
+    },
+    "sokcho": {
+      "downtown": "市内",
+      "seoraksan": "雪岳山",
+      "beach": "束草海水浴場",
+      "abai": "アバイ村"
+    },
+    "yeosu": {
+      "downtown": "市内",
+      "dolsando": "突山島",
+      "odongdo": "梧桐島",
+      "hyangiram": "向日庵"
+    },
+    "incheon": {
+      "chinatown": "チャイナタウン",
+      "gaehang": "開港場",
+      "songdo": "松島",
+      "wolmi": "月尾島"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "また行きたい",
+      "worth_it": "満足",
+      "neutral": "普通",
+      "not_great": "微妙"
+    },
+    "category": {
+      "cafe": "カフェ",
+      "restaurant": "グルメ",
+      "photospot": "フォトスポット",
+      "street": "ストリート",
+      "bar": "バー・クラブ",
+      "culture": "文化・展示",
+      "nature": "自然・景色",
+      "shopping": "ショッピング"
+    },
+    "hiddenSpot": "穴場スポット"
+  },
+  "place": {
+    "visitorStats": "訪問者統計",
+    "totalPosts": "件の投稿",
+    "noPostsTitle": "まだ投稿がありません",
+    "noPostsSubtitle": "この場所を最初にシェアしてみましょう",
+    "meetupButton": "ミートアップ",
+    "avgRating": {
+      "must_go": "また行きたい",
+      "worth_it": "一度は行く価値あり",
+      "neutral": "普通",
+      "not_great": "あまり良くない"
+    }
+  },
+  "profile": {
+    "myProfile": "マイプロフィール",
+    "followers": "フォロワー",
+    "following": "フォロー中",
+    "posts": "投稿",
+    "noPublicPosts": "公開投稿がありません",
+    "noPosts": "まだ投稿がありません",
+    "scent": "香り度",
+    "requested": "申請中"
+  },
+  "settings": {
+    "title": "設定",
+    "profileImage": "プロフィール画像",
+    "changePhoto": "写真を変更",
+    "photoHint": "JPG、PNG、GIF対応",
+    "nickname": "ニックネーム",
+    "nationality": "国籍",
+    "nationalityReadonly": "変更不可",
+    "nationalityHint": "国籍は初回設定後に変更できません",
+    "birthYear": "生まれ年",
+    "birthYearNone": "指定しない",
+    "language": "言語",
+    "visibility": "アカウント公開設定",
+    "public": "公開アカウント",
+    "publicHint": "誰でもプロフィールと投稿を見られます",
+    "private": "非公開アカウント",
+    "privateHint": "フォロワーのみ閲覧できます",
+    "version": "バージョン"
+  },
+  "onboarding": {
+    "title": "ニックネームと国籍を設定して始めましょう",
+    "nickname": "ニックネーム",
+    "nicknamePlaceholder": "2〜16文字で入力してください",
+    "nationality": "国籍",
+    "birthYear": "生まれ年",
+    "birthYearOptional": "任意",
+    "birthYearNone": "指定しない",
+    "submit": "始める",
+    "submitting": "保存中...",
+    "errorNickname": "ニックネームを入力してください",
+    "errorNationalityRequired": "国籍を選択してください",
+    "errorNicknameLength": "ニックネームは2〜16文字にしてください",
+    "errorSaveFailed": "保存に失敗しました。もう一度お試しください"
+  },
+  "nav": {
+    "feed": "フィード",
+    "map": "地図",
+    "saved": "保存済み",
+    "profile": "プロフィール"
+  },
+  "scent": {
+    "label": "香り度",
+    "levels": {
+      "stench": "悪臭",
+      "odorless": "無臭",
+      "grass": "草の香り",
+      "floral": "花の香り",
+      "woody": "木の香り",
+      "ocean": "海の香り",
+      "perfume": "香水"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "保存済み",
+    "placesTab": "マイ場所",
+    "postsTab": "マイ投稿",
+    "followingTab": "フォロー中の場所",
+    "noPlaces": "保存した場所がありません",
+    "noPosts": "保存した投稿がありません",
+    "noFollowingPlaces": "フォロー中のユーザーの保存場所がありません",
+    "filter": "フィルター",
+    "category": "カテゴリー",
+    "city": "都市",
+    "hiddenOnly": "穴場スポット",
+    "rating": "評価",
+    "type": "タイプ",
+    "visited": "訪問済み",
+    "want": "行きたい",
+    "reset": "リセット",
+    "noResults": "結果がありません"
+  },
+  "map": {
+    "all": "すべて",
+    "saved": "保存済み",
+    "posts": "件",
+    "detail": "詳細",
+    "noPlaces": "場所がありません",
+    "popular": "人気順",
+    "latest": "新着順",
+    "category": "カテゴリ",
+    "placeCount": "件"
+  },
+  "meetup": {
+    "title": "ミートアップ",
+    "create": "作成",
+    "detail": "詳細",
+    "applyTitle": "参加申請",
+    "manage": "管理",
+    "threadTitle": "スレッド",
+    "createButton": "+ ミートアップを作る",
+    "noMeetups": "まだミートアップがありません",
+    "restrictionMsg": "公開プロフィール + 無臭レベル以上のみ作成できます",
+    "myMeetup": "マイミートアップ",
+    "wantedLabel": "希望条件:",
+    "status": {
+      "accepted": "承認済み",
+      "rejected": "拒否済み",
+      "unmatched": "アンマッチ",
+      "pending": "申請中"
+    },
+    "form": {
+      "dateTime": "日時",
+      "ourTeam": "私たちのチーム",
+      "memberCount": "人数",
+      "genderComp": "性別構成",
+      "ageGroups": "年齢層（複数選択可）",
+      "activitiesVibe": "アクティビティ・雰囲気",
+      "whatToDo": "何をしますか？",
+      "vibe": "雰囲気",
+      "description": "一言（任意）",
+      "descriptionPlaceholder": "自由に自己紹介してください",
+      "wantedConditions": "希望条件",
+      "gender": "性別",
+      "ageGroupsOptional": "年齢層（未選択 = 不問）",
+      "countOptional": "人数（未選択 = 不問）",
+      "nationalityOptional": "国籍（未選択 = 不問）",
+      "saving": "登録中...",
+      "submit": "ミートアップを登録",
+      "saveFailed": "保存に失敗しました"
+    },
+    "detail": {
+      "hostTeam": "主催チーム",
+      "wantedPartner": "希望条件",
+      "openThread": "スレッドを開く",
+      "cannotApply": "申請不可",
+      "conditionMismatchNat": "条件不一致（国籍）",
+      "conditionMismatchGender": "条件不一致（性別）",
+      "restrictionNotMet": "公開プロフィール + 無臭以上が必要",
+      "inReview": "審査中",
+      "applyButton": "参加する"
+    },
+    "join": {
+      "title": "申請情報",
+      "ourCount": "私たちの人数",
+      "genderComp": "性別構成",
+      "ageGroups": "年齢層",
+      "description": "一言（任意）",
+      "descriptionPlaceholder": "簡単に自己紹介してください",
+      "selectAgeGroup": "年齢層を選択してください",
+      "failed": "申請に失敗しました",
+      "submitting": "申請中...",
+      "submit": "申請する"
+    },
+    "manage": {
+      "closed": "終了",
+      "pending": "申請待ち",
+      "accepted": "承認済み",
+      "unmatchBtn": "アンマッチ",
+      "rejectUnmatch": "拒否/アンマッチ",
+      "reject": "拒否",
+      "unmatch": "アンマッチ",
+      "openThread": "スレッドを開く",
+      "closeBtn": "ミートアップを終了",
+      "noApplicants": "まだ申請者がいません",
+      "accept": "承認"
+    },
+    "thread": {
+      "openOnDay": "当日にスレッドがオープンします",
+      "daysUntil": "約{days}日{hours}時間後にオープン",
+      "hoursUntil": "約{hours}時間{minutes}分後にオープン",
+      "minutesUntil": "約{minutes}分後にオープン",
+      "firstMessage": "最初のメッセージを送ってみましょう",
+      "cannotSend": "メッセージを送れません",
+      "placeholder": "メッセージを入力...",
+      "send": "送信"
+    },
+    "ageGroup": {
+      "teens": "10代",
+      "20s_early": "20代前半",
+      "20s_mid": "20代中盤",
+      "20s_late": "20代後半",
+      "30s_early": "30代前半",
+      "30s_mid": "30代中盤",
+      "30s_late": "30代後半",
+      "40s_plus": "40代以上"
+    },
+    "activity": {
+      "chat": "おしゃべり",
+      "food": "グルメ巡り",
+      "photo": "写真",
+      "tour": "観光",
+      "drink": "飲み会",
+      "game": "ゲーム",
+      "other": "その他"
+    },
+    "vibe": {
+      "casual": "カジュアル",
+      "fun": "楽しい",
+      "serious": "真剣"
+    },
+    "gender": {
+      "female": "女性",
+      "male": "男性",
+      "mixed": "混合",
+      "any": "不問"
+    }
+  },
+  "notifications": {
+    "title": "通知",
+    "markAllRead": "すべて既読",
+    "empty": "通知はありません",
+    "just": "たった今",
+    "minutesAgo": "{m}分前",
+    "hoursAgo": "{h}時間前",
+    "daysAgo": "{d}日前"
+  }
+}

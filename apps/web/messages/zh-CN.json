@@ -1,0 +1,227 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "logout": "退出登录",
+    "follow": "关注",
+    "following": "已关注",
+    "back": "返回"
+  },
+  "feed": {
+    "noPostsTitle": "暂无帖子",
+    "noPostsSubtitle": "成为第一个分享地点的人",
+    "wantTag": "想去",
+    "all": "全部",
+    "other": "其他",
+    "allTab": "全部",
+    "followingTab": "关注"
+  },
+  "cities": {
+    "seoul": "首尔",
+    "busan": "釜山",
+    "jeju": "济州",
+    "gyeongju": "庆州",
+    "jeonju": "全州",
+    "gangneung": "江陵",
+    "sokcho": "束草",
+    "yeosu": "丽水",
+    "incheon": "仁川"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "弘大",
+      "myeongdong": "明洞",
+      "itaewon": "梨泰院",
+      "gangnam": "江南",
+      "seongsu": "圣水",
+      "hapjeong": "合井",
+      "yeonnam": "延南洞",
+      "bukchon": "北村",
+      "insadong": "仁寺洞",
+      "hannam": "汉南",
+      "jongno": "钟路",
+      "apgujeong": "狎鸥亭",
+      "konkuk": "建大",
+      "jamsil": "蚕室",
+      "dongdaemun": "东大门"
+    },
+    "busan": {
+      "haeundae": "海云台",
+      "gwangalli": "广安里",
+      "nampo": "南浦洞",
+      "seomyeon": "西面",
+      "songjeong": "松亭",
+      "gamcheon": "甘川文化村",
+      "gijang": "机张",
+      "dalmaji": "达摩峰路",
+      "yeongdo": "影岛",
+      "centum": "森特姆城市",
+      "mangmi": "望美",
+      "millak": "密乐",
+      "dadaepo": "多大浦",
+      "busanstation": "釜山站"
+    },
+    "jeju": {
+      "jejusi": "济州市",
+      "aewol": "涯月",
+      "seogwipo": "西归浦",
+      "seongsan": "城山",
+      "udo": "牛岛",
+      "hyeopjae": "协才",
+      "hamdeok": "咸德"
+    },
+    "gyeongju": {
+      "hwangridangil": "皇理团街",
+      "downtown": "市区",
+      "bomun": "普门湖",
+      "bulguksa": "佛国寺"
+    },
+    "jeonju": {
+      "hanok": "韩屋村",
+      "downtown": "市区",
+      "nambu": "南部市场"
+    },
+    "gangneung": {
+      "downtown": "市区",
+      "gyeongpo": "镜浦台",
+      "anmok": "安木海滩",
+      "jumunjin": "注文津"
+    },
+    "sokcho": {
+      "downtown": "市区",
+      "seoraksan": "雪岳山",
+      "beach": "束草海水浴场",
+      "abai": "阿拜村"
+    },
+    "yeosu": {
+      "downtown": "市区",
+      "dolsando": "突山岛",
+      "odongdo": "梧桐岛",
+      "hyangiram": "向日庵"
+    },
+    "incheon": {
+      "chinatown": "唐人街",
+      "gaehang": "开港场",
+      "songdo": "松岛",
+      "wolmi": "月尾岛"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "还想再去",
+      "worth_it": "满意",
+      "neutral": "一般般",
+      "not_great": "不太好"
+    },
+    "category": {
+      "cafe": "咖啡厅",
+      "restaurant": "美食",
+      "photospot": "拍照圣地",
+      "street": "街道",
+      "bar": "酒吧・夜店",
+      "culture": "文化展览",
+      "nature": "自然景观",
+      "shopping": "购物"
+    },
+    "hiddenSpot": "隐藏景点"
+  },
+  "place": {
+    "visitorStats": "访客统计",
+    "totalPosts": " 篇帖子",
+    "noPostsTitle": "暂无帖子",
+    "noPostsSubtitle": "成为第一个分享此地点的人"
+  },
+  "profile": {
+    "myProfile": "我的主页",
+    "followers": "粉丝",
+    "following": "关注",
+    "posts": "帖子",
+    "noPublicPosts": "暂无公开帖子",
+    "noPosts": "暂无帖子",
+    "scent": "香气值",
+    "requested": "已申请"
+  },
+  "settings": {
+    "title": "设置",
+    "profileImage": "头像",
+    "changePhoto": "更换照片",
+    "photoHint": "支持 JPG、PNG、GIF",
+    "nickname": "昵称",
+    "nationality": "国籍",
+    "nationalityReadonly": "不可更改",
+    "nationalityHint": "国籍设置后无法更改",
+    "birthYear": "出生年份",
+    "birthYearNone": "不填写",
+    "language": "语言",
+    "visibility": "账号公开设置",
+    "public": "公开账号",
+    "publicHint": "所有人都可以看到你的主页和帖子",
+    "private": "私密账号",
+    "privateHint": "仅粉丝可见",
+    "version": "版本"
+  },
+  "onboarding": {
+    "title": "设置昵称和国籍后开始使用",
+    "nickname": "昵称",
+    "nicknamePlaceholder": "请输入2至16个字符",
+    "nationality": "国籍",
+    "birthYear": "出生年份",
+    "birthYearOptional": "选填",
+    "birthYearNone": "不填写",
+    "submit": "开始",
+    "submitting": "保存中...",
+    "errorNickname": "请输入昵称",
+    "errorNationalityRequired": "请选择国籍",
+    "errorNicknameLength": "昵称需为2至16个字符",
+    "errorSaveFailed": "保存失败，请重试"
+  },
+  "nav": {
+    "feed": "发现",
+    "map": "地图",
+    "saved": "收藏",
+    "profile": "我"
+  },
+  "scent": {
+    "label": "香气值",
+    "levels": {
+      "stench": "臭气",
+      "odorless": "无味",
+      "grass": "草香",
+      "floral": "花香",
+      "woody": "木香",
+      "ocean": "海风",
+      "perfume": "香水"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "收藏",
+    "placesTab": "我的地点",
+    "postsTab": "我的帖子",
+    "followingTab": "关注的地点",
+    "noPlaces": "没有收藏的地点",
+    "noPosts": "没有收藏的帖子",
+    "noFollowingPlaces": "关注的用户没有收藏的地点"
+  },
+  "map": {
+    "all": "全部",
+    "saved": "收藏",
+    "posts": "篇",
+    "detail": "详情",
+    "noPlaces": "暂无地点",
+    "popular": "热门",
+    "latest": "最新",
+    "category": "分类",
+    "placeCount": "个地点"
+  }
+}

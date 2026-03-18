@@ -1,0 +1,368 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "logout": "Log out",
+    "follow": "Follow",
+    "following": "Following",
+    "back": "Back"
+  },
+  "feed": {
+    "noPostsTitle": "No posts yet",
+    "noPostsSubtitle": "Be the first to share a place",
+    "wantTag": "Want to go",
+    "all": "All",
+    "other": "Other",
+    "allTab": "All",
+    "followingTab": "Following"
+  },
+  "cities": {
+    "seoul": "Seoul",
+    "busan": "Busan",
+    "jeju": "Jeju",
+    "gyeongju": "Gyeongju",
+    "jeonju": "Jeonju",
+    "gangneung": "Gangneung",
+    "sokcho": "Sokcho",
+    "yeosu": "Yeosu",
+    "incheon": "Incheon"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "Hongdae",
+      "myeongdong": "Myeongdong",
+      "itaewon": "Itaewon",
+      "gangnam": "Gangnam",
+      "seongsu": "Seongsu",
+      "hapjeong": "Hapjeong",
+      "yeonnam": "Yeonnam",
+      "bukchon": "Bukchon",
+      "insadong": "Insadong",
+      "hannam": "Hannam",
+      "jongno": "Jongno",
+      "apgujeong": "Apgujeong",
+      "konkuk": "Konkuk",
+      "jamsil": "Jamsil",
+      "dongdaemun": "Dongdaemun"
+    },
+    "busan": {
+      "haeundae": "Haeundae",
+      "gwangalli": "Gwangalli",
+      "nampo": "Nampo",
+      "seomyeon": "Seomyeon",
+      "songjeong": "Songjeong",
+      "gamcheon": "Gamcheon",
+      "gijang": "Gijang",
+      "dalmaji": "Dalmaji Hill",
+      "yeongdo": "Yeongdo",
+      "centum": "Centum City",
+      "mangmi": "Mangmi",
+      "millak": "Millak",
+      "dadaepo": "Dadaepo",
+      "busanstation": "Busan Station"
+    },
+    "jeju": {
+      "jejusi": "Jeju City",
+      "aewol": "Aewol",
+      "seogwipo": "Seogwipo",
+      "seongsan": "Seongsan",
+      "udo": "Udo Island",
+      "hyeopjae": "Hyeopjae",
+      "hamdeok": "Hamdeok"
+    },
+    "gyeongju": {
+      "hwangridangil": "Hwangridangil",
+      "downtown": "Downtown",
+      "bomun": "Bomun Lake",
+      "bulguksa": "Bulguksa"
+    },
+    "jeonju": {
+      "hanok": "Hanok Village",
+      "downtown": "Downtown",
+      "nambu": "Nambu Market"
+    },
+    "gangneung": {
+      "downtown": "Downtown",
+      "gyeongpo": "Gyeongpo",
+      "anmok": "Anmok Beach",
+      "jumunjin": "Jumunjin"
+    },
+    "sokcho": {
+      "downtown": "Downtown",
+      "seoraksan": "Seoraksan",
+      "beach": "Sokcho Beach",
+      "abai": "Abai Village"
+    },
+    "yeosu": {
+      "downtown": "Downtown",
+      "dolsando": "Dolsando",
+      "odongdo": "Odongdo",
+      "hyangiram": "Hyangiram"
+    },
+    "incheon": {
+      "chinatown": "Chinatown",
+      "gaehang": "Open Port Area",
+      "songdo": "Songdo",
+      "wolmi": "Wolmido"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "Want to go again",
+      "worth_it": "Satisfying",
+      "neutral": "Just okay",
+      "not_great": "Not great"
+    },
+    "category": {
+      "cafe": "Cafe",
+      "restaurant": "Restaurant",
+      "photospot": "Photo spot",
+      "street": "Street",
+      "bar": "Bar & Nightlife",
+      "culture": "Culture",
+      "nature": "Nature",
+      "shopping": "Shopping"
+    },
+    "hiddenSpot": "Hidden spot"
+  },
+  "place": {
+    "visitorStats": "Visitor stats",
+    "totalPosts": " posts",
+    "noPostsTitle": "No posts yet",
+    "noPostsSubtitle": "Be the first to share this place",
+    "meetupButton": "Meetup",
+    "avgRating": {
+      "must_go": "Absolutely love it",
+      "worth_it": "Worth a visit",
+      "neutral": "So-so",
+      "not_great": "Not great"
+    }
+  },
+  "profile": {
+    "myProfile": "My Profile",
+    "followers": "Followers",
+    "following": "Following",
+    "posts": "Posts",
+    "noPublicPosts": "No public posts",
+    "noPosts": "No posts yet",
+    "scent": "Note",
+    "requested": "Requested"
+  },
+  "settings": {
+    "title": "Settings",
+    "profileImage": "Profile Image",
+    "changePhoto": "Change Photo",
+    "photoHint": "JPG, PNG, GIF accepted",
+    "nickname": "Nickname",
+    "nationality": "Nationality",
+    "nationalityReadonly": "Cannot change",
+    "nationalityHint": "Nationality cannot be changed after initial setup",
+    "birthYear": "Birth Year",
+    "birthYearNone": "Not specified",
+    "language": "Language",
+    "visibility": "Account Visibility",
+    "public": "Public account",
+    "publicHint": "Anyone can see your profile and posts",
+    "private": "Private account",
+    "privateHint": "Only followers can see your content",
+    "version": "Version"
+  },
+  "onboarding": {
+    "title": "Set up your nickname and nationality to get started",
+    "nickname": "Nickname",
+    "nicknamePlaceholder": "2–16 characters",
+    "nationality": "Nationality",
+    "birthYear": "Birth Year",
+    "birthYearOptional": "Optional",
+    "birthYearNone": "Not specified",
+    "submit": "Get started",
+    "submitting": "Saving...",
+    "errorNickname": "Please enter a nickname",
+    "errorNationalityRequired": "Please select your nationality",
+    "errorNicknameLength": "Nickname must be 2–16 characters",
+    "errorSaveFailed": "Failed to save. Please try again"
+  },
+  "nav": {
+    "feed": "Feed",
+    "map": "Map",
+    "saved": "Saved",
+    "profile": "Profile"
+  },
+  "scent": {
+    "label": "Note",
+    "levels": {
+      "stench": "Stench",
+      "odorless": "Odorless",
+      "grass": "Grassy",
+      "floral": "Floral",
+      "woody": "Woody",
+      "ocean": "Ocean",
+      "perfume": "Perfume"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "Saved",
+    "placesTab": "My Places",
+    "postsTab": "My Posts",
+    "followingTab": "Following",
+    "noPlaces": "No saved places",
+    "noPosts": "No saved posts",
+    "noFollowingPlaces": "No places saved by people you follow",
+    "filter": "Filter",
+    "category": "Category",
+    "city": "City",
+    "hiddenOnly": "Hidden spots",
+    "rating": "Rating",
+    "type": "Type",
+    "visited": "Visited",
+    "want": "Wishlist",
+    "reset": "Reset",
+    "noResults": "No results found"
+  },
+  "map": {
+    "all": "All",
+    "saved": "Saved",
+    "posts": "posts",
+    "detail": "View",
+    "noPlaces": "No places found",
+    "popular": "Popular",
+    "latest": "Latest",
+    "category": "Category",
+    "placeCount": " places"
+  },
+  "meetup": {
+    "title": "Meetup",
+    "create": "Create Meetup",
+    "detail": "Meetup Detail",
+    "applyTitle": "Apply",
+    "manage": "Manage",
+    "threadTitle": "Thread",
+    "createButton": "+ Create Meetup",
+    "noMeetups": "No meetups yet",
+    "restrictionMsg": "Only public profiles with Odorless level or above can create meetups",
+    "myMeetup": "My Meetup",
+    "wantedLabel": "Looking for:",
+    "status": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "unmatched": "Unmatched",
+      "pending": "Pending"
+    },
+    "form": {
+      "dateTime": "Date & Time",
+      "ourTeam": "Our Team",
+      "memberCount": "Members",
+      "genderComp": "Gender",
+      "ageGroups": "Age groups (multiple)",
+      "activitiesVibe": "Activities & Vibe",
+      "whatToDo": "What will you do?",
+      "vibe": "Vibe",
+      "description": "Message (optional)",
+      "descriptionPlaceholder": "Introduce yourself freely",
+      "wantedConditions": "Preferred conditions",
+      "gender": "Gender",
+      "ageGroupsOptional": "Age groups (any if empty)",
+      "countOptional": "Members (any if empty)",
+      "nationalityOptional": "Nationality (any if empty)",
+      "saving": "Saving...",
+      "submit": "Create Meetup",
+      "saveFailed": "Failed to save"
+    },
+    "detail": {
+      "hostTeam": "Host Team",
+      "wantedPartner": "Looking for",
+      "openThread": "Open Thread",
+      "cannotApply": "Cannot Apply",
+      "conditionMismatchNat": "Condition mismatch (nationality)",
+      "conditionMismatchGender": "Condition mismatch (gender)",
+      "restrictionNotMet": "Public profile + Odorless level required",
+      "inReview": "Pending review",
+      "applyButton": "I'm in"
+    },
+    "join": {
+      "title": "Application Info",
+      "ourCount": "Our members",
+      "genderComp": "Gender",
+      "ageGroups": "Age groups",
+      "description": "Message (optional)",
+      "descriptionPlaceholder": "Briefly introduce yourself",
+      "selectAgeGroup": "Please select age group",
+      "failed": "Application failed",
+      "submitting": "Submitting...",
+      "submit": "Apply"
+    },
+    "manage": {
+      "closed": "Closed",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "unmatchBtn": "Unmatch",
+      "rejectUnmatch": "Reject/Unmatch",
+      "reject": "Reject",
+      "unmatch": "Unmatch",
+      "openThread": "Open Thread",
+      "closeBtn": "Close Meetup",
+      "noApplicants": "No applicants yet",
+      "accept": "Accept"
+    },
+    "thread": {
+      "openOnDay": "Thread opens on the day of the meetup",
+      "daysUntil": "Opens in ~{days}d {hours}h",
+      "hoursUntil": "Opens in ~{hours}h {minutes}m",
+      "minutesUntil": "Opens in ~{minutes}m",
+      "firstMessage": "Be the first to send a message",
+      "cannotSend": "Cannot send message",
+      "placeholder": "Type a message...",
+      "send": "Send"
+    },
+    "ageGroup": {
+      "teens": "Teens",
+      "20s_early": "Early 20s",
+      "20s_mid": "Mid 20s",
+      "20s_late": "Late 20s",
+      "30s_early": "Early 30s",
+      "30s_mid": "Mid 30s",
+      "30s_late": "Late 30s",
+      "40s_plus": "40s+"
+    },
+    "activity": {
+      "chat": "Chat",
+      "food": "Food tour",
+      "photo": "Photos",
+      "tour": "Sightseeing",
+      "drink": "Drinks",
+      "game": "Games",
+      "other": "Other"
+    },
+    "vibe": {
+      "casual": "Casual",
+      "fun": "Fun",
+      "serious": "Serious"
+    },
+    "gender": {
+      "female": "Female",
+      "male": "Male",
+      "mixed": "Mixed",
+      "any": "Any"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications",
+    "just": "Just now",
+    "minutesAgo": "{m}m ago",
+    "hoursAgo": "{h}h ago",
+    "daysAgo": "{d}d ago"
+  }
+}

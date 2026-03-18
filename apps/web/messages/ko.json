@@ -1,0 +1,368 @@
+{
+  "common": {
+    "loading": "로딩 중...",
+    "save": "저장",
+    "cancel": "취소",
+    "edit": "수정",
+    "logout": "로그아웃",
+    "follow": "팔로우",
+    "following": "팔로잉",
+    "back": "뒤로"
+  },
+  "feed": {
+    "noPostsTitle": "아직 포스팅이 없어요",
+    "noPostsSubtitle": "첫 번째로 장소를 공유해보세요",
+    "wantTag": "가고싶어",
+    "all": "전체",
+    "other": "기타",
+    "allTab": "전체",
+    "followingTab": "팔로잉"
+  },
+  "cities": {
+    "seoul": "서울",
+    "busan": "부산",
+    "jeju": "제주",
+    "gyeongju": "경주",
+    "jeonju": "전주",
+    "gangneung": "강릉",
+    "sokcho": "속초",
+    "yeosu": "여수",
+    "incheon": "인천"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "홍대",
+      "myeongdong": "명동",
+      "itaewon": "이태원",
+      "gangnam": "강남",
+      "seongsu": "성수",
+      "hapjeong": "합정",
+      "yeonnam": "연남동",
+      "bukchon": "북촌",
+      "insadong": "인사동",
+      "hannam": "한남",
+      "jongno": "종로",
+      "apgujeong": "압구정",
+      "konkuk": "건대",
+      "jamsil": "잠실",
+      "dongdaemun": "동대문"
+    },
+    "busan": {
+      "haeundae": "해운대",
+      "gwangalli": "광안리",
+      "nampo": "남포동",
+      "seomyeon": "서면",
+      "songjeong": "송정",
+      "gamcheon": "감천마을",
+      "gijang": "기장",
+      "dalmaji": "달맞이고개",
+      "yeongdo": "영도",
+      "centum": "센텀시티",
+      "mangmi": "망미단길",
+      "millak": "밀락더마켓",
+      "dadaepo": "다대포",
+      "busanstation": "부산역"
+    },
+    "jeju": {
+      "jejusi": "제주시",
+      "aewol": "애월",
+      "seogwipo": "서귀포",
+      "seongsan": "성산",
+      "udo": "우도",
+      "hyeopjae": "협재",
+      "hamdeok": "함덕"
+    },
+    "gyeongju": {
+      "hwangridangil": "황리단길",
+      "downtown": "경주 시내",
+      "bomun": "보문단지",
+      "bulguksa": "불국사"
+    },
+    "jeonju": {
+      "hanok": "한옥마을",
+      "downtown": "전주 시내",
+      "nambu": "남부시장"
+    },
+    "gangneung": {
+      "downtown": "강릉 시내",
+      "gyeongpo": "경포대",
+      "anmok": "안목해변",
+      "jumunjin": "주문진"
+    },
+    "sokcho": {
+      "downtown": "속초 시내",
+      "seoraksan": "설악산",
+      "beach": "속초해수욕장",
+      "abai": "아바이마을"
+    },
+    "yeosu": {
+      "downtown": "여수 시내",
+      "dolsando": "돌산도",
+      "odongdo": "오동도",
+      "hyangiram": "향일암"
+    },
+    "incheon": {
+      "chinatown": "차이나타운",
+      "gaehang": "개항장",
+      "songdo": "송도",
+      "wolmi": "월미도"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "또 가고 싶어",
+      "worth_it": "만족스러워",
+      "neutral": "그냥 그래",
+      "not_great": "별로야"
+    },
+    "category": {
+      "cafe": "카페",
+      "restaurant": "맛집",
+      "photospot": "포토스팟",
+      "street": "길거리",
+      "bar": "유흥/바",
+      "culture": "전시/문화",
+      "nature": "자연/뷰",
+      "shopping": "쇼핑"
+    },
+    "hiddenSpot": "히든스팟"
+  },
+  "place": {
+    "visitorStats": "방문자 통계",
+    "totalPosts": "개 포스팅",
+    "noPostsTitle": "아직 포스팅이 없어요",
+    "noPostsSubtitle": "첫 번째로 이 장소를 공유해보세요",
+    "meetupButton": "번개",
+    "avgRating": {
+      "must_go": "또 가고싶은",
+      "worth_it": "한번은 와볼만해",
+      "neutral": "그냥그래",
+      "not_great": "별로야"
+    }
+  },
+  "profile": {
+    "myProfile": "내 프로필",
+    "followers": "팔로워",
+    "following": "팔로잉",
+    "posts": "포스트",
+    "noPublicPosts": "공개된 포스팅이 없어요",
+    "noPosts": "아직 포스팅이 없어요",
+    "scent": "향도",
+    "requested": "요청됨"
+  },
+  "settings": {
+    "title": "설정",
+    "profileImage": "프로필 이미지",
+    "changePhoto": "사진 변경",
+    "photoHint": "JPG, PNG, GIF 가능",
+    "nickname": "닉네임",
+    "nationality": "국적",
+    "nationalityReadonly": "변경 불가",
+    "nationalityHint": "국적은 처음 설정 후 변경할 수 없어요",
+    "birthYear": "출생연도",
+    "birthYearNone": "선택 안 함",
+    "language": "언어",
+    "visibility": "계정 공개 설정",
+    "public": "공개 계정",
+    "publicHint": "누구나 프로필과 포스팅을 볼 수 있어요",
+    "private": "비공개 계정",
+    "privateHint": "팔로워만 볼 수 있어요",
+    "version": "버전"
+  },
+  "onboarding": {
+    "title": "닉네임과 국적을 설정하고 시작해요",
+    "nickname": "닉네임",
+    "nicknamePlaceholder": "2~16자로 입력해주세요",
+    "nationality": "국적",
+    "birthYear": "출생연도",
+    "birthYearOptional": "선택",
+    "birthYearNone": "선택 안 함",
+    "submit": "시작하기",
+    "submitting": "저장 중...",
+    "errorNickname": "닉네임을 입력해주세요",
+    "errorNationalityRequired": "국적을 선택해주세요",
+    "errorNicknameLength": "닉네임은 2~16자로 입력해주세요",
+    "errorSaveFailed": "저장에 실패했어요. 다시 시도해주세요"
+  },
+  "nav": {
+    "feed": "피드",
+    "map": "지도",
+    "saved": "저장",
+    "profile": "프로필"
+  },
+  "scent": {
+    "label": "향도",
+    "levels": {
+      "stench": "악취",
+      "odorless": "무취",
+      "grass": "풀냄새",
+      "floral": "꽃향기",
+      "woody": "나무향",
+      "ocean": "바다향",
+      "perfume": "향수향"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "저장",
+    "placesTab": "내 장소",
+    "postsTab": "내 포스팅",
+    "followingTab": "팔로잉 장소",
+    "noPlaces": "저장한 장소가 없어요",
+    "noPosts": "저장한 포스팅이 없어요",
+    "noFollowingPlaces": "팔로잉한 사람의 저장 장소가 없어요",
+    "filter": "필터",
+    "category": "카테고리",
+    "city": "도시",
+    "hiddenOnly": "나만아는장소",
+    "rating": "평점",
+    "type": "타입",
+    "visited": "다녀왔어",
+    "want": "가고싶어",
+    "reset": "초기화",
+    "noResults": "필터 결과가 없어요"
+  },
+  "map": {
+    "all": "전체",
+    "saved": "내 저장",
+    "posts": "개 포스팅",
+    "detail": "자세히",
+    "noPlaces": "장소가 없어요",
+    "popular": "인기순",
+    "latest": "최신순",
+    "category": "카테고리",
+    "placeCount": "개 장소"
+  },
+  "meetup": {
+    "title": "번개",
+    "create": "번개 만들기",
+    "detail": "번개 상세",
+    "applyTitle": "참여 신청",
+    "manage": "신청 관리",
+    "threadTitle": "번개 스레드",
+    "createButton": "+ 번개 만들기",
+    "noMeetups": "아직 번개가 없어요",
+    "restrictionMsg": "공개 프로필 + 무취 이상 레벨만 번개를 만들 수 있어요",
+    "myMeetup": "내 번개",
+    "wantedLabel": "원하는 상대:",
+    "status": {
+      "accepted": "수락됨",
+      "rejected": "거절됨",
+      "unmatched": "언매치",
+      "pending": "신청 중"
+    },
+    "form": {
+      "dateTime": "날짜·시간",
+      "ourTeam": "우리 팀",
+      "memberCount": "인원 수",
+      "genderComp": "성별 구성",
+      "ageGroups": "나이대 (복수 선택 가능)",
+      "activitiesVibe": "활동·분위기",
+      "whatToDo": "뭐 할 거예요?",
+      "vibe": "분위기",
+      "description": "한마디 (선택)",
+      "descriptionPlaceholder": "자유롭게 소개해주세요",
+      "wantedConditions": "원하는 상대 조건",
+      "gender": "성별",
+      "ageGroupsOptional": "나이대 (미선택 = 무관)",
+      "countOptional": "인원 수 (미선택 = 무관)",
+      "nationalityOptional": "국적 (미선택 = 무관)",
+      "saving": "등록 중...",
+      "submit": "만남 등록하기",
+      "saveFailed": "저장에 실패했어요"
+    },
+    "detail": {
+      "hostTeam": "주최자 팀",
+      "wantedPartner": "원하는 상대",
+      "openThread": "스레드 열기",
+      "cannotApply": "신청 불가",
+      "conditionMismatchNat": "조건 불일치 (국적)",
+      "conditionMismatchGender": "조건 불일치 (성별)",
+      "restrictionNotMet": "공개 프로필 + 무취 이상만 신청 가능",
+      "inReview": "신청 검토 중",
+      "applyButton": "갈래요"
+    },
+    "join": {
+      "title": "신청 정보",
+      "ourCount": "우리 인원 수",
+      "genderComp": "성별 구성",
+      "ageGroups": "나이대",
+      "description": "한마디 (선택)",
+      "descriptionPlaceholder": "간단히 소개해주세요",
+      "selectAgeGroup": "나이대를 선택해주세요",
+      "failed": "신청에 실패했어요",
+      "submitting": "신청 중...",
+      "submit": "신청하기"
+    },
+    "manage": {
+      "closed": "마감됨",
+      "pending": "신청 대기",
+      "accepted": "수락됨",
+      "unmatchBtn": "언매치",
+      "rejectUnmatch": "거절/언매치",
+      "reject": "거절",
+      "unmatch": "언매치",
+      "openThread": "스레드 열기",
+      "closeBtn": "번개 마감",
+      "noApplicants": "아직 신청자가 없어요",
+      "accept": "수락"
+    },
+    "thread": {
+      "openOnDay": "번개 당일에 스레드가 오픈됩니다",
+      "daysUntil": "약 {days}일 {hours}시간 후 오픈",
+      "hoursUntil": "약 {hours}시간 {minutes}분 후 오픈",
+      "minutesUntil": "약 {minutes}분 후 오픈",
+      "firstMessage": "첫 메시지를 남겨보세요",
+      "cannotSend": "메시지를 보낼 수 없어요",
+      "placeholder": "메시지 입력...",
+      "send": "전송"
+    },
+    "ageGroup": {
+      "teens": "10대",
+      "20s_early": "20대 초",
+      "20s_mid": "20대 중",
+      "20s_late": "20대 후",
+      "30s_early": "30대 초",
+      "30s_mid": "30대 중",
+      "30s_late": "30대 후",
+      "40s_plus": "40대+"
+    },
+    "activity": {
+      "chat": "수다",
+      "food": "맛집탐방",
+      "photo": "사진/포토",
+      "tour": "관광",
+      "drink": "술한잔",
+      "game": "게임/오락",
+      "other": "기타"
+    },
+    "vibe": {
+      "casual": "가벼운",
+      "fun": "유쾌한",
+      "serious": "진지한"
+    },
+    "gender": {
+      "female": "여자",
+      "male": "남자",
+      "mixed": "혼성",
+      "any": "무관"
+    }
+  },
+  "notifications": {
+    "title": "알림",
+    "markAllRead": "모두 읽음",
+    "empty": "알림이 없어요",
+    "just": "방금",
+    "minutesAgo": "{m}분 전",
+    "hoursAgo": "{h}시간 전",
+    "daysAgo": "{d}일 전"
+  }
+}

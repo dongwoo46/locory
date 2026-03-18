@@ -1,0 +1,377 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+
+interface Reporter {
+  id: string
+  nickname: string
+  avatar_url: string | null
+  trust_score: number
+}
+
+interface Report {
+  id: string
+  target_type: 'post' | 'place' | 'user'
+  target_id: string
+  reason: string
+  status: 'pending' | 'resolved' | 'dismissed'
+  admin_note: string | null
+  created_at: string
+  resolved_at: string | null
+  reporter: Reporter
+}
+
+interface Inquiry {
+  id: string
+  title: string
+  content: string
+  status: 'pending' | 'resolved'
+  response: string | null
+  created_at: string
+  resolved_at: string | null
+  user: Reporter
+}
+
+const STATUS_COLOR: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-700',
+  resolved: 'bg-green-100 text-green-700',
+  dismissed: 'bg-gray-100 text-gray-400',
+}
+const STATUS_LABEL: Record<string, string> = { pending: '대기', resolved: '완료', dismissed: '무시' }
+const TARGET_LABEL: Record<string, string> = { post: '포스팅', place: '장소', user: '유저' }
+
+const INQUIRY_CATEGORY_LABEL: Record<string, string> = {
+  bug: '🐛 버그', account: '👤 계정', content: '📝 콘텐츠',
+  points: '⭐ 포인트', suggestion: '💡 제안', other: '기타',
+}
+
+export default function AdminClient() {
+  const router = useRouter()
+  const [tab, setTab] = useState<'reports' | 'inquiries'>('reports')
+  const [reports, setReports] = useState<Report[]>([])
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [adminNote, setAdminNote] = useState<Record<string, string>>({})
+  const [deductPoints, setDeductPoints] = useState<Record<string, number>>({})
+  const [responseText, setResponseText] = useState<Record<string, string>>({})
+
+  // 필터
+  const [reportStatusFilter, setReportStatusFilter] = useState<string>('pending')
+  const [reportTypeFilter, setReportTypeFilter] = useState<string>('all')
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState<string>('pending')
+  const [inquiryCategoryFilter, setInquiryCategoryFilter] = useState<string>('all')
+
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/admin/data')
+    if (res.ok) {
+      const data = await res.json()
+      setReports(data.reports)
+      setInquiries(data.inquiries)
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const pendingReports = reports.filter(r => r.status === 'pending').length
+  const pendingInquiries = inquiries.filter(i => i.status === 'pending').length
+
+  async function handleReportAction(reportId: string, action: 'resolve' | 'dismiss') {
+    setActionLoading(reportId + action)
+    await fetch(`/api/admin/reports/${reportId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, admin_note: adminNote[reportId] }),
+    })
+    setActionLoading(null)
+    fetchData()
+  }
+
+  async function handleDeleteTarget(reportId: string, type: 'post' | 'place', targetId: string) {
+    if (!confirm(`이 ${TARGET_LABEL[type]}을 삭제할까요?`)) return
+    setActionLoading(reportId + 'delete')
+    await fetch(`/api/admin/${type}s/${targetId}`, { method: 'DELETE' })
+    await fetch(`/api/admin/reports/${reportId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'resolve', admin_note: `${TARGET_LABEL[type]} 삭제` }),
+    })
+    setActionLoading(null)
+    fetchData()
+  }
+
+  async function handleDeductPoints(reportId: string, userId: string) {
+    const points = deductPoints[reportId] || 10
+    if (!confirm(`${points}점 차감할까요?`)) return
+    setActionLoading(reportId + 'deduct')
+    await fetch(`/api/admin/users/${userId}/deduct`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ points }),
+    })
+    await fetch(`/api/admin/reports/${reportId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'resolve', admin_note: `${points}점 차감` }),
+    })
+    setActionLoading(null)
+    fetchData()
+  }
+
+  async function handleInquiryRespond(inquiryId: string) {
+    const response = responseText[inquiryId]?.trim()
+    if (!response) return
+    setActionLoading(inquiryId)
+    await fetch(`/api/admin/inquiries/${inquiryId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response }),
+    })
+    setActionLoading(null)
+    fetchData()
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40">
+        <div className="max-w-lg mx-auto flex items-center h-11 px-3 gap-2">
+          <button onClick={() => router.back()} className="text-gray-500 p-1">
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="text-sm font-bold text-gray-900">어드민</h1>
+        </div>
+      </header>
+
+      <main className="max-w-lg mx-auto pt-11 pb-10">
+        {/* 탭 */}
+        <div className="flex border-b border-gray-200 bg-white sticky top-11 z-30">
+          {(['reports', 'inquiries'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2.5 text-xs font-medium relative ${tab === t ? 'text-gray-900' : 'text-gray-400'}`}
+            >
+              {t === 'reports' ? '신고' : '문의'}
+              {(t === 'reports' ? pendingReports : pendingInquiries) > 0 && (
+                <span className={`ml-1 inline-flex items-center justify-center w-4 h-4 ${t === 'reports' ? 'bg-red-500' : 'bg-blue-500'} text-white text-[10px] rounded-full`}>
+                  {t === 'reports' ? pendingReports : pendingInquiries}
+                </span>
+              )}
+              {tab === t && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900" />}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="px-3 py-3 flex flex-col gap-2">
+
+            {/* 신고 탭 */}
+            {tab === 'reports' && (
+              <>
+                {/* 필터 */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex gap-1 flex-wrap">
+                    {(['pending','resolved','dismissed','all'] as const).map(s => (
+                      <button key={s} onClick={() => setReportStatusFilter(s)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${reportStatusFilter === s ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-500'}`}>
+                        {s === 'all' ? '전체' : STATUS_LABEL[s]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {(['all','post','place','user'] as const).map(t => (
+                      <button key={t} onClick={() => setReportTypeFilter(t)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${reportTypeFilter === t ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-500'}`}>
+                        {t === 'all' ? '전체' : TARGET_LABEL[t]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {reports
+                  .filter(r => reportStatusFilter === 'all' || r.status === reportStatusFilter)
+                  .filter(r => reportTypeFilter === 'all' || r.target_type === reportTypeFilter)
+                  .length === 0 && <p className="text-center text-xs text-gray-400 py-8">해당 신고 없음</p>}
+                {reports
+                  .filter(r => reportStatusFilter === 'all' || r.status === reportStatusFilter)
+                  .filter(r => reportTypeFilter === 'all' || r.target_type === reportTypeFilter)
+                  .map(report => (
+                  <div key={report.id} className="bg-white rounded-xl overflow-hidden border border-gray-100">
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-left"
+                      onClick={() => setExpandedId(expandedId === report.id ? null : report.id)}
+                    >
+                      <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLOR[report.status]}`}>
+                        {STATUS_LABEL[report.status]}
+                      </span>
+                      <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-full shrink-0">
+                        {TARGET_LABEL[report.target_type]}
+                      </span>
+                      <span className="text-xs text-gray-600 flex-1 truncate">{report.reporter?.nickname}</span>
+                      <span className="text-[10px] text-gray-300 shrink-0">
+                        {new Date(report.created_at).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+                      </span>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+                        className={`shrink-0 transition-transform ${expandedId === report.id ? 'rotate-180' : ''}`}>
+                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+
+                    {expandedId === report.id && (
+                      <div className="px-3 pb-3 flex flex-col gap-2 border-t border-gray-50">
+                        <p className="text-xs text-gray-700 bg-gray-50 rounded-lg px-2.5 py-2 mt-2">{report.reason}</p>
+                        <p className="text-[10px] text-gray-400 font-mono bg-gray-50 rounded-lg px-2.5 py-1.5 break-all">{report.target_id}</p>
+
+                        {report.status === 'pending' && (
+                          <>
+                            <input
+                              type="text"
+                              value={adminNote[report.id] || ''}
+                              onChange={e => setAdminNote(n => ({ ...n, [report.id]: e.target.value }))}
+                              placeholder="메모 (선택)"
+                              className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg outline-none"
+                            />
+                            <div className="flex flex-wrap gap-1.5">
+                              <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-2 py-1">
+                                <span className="text-[10px] text-gray-500">차감</span>
+                                <input
+                                  type="number"
+                                  value={deductPoints[report.id] || 10}
+                                  onChange={e => setDeductPoints(p => ({ ...p, [report.id]: Number(e.target.value) }))}
+                                  className="w-9 text-[10px] text-center outline-none"
+                                  min={1} max={100}
+                                />
+                                <span className="text-[10px] text-gray-500">점</span>
+                                <button
+                                  onClick={() => handleDeductPoints(report.id, report.target_type === 'user' ? report.target_id : report.reporter.id)}
+                                  disabled={actionLoading === report.id + 'deduct'}
+                                  className="text-[10px] px-2 py-0.5 bg-orange-500 text-white rounded font-medium disabled:opacity-40"
+                                >차감</button>
+                              </div>
+                              {(report.target_type === 'post' || report.target_type === 'place') && (
+                                <button
+                                  onClick={() => handleDeleteTarget(report.id, report.target_type as 'post' | 'place', report.target_id)}
+                                  disabled={actionLoading === report.id + 'delete'}
+                                  className="text-[10px] px-2 py-1 bg-red-500 text-white rounded-lg font-medium disabled:opacity-40"
+                                >
+                                  {TARGET_LABEL[report.target_type]} 삭제
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleReportAction(report.id, 'resolve')}
+                                disabled={actionLoading === report.id + 'resolve'}
+                                className="text-[10px] px-2 py-1 bg-green-500 text-white rounded-lg font-medium disabled:opacity-40"
+                              >완료</button>
+                              <button
+                                onClick={() => handleReportAction(report.id, 'dismiss')}
+                                disabled={actionLoading === report.id + 'dismiss'}
+                                className="text-[10px] px-2 py-1 border border-gray-200 text-gray-500 rounded-lg font-medium disabled:opacity-40"
+                              >무시</button>
+                            </div>
+                          </>
+                        )}
+                        {report.status !== 'pending' && report.admin_note && (
+                          <p className="text-[10px] text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1.5">{report.admin_note}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* 문의 탭 */}
+            {tab === 'inquiries' && (
+              <>
+                {/* 필터 */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex gap-1 flex-wrap">
+                    {(['pending','resolved','all'] as const).map(s => (
+                      <button key={s} onClick={() => setInquiryStatusFilter(s)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${inquiryStatusFilter === s ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-500'}`}>
+                        {s === 'all' ? '전체' : STATUS_LABEL[s]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {(['all','bug','account','content','points','suggestion','other'] as const).map(c => (
+                      <button key={c} onClick={() => setInquiryCategoryFilter(c)}
+                        className={`text-[10px] px-2 py-0.5 rounded-full border font-medium transition-colors ${inquiryCategoryFilter === c ? 'bg-gray-900 text-white border-transparent' : 'border-gray-200 text-gray-500'}`}>
+                        {c === 'all' ? '전체' : INQUIRY_CATEGORY_LABEL[c]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {inquiries
+                  .filter(i => inquiryStatusFilter === 'all' || i.status === inquiryStatusFilter)
+                  .filter(i => inquiryCategoryFilter === 'all' || (i as any).category === inquiryCategoryFilter)
+                  .length === 0 && <p className="text-center text-xs text-gray-400 py-8">해당 문의 없음</p>}
+                {inquiries
+                  .filter(i => inquiryStatusFilter === 'all' || i.status === inquiryStatusFilter)
+                  .filter(i => inquiryCategoryFilter === 'all' || (i as any).category === inquiryCategoryFilter)
+                  .map(inquiry => (
+                  <div key={inquiry.id} className="bg-white rounded-xl overflow-hidden border border-gray-100">
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-left"
+                      onClick={() => setExpandedId(expandedId === inquiry.id ? null : inquiry.id)}
+                    >
+                      <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLOR[inquiry.status]}`}>
+                        {STATUS_LABEL[inquiry.status]}
+                      </span>
+                      <span className="shrink-0 text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-full">
+                        {INQUIRY_CATEGORY_LABEL[(inquiry as any).category] || '기타'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-900 truncate">{inquiry.title}</p>
+                        <p className="text-[10px] text-gray-400">{inquiry.user?.nickname}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-300 shrink-0">
+                        {new Date(inquiry.created_at).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+                      </span>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+                        className={`shrink-0 transition-transform ${expandedId === inquiry.id ? 'rotate-180' : ''}`}>
+                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+
+                    {expandedId === inquiry.id && (
+                      <div className="px-3 pb-3 flex flex-col gap-2 border-t border-gray-50">
+                        <p className="text-xs text-gray-700 bg-gray-50 rounded-lg px-2.5 py-2 mt-2 whitespace-pre-wrap">{inquiry.content}</p>
+                        {inquiry.response && (
+                          <p className="text-xs text-gray-700 bg-blue-50 rounded-lg px-2.5 py-2 whitespace-pre-wrap">{inquiry.response}</p>
+                        )}
+                        <textarea
+                          value={responseText[inquiry.id] ?? (inquiry.response || '')}
+                          onChange={e => setResponseText(t => ({ ...t, [inquiry.id]: e.target.value }))}
+                          placeholder="답변 입력..."
+                          rows={2}
+                          className="w-full px-2.5 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:border-gray-400 resize-none"
+                        />
+                        <button
+                          onClick={() => handleInquiryRespond(inquiry.id)}
+                          disabled={actionLoading === inquiry.id || !responseText[inquiry.id]?.trim()}
+                          className="w-full py-2 bg-gray-900 text-white text-xs rounded-lg font-medium disabled:opacity-40"
+                        >
+                          {actionLoading === inquiry.id ? '...' : '답변 전송'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}

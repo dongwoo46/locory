@@ -1,0 +1,368 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "logout": "Cerrar sesión",
+    "follow": "Seguir",
+    "following": "Siguiendo",
+    "back": "Volver"
+  },
+  "feed": {
+    "noPostsTitle": "Aún no hay publicaciones",
+    "noPostsSubtitle": "Sé el primero en compartir un lugar",
+    "wantTag": "Quiero ir",
+    "all": "Todo",
+    "other": "Otros",
+    "allTab": "Todo",
+    "followingTab": "Siguiendo"
+  },
+  "cities": {
+    "seoul": "Seúl",
+    "busan": "Busan",
+    "jeju": "Jeju",
+    "gyeongju": "Gyeongju",
+    "jeonju": "Jeonju",
+    "gangneung": "Gangneung",
+    "sokcho": "Sokcho",
+    "yeosu": "Yeosu",
+    "incheon": "Incheon"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "Hongdae",
+      "myeongdong": "Myeongdong",
+      "itaewon": "Itaewon",
+      "gangnam": "Gangnam",
+      "seongsu": "Seongsu",
+      "hapjeong": "Hapjeong",
+      "yeonnam": "Yeonnam",
+      "bukchon": "Bukchon",
+      "insadong": "Insadong",
+      "hannam": "Hannam",
+      "jongno": "Jongno",
+      "apgujeong": "Apgujeong",
+      "konkuk": "Konkuk",
+      "jamsil": "Jamsil",
+      "dongdaemun": "Dongdaemun"
+    },
+    "busan": {
+      "haeundae": "Haeundae",
+      "gwangalli": "Gwangalli",
+      "nampo": "Nampo",
+      "seomyeon": "Seomyeon",
+      "songjeong": "Songjeong",
+      "gamcheon": "Gamcheon",
+      "gijang": "Gijang",
+      "dalmaji": "Colina Dalmaji",
+      "yeongdo": "Yeongdo",
+      "centum": "Centum City",
+      "mangmi": "Mangmi",
+      "millak": "Millak",
+      "dadaepo": "Dadaepo",
+      "busanstation": "Estación Busan"
+    },
+    "jeju": {
+      "jejusi": "Ciudad Jeju",
+      "aewol": "Aewol",
+      "seogwipo": "Seogwipo",
+      "seongsan": "Seongsan",
+      "udo": "Isla Udo",
+      "hyeopjae": "Hyeopjae",
+      "hamdeok": "Hamdeok"
+    },
+    "gyeongju": {
+      "hwangridangil": "Hwangridangil",
+      "downtown": "Centro",
+      "bomun": "Lago Bomun",
+      "bulguksa": "Bulguksa"
+    },
+    "jeonju": {
+      "hanok": "Pueblo Hanok",
+      "downtown": "Centro",
+      "nambu": "Mercado Nambu"
+    },
+    "gangneung": {
+      "downtown": "Centro",
+      "gyeongpo": "Gyeongpo",
+      "anmok": "Playa Anmok",
+      "jumunjin": "Jumunjin"
+    },
+    "sokcho": {
+      "downtown": "Centro",
+      "seoraksan": "Seoraksan",
+      "beach": "Playa Sokcho",
+      "abai": "Pueblo Abai"
+    },
+    "yeosu": {
+      "downtown": "Centro",
+      "dolsando": "Dolsando",
+      "odongdo": "Odongdo",
+      "hyangiram": "Hyangiram"
+    },
+    "incheon": {
+      "chinatown": "Barrio Chino",
+      "gaehang": "Puerto Histórico",
+      "songdo": "Songdo",
+      "wolmi": "Wolmido"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "Quiero volver",
+      "worth_it": "Satisfactorio",
+      "neutral": "Normal",
+      "not_great": "No está bien"
+    },
+    "category": {
+      "cafe": "Cafetería",
+      "restaurant": "Restaurante",
+      "photospot": "Lugar para fotos",
+      "street": "Calle",
+      "bar": "Bar y discoteca",
+      "culture": "Cultura",
+      "nature": "Naturaleza",
+      "shopping": "Compras"
+    },
+    "hiddenSpot": "Lugar secreto"
+  },
+  "place": {
+    "visitorStats": "Estadísticas de visitas",
+    "totalPosts": " publicaciones",
+    "noPostsTitle": "Aún no hay publicaciones",
+    "noPostsSubtitle": "Sé el primero en compartir este lugar",
+    "meetupButton": "Encuentro",
+    "avgRating": {
+      "must_go": "Volvería sin dudarlo",
+      "worth_it": "Vale la pena",
+      "neutral": "Normal",
+      "not_great": "No muy bien"
+    }
+  },
+  "profile": {
+    "myProfile": "Mi perfil",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "posts": "Publicaciones",
+    "noPublicPosts": "Sin publicaciones públicas",
+    "noPosts": "Aún no hay publicaciones",
+    "scent": "Aroma",
+    "requested": "Solicitado"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "profileImage": "Foto de perfil",
+    "changePhoto": "Cambiar foto",
+    "photoHint": "JPG, PNG, GIF aceptados",
+    "nickname": "Apodo",
+    "nationality": "Nacionalidad",
+    "nationalityReadonly": "No se puede cambiar",
+    "nationalityHint": "La nacionalidad no se puede cambiar después de la configuración inicial",
+    "birthYear": "Año de nacimiento",
+    "birthYearNone": "No especificado",
+    "language": "Idioma",
+    "visibility": "Visibilidad de la cuenta",
+    "public": "Cuenta pública",
+    "publicHint": "Cualquiera puede ver tu perfil y publicaciones",
+    "private": "Cuenta privada",
+    "privateHint": "Solo tus seguidores pueden ver tu contenido",
+    "version": "Versión"
+  },
+  "onboarding": {
+    "title": "Configura tu apodo y nacionalidad para empezar",
+    "nickname": "Apodo",
+    "nicknamePlaceholder": "2 a 16 caracteres",
+    "nationality": "Nacionalidad",
+    "birthYear": "Año de nacimiento",
+    "birthYearOptional": "Opcional",
+    "birthYearNone": "No especificado",
+    "submit": "Empezar",
+    "submitting": "Guardando...",
+    "errorNickname": "Por favor ingresa un apodo",
+    "errorNationalityRequired": "Por favor selecciona tu nacionalidad",
+    "errorNicknameLength": "El apodo debe tener entre 2 y 16 caracteres",
+    "errorSaveFailed": "Error al guardar. Por favor intenta de nuevo"
+  },
+  "nav": {
+    "feed": "Inicio",
+    "map": "Mapa",
+    "saved": "Guardado",
+    "profile": "Perfil"
+  },
+  "scent": {
+    "label": "Aroma",
+    "levels": {
+      "stench": "Hedor",
+      "odorless": "Sin olor",
+      "grass": "Hierba",
+      "floral": "Floral",
+      "woody": "Madera",
+      "ocean": "Mar",
+      "perfume": "Perfume"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "Guardado",
+    "placesTab": "Mis lugares",
+    "postsTab": "Mis posts",
+    "followingTab": "Lugares seguidos",
+    "noPlaces": "No hay lugares guardados",
+    "noPosts": "No hay publicaciones guardadas",
+    "noFollowingPlaces": "Las personas que sigues no tienen lugares guardados",
+    "filter": "Filtro",
+    "category": "Categoría",
+    "city": "Ciudad",
+    "hiddenOnly": "Spots secretos",
+    "rating": "Valoración",
+    "type": "Tipo",
+    "visited": "Visitado",
+    "want": "Quiero ir",
+    "reset": "Reiniciar",
+    "noResults": "Sin resultados"
+  },
+  "map": {
+    "all": "Todo",
+    "saved": "Guardado",
+    "posts": "posts",
+    "detail": "Ver",
+    "noPlaces": "No hay lugares",
+    "popular": "Popular",
+    "latest": "Reciente",
+    "category": "Categoría",
+    "placeCount": " lugares"
+  },
+  "meetup": {
+    "title": "Encuentro",
+    "create": "Crear encuentro",
+    "detail": "Detalle",
+    "applyTitle": "Solicitar unirse",
+    "manage": "Gestionar",
+    "threadTitle": "Hilo",
+    "createButton": "+ Crear encuentro",
+    "noMeetups": "No hay encuentros aún",
+    "restrictionMsg": "Solo perfiles públicos con nivel Sin olor o superior pueden crear encuentros",
+    "myMeetup": "Mi encuentro",
+    "wantedLabel": "Busco:",
+    "status": {
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "unmatched": "Sin match",
+      "pending": "Pendiente"
+    },
+    "form": {
+      "dateTime": "Fecha y hora",
+      "ourTeam": "Nuestro grupo",
+      "memberCount": "Miembros",
+      "genderComp": "Género",
+      "ageGroups": "Edades (selección múltiple)",
+      "activitiesVibe": "Actividades y ambiente",
+      "whatToDo": "¿Qué harán?",
+      "vibe": "Ambiente",
+      "description": "Mensaje (opcional)",
+      "descriptionPlaceholder": "Preséntate libremente",
+      "wantedConditions": "Condiciones preferidas",
+      "gender": "Género",
+      "ageGroupsOptional": "Edades (cualquiera si vacío)",
+      "countOptional": "Miembros (cualquiera si vacío)",
+      "nationalityOptional": "Nacionalidad (cualquiera si vacío)",
+      "saving": "Guardando...",
+      "submit": "Crear encuentro",
+      "saveFailed": "Error al guardar"
+    },
+    "detail": {
+      "hostTeam": "Equipo anfitrión",
+      "wantedPartner": "Busco",
+      "openThread": "Abrir hilo",
+      "cannotApply": "No puede aplicar",
+      "conditionMismatchNat": "Condición no cumplida (nacionalidad)",
+      "conditionMismatchGender": "Condición no cumplida (género)",
+      "restrictionNotMet": "Perfil público + nivel Sin olor requerido",
+      "inReview": "En revisión",
+      "applyButton": "Me apunto"
+    },
+    "join": {
+      "title": "Info de solicitud",
+      "ourCount": "Nuestros miembros",
+      "genderComp": "Género",
+      "ageGroups": "Edades",
+      "description": "Mensaje (opcional)",
+      "descriptionPlaceholder": "Preséntate brevemente",
+      "selectAgeGroup": "Selecciona grupo de edad",
+      "failed": "Error en la solicitud",
+      "submitting": "Enviando...",
+      "submit": "Solicitar"
+    },
+    "manage": {
+      "closed": "Cerrado",
+      "pending": "Pendientes",
+      "accepted": "Aceptados",
+      "unmatchBtn": "Sin match",
+      "rejectUnmatch": "Rechazar/Sin match",
+      "reject": "Rechazar",
+      "unmatch": "Sin match",
+      "openThread": "Abrir hilo",
+      "closeBtn": "Cerrar encuentro",
+      "noApplicants": "Sin solicitantes aún",
+      "accept": "Aceptar"
+    },
+    "thread": {
+      "openOnDay": "El hilo se abre el día del encuentro",
+      "daysUntil": "Abre en ~{days}d {hours}h",
+      "hoursUntil": "Abre en ~{hours}h {minutes}m",
+      "minutesUntil": "Abre en ~{minutes}m",
+      "firstMessage": "Sé el primero en enviar un mensaje",
+      "cannotSend": "No puedes enviar mensajes",
+      "placeholder": "Escribe un mensaje...",
+      "send": "Enviar"
+    },
+    "ageGroup": {
+      "teens": "Adolescentes",
+      "20s_early": "20s (inicio)",
+      "20s_mid": "20s (medio)",
+      "20s_late": "20s (final)",
+      "30s_early": "30s (inicio)",
+      "30s_mid": "30s (medio)",
+      "30s_late": "30s (final)",
+      "40s_plus": "40s+"
+    },
+    "activity": {
+      "chat": "Charlar",
+      "food": "Gastronomía",
+      "photo": "Fotos",
+      "tour": "Turismo",
+      "drink": "Copas",
+      "game": "Juegos",
+      "other": "Otro"
+    },
+    "vibe": {
+      "casual": "Casual",
+      "fun": "Divertido",
+      "serious": "Serio"
+    },
+    "gender": {
+      "female": "Mujer",
+      "male": "Hombre",
+      "mixed": "Mixto",
+      "any": "Cualquiera"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo leído",
+    "empty": "Sin notificaciones",
+    "just": "Ahora mismo",
+    "minutesAgo": "hace {m}m",
+    "hoursAgo": "hace {h}h",
+    "daysAgo": "hace {d}d"
+  }
+}

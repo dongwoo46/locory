@@ -1,0 +1,368 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "edit": "Редактировать",
+    "logout": "Выйти",
+    "follow": "Подписаться",
+    "following": "Вы подписаны",
+    "back": "Назад"
+  },
+  "feed": {
+    "noPostsTitle": "Постов пока нет",
+    "noPostsSubtitle": "Поделитесь местом первым",
+    "wantTag": "Хочу сходить",
+    "all": "Все",
+    "other": "Другое",
+    "allTab": "Все",
+    "followingTab": "Подписки"
+  },
+  "cities": {
+    "seoul": "Сеул",
+    "busan": "Пусан",
+    "jeju": "Чеджу",
+    "gyeongju": "Кёнджу",
+    "jeonju": "Чонджу",
+    "gangneung": "Каннын",
+    "sokcho": "Сокчхо",
+    "yeosu": "Ёсу",
+    "incheon": "Инчхон"
+  },
+  "districts": {
+    "seoul": {
+      "hongdae": "Хондэ",
+      "myeongdong": "Мёндон",
+      "itaewon": "Итхэвон",
+      "gangnam": "Каннам",
+      "seongsu": "Сонсу",
+      "hapjeong": "Хапчон",
+      "yeonnam": "Ённамдон",
+      "bukchon": "Пукчон",
+      "insadong": "Инсадон",
+      "hannam": "Ханнам",
+      "jongno": "Чонно",
+      "apgujeong": "Апкучон",
+      "konkuk": "Конде",
+      "jamsil": "Чамсиль",
+      "dongdaemun": "Тондэмун"
+    },
+    "busan": {
+      "haeundae": "Хэундэ",
+      "gwangalli": "Кванганни",
+      "nampo": "Намподон",
+      "seomyeon": "Сомён",
+      "songjeong": "Сонджон",
+      "gamcheon": "Камчхон",
+      "gijang": "Кичан",
+      "dalmaji": "Холм Далмаджи",
+      "yeongdo": "Ёндо",
+      "centum": "Сентум Сити",
+      "mangmi": "Мангми",
+      "millak": "Миллак",
+      "dadaepo": "Тадэпхо",
+      "busanstation": "Станция Пусан"
+    },
+    "jeju": {
+      "jejusi": "Чеджу-си",
+      "aewol": "Эволь",
+      "seogwipo": "Согвипхо",
+      "seongsan": "Сонсан",
+      "udo": "Удо",
+      "hyeopjae": "Хёпчэ",
+      "hamdeok": "Хамдок"
+    },
+    "gyeongju": {
+      "hwangridangil": "Хванниданниль",
+      "downtown": "Центр Кёнджу",
+      "bomun": "Бомун",
+      "bulguksa": "Пульгукса"
+    },
+    "jeonju": {
+      "hanok": "Деревня Ханок",
+      "downtown": "Центр Чонджу",
+      "nambu": "Намбу-сичжан"
+    },
+    "gangneung": {
+      "downtown": "Центр Канныня",
+      "gyeongpo": "Кёнпхо",
+      "anmok": "Анмок",
+      "jumunjin": "Чумунджин"
+    },
+    "sokcho": {
+      "downtown": "Центр Сокчхо",
+      "seoraksan": "Сораксан",
+      "beach": "Пляж Сокчхо",
+      "abai": "Деревня Абай"
+    },
+    "yeosu": {
+      "downtown": "Центр Ёсу",
+      "dolsando": "Тольсандо",
+      "odongdo": "Одондо",
+      "hyangiram": "Хянгирам"
+    },
+    "incheon": {
+      "chinatown": "Чайнатаун",
+      "gaehang": "Кэхан",
+      "songdo": "Сондо",
+      "wolmi": "Вольмидо"
+    }
+  },
+  "post": {
+    "rating": {
+      "must_go": "Хочу вернуться",
+      "worth_it": "Доволен",
+      "neutral": "Так себе",
+      "not_great": "Не понравилось"
+    },
+    "category": {
+      "cafe": "Кафе",
+      "restaurant": "Ресторан",
+      "photospot": "Фотолокация",
+      "street": "Улица",
+      "bar": "Бар и клуб",
+      "culture": "Выставки/Культура",
+      "nature": "Природа/Виды",
+      "shopping": "Шопинг"
+    },
+    "hiddenSpot": "Скрытое место"
+  },
+  "place": {
+    "visitorStats": "Статистика посетителей",
+    "totalPosts": "постов",
+    "noPostsTitle": "Постов пока нет",
+    "noPostsSubtitle": "Поделитесь этим местом первым",
+    "meetupButton": "Встреча",
+    "avgRating": {
+      "must_go": "Вернусь обязательно",
+      "worth_it": "Стоит посетить",
+      "neutral": "Обычное место",
+      "not_great": "Не очень"
+    }
+  },
+  "profile": {
+    "myProfile": "Мой профиль",
+    "followers": "Подписчики",
+    "following": "Подписки",
+    "posts": "Посты",
+    "noPublicPosts": "Нет публичных постов",
+    "noPosts": "Постов пока нет",
+    "scent": "Аромат",
+    "requested": "Запрошено"
+  },
+  "settings": {
+    "title": "Настройки",
+    "profileImage": "Фото профиля",
+    "changePhoto": "Изменить фото",
+    "photoHint": "Допустимые форматы: JPG, PNG, GIF",
+    "nickname": "Никнейм",
+    "nationality": "Гражданство",
+    "nationalityReadonly": "Нельзя изменить",
+    "nationalityHint": "Гражданство нельзя изменить после первоначальной настройки",
+    "birthYear": "Год рождения",
+    "birthYearNone": "Не указано",
+    "language": "Язык",
+    "visibility": "Настройки видимости аккаунта",
+    "public": "Публичный аккаунт",
+    "publicHint": "Профиль и посты видны всем",
+    "private": "Закрытый аккаунт",
+    "privateHint": "Только подписчики могут просматривать",
+    "version": "Версия"
+  },
+  "onboarding": {
+    "title": "Задайте никнейм и гражданство для начала",
+    "nickname": "Никнейм",
+    "nicknamePlaceholder": "Введите от 2 до 16 символов",
+    "nationality": "Гражданство",
+    "birthYear": "Год рождения",
+    "birthYearOptional": "Необязательно",
+    "birthYearNone": "Не указано",
+    "submit": "Начать",
+    "submitting": "Сохранение...",
+    "errorNickname": "Введите никнейм",
+    "errorNationalityRequired": "Выберите гражданство",
+    "errorNicknameLength": "Никнейм должен содержать от 2 до 16 символов",
+    "errorSaveFailed": "Не удалось сохранить. Попробуйте ещё раз"
+  },
+  "nav": {
+    "feed": "Лента",
+    "map": "Карта",
+    "saved": "Сохранённое",
+    "profile": "Профиль"
+  },
+  "scent": {
+    "label": "Аромат",
+    "levels": {
+      "stench": "Зловоние",
+      "odorless": "Без запаха",
+      "grass": "Трава",
+      "floral": "Цветочный",
+      "woody": "Древесный",
+      "ocean": "Морской",
+      "perfume": "Парфюмерный"
+    }
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "ja": "日本語",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "es": "Español",
+    "ru": "Русский"
+  },
+  "saved": {
+    "title": "Сохранённое",
+    "placesTab": "Мои места",
+    "postsTab": "Мои посты",
+    "followingTab": "Места подписок",
+    "noPlaces": "Нет сохранённых мест",
+    "noPosts": "Нет сохранённых постов",
+    "noFollowingPlaces": "Нет сохранённых мест у подписок",
+    "filter": "Фильтр",
+    "category": "Категория",
+    "city": "Город",
+    "hiddenOnly": "Скрытые места",
+    "rating": "Оценка",
+    "type": "Тип",
+    "visited": "Посещено",
+    "want": "Хочу посетить",
+    "reset": "Сбросить",
+    "noResults": "Результатов нет"
+  },
+  "map": {
+    "all": "Все",
+    "saved": "Мои сохранения",
+    "posts": "постов",
+    "detail": "Подробнее",
+    "noPlaces": "Мест нет",
+    "popular": "По популярности",
+    "latest": "По новизне",
+    "category": "Категория",
+    "placeCount": "мест"
+  },
+  "meetup": {
+    "title": "Встреча",
+    "create": "Создать встречу",
+    "detail": "Детали",
+    "applyTitle": "Подать заявку",
+    "manage": "Управление",
+    "threadTitle": "Переписка",
+    "createButton": "+ Создать встречу",
+    "noMeetups": "Встреч ещё нет",
+    "restrictionMsg": "Только публичные профили с уровнем «Без запаха» и выше могут создавать встречи",
+    "myMeetup": "Моя встреча",
+    "wantedLabel": "Ищу:",
+    "status": {
+      "accepted": "Принято",
+      "rejected": "Отклонено",
+      "unmatched": "Размэтчено",
+      "pending": "Ожидает"
+    },
+    "form": {
+      "dateTime": "Дата и время",
+      "ourTeam": "Наша команда",
+      "memberCount": "Участников",
+      "genderComp": "Состав по полу",
+      "ageGroups": "Возраст (можно несколько)",
+      "activitiesVibe": "Занятие и атмосфера",
+      "whatToDo": "Что будете делать?",
+      "vibe": "Атмосфера",
+      "description": "Сообщение (необязательно)",
+      "descriptionPlaceholder": "Расскажите о себе",
+      "wantedConditions": "Предпочтения",
+      "gender": "Пол",
+      "ageGroupsOptional": "Возраст (любой, если не выбрано)",
+      "countOptional": "Участников (любое, если не выбрано)",
+      "nationalityOptional": "Гражданство (любое, если не выбрано)",
+      "saving": "Сохранение...",
+      "submit": "Создать встречу",
+      "saveFailed": "Ошибка сохранения"
+    },
+    "detail": {
+      "hostTeam": "Команда организатора",
+      "wantedPartner": "Ищу",
+      "openThread": "Открыть чат",
+      "cannotApply": "Нельзя подать заявку",
+      "conditionMismatchNat": "Условие не выполнено (гражданство)",
+      "conditionMismatchGender": "Условие не выполнено (пол)",
+      "restrictionNotMet": "Нужен публичный профиль + уровень «Без запаха»",
+      "inReview": "На рассмотрении",
+      "applyButton": "Иду!"
+    },
+    "join": {
+      "title": "Данные заявки",
+      "ourCount": "Нас",
+      "genderComp": "Состав по полу",
+      "ageGroups": "Возраст",
+      "description": "Сообщение (необязательно)",
+      "descriptionPlaceholder": "Кратко о себе",
+      "selectAgeGroup": "Выберите возрастную группу",
+      "failed": "Ошибка при подаче заявки",
+      "submitting": "Отправка...",
+      "submit": "Подать заявку"
+    },
+    "manage": {
+      "closed": "Закрыто",
+      "pending": "Ожидающие",
+      "accepted": "Принятые",
+      "unmatchBtn": "Размэтчить",
+      "rejectUnmatch": "Отклонить/Размэтчить",
+      "reject": "Отклонить",
+      "unmatch": "Размэтчить",
+      "openThread": "Открыть чат",
+      "closeBtn": "Закрыть встречу",
+      "noApplicants": "Заявок ещё нет",
+      "accept": "Принять"
+    },
+    "thread": {
+      "openOnDay": "Чат откроется в день встречи",
+      "daysUntil": "Откроется через ~{days}д {hours}ч",
+      "hoursUntil": "Откроется через ~{hours}ч {minutes}м",
+      "minutesUntil": "Откроется через ~{minutes}м",
+      "firstMessage": "Напишите первое сообщение",
+      "cannotSend": "Нельзя отправить сообщение",
+      "placeholder": "Напишите сообщение...",
+      "send": "Отправить"
+    },
+    "ageGroup": {
+      "teens": "Подростки",
+      "20s_early": "20-23 года",
+      "20s_mid": "24-26 лет",
+      "20s_late": "27-29 лет",
+      "30s_early": "30-33 года",
+      "30s_mid": "34-36 лет",
+      "30s_late": "37-39 лет",
+      "40s_plus": "40+ лет"
+    },
+    "activity": {
+      "chat": "Болтать",
+      "food": "Гастротур",
+      "photo": "Фото",
+      "tour": "Экскурсия",
+      "drink": "Выпить",
+      "game": "Игры",
+      "other": "Другое"
+    },
+    "vibe": {
+      "casual": "Непринуждённо",
+      "fun": "Весело",
+      "serious": "Серьёзно"
+    },
+    "gender": {
+      "female": "Женщины",
+      "male": "Мужчины",
+      "mixed": "Смешанно",
+      "any": "Любой"
+    }
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "markAllRead": "Отметить всё прочитанным",
+    "empty": "Нет уведомлений",
+    "just": "Только что",
+    "minutesAgo": "{m} мин. назад",
+    "hoursAgo": "{h} ч. назад",
+    "daysAgo": "{d} дн. назад"
+  }
+}
