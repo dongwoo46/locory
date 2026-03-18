@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
+import { APIProvider, Map as GoogleMap, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
 import { CITIES, getMainDistricts } from '@/lib/utils/districts'
@@ -599,7 +599,7 @@ export default function MapClient({ userId }: Props) {
         is_public: true,
       }).select().single()
       if (error) throw error
-      setSavedCourses((prev: any[]) => [data, ...prev])
+      setSavedCourses([data, ...savedCourses])
       alert('코스가 저장되었어요!')
     } catch {
       alert('저장에 실패했어요')
@@ -643,7 +643,7 @@ export default function MapClient({ userId }: Props) {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-        <Map
+        <GoogleMap
           defaultCenter={{ lat: 36.5, lng: 127.8 }}
           defaultZoom={7}
           mapId="locory-map"
@@ -731,7 +731,7 @@ export default function MapClient({ userId }: Props) {
               </AdvancedMarker>
             )
           })}
-        </Map>
+        </GoogleMap>
       </APIProvider>
 
       {/* 상단 필터 */}

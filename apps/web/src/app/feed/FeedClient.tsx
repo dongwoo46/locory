@@ -107,7 +107,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const likedPlaceIds = savedData?.likedPlaceIds ?? new Set<string>()
 
   // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
-  const { data: posts = [], isLoading: loading } = useQuery({
+  const { data: rawPosts, isLoading: loading } = useQuery({
     queryKey: ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
     queryFn: async () => {
       if (feedTab === 'following') {
@@ -156,6 +156,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     },
     staleTime: 60 * 1000,
   })
+  const posts = (rawPosts ?? []) as any[]
 
   async function togglePlaceSave(placeId: string) {
     const saved = savedPlaceIds.has(placeId)
@@ -223,7 +224,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   // 정렬
   const sortedPosts = [...filteredPosts].sort((a, b) => {
     if (sortBy === 'likes') return (b.post_likes?.[0]?.count || 0) - (a.post_likes?.[0]?.count || 0)
-    if (sortBy === 'saves') return (b.post_saves?.[0]?.count || 0) - (a.post_saves?.[0]?.count || 0)
+    if (sortBy === 'saves') return ((b as any).post_saves?.[0]?.count || 0) - ((a as any).post_saves?.[0]?.count || 0)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 

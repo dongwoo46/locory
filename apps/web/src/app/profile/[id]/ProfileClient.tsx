@@ -116,7 +116,7 @@ export default function ProfileClient({
   const [followersCount, setFollowersCount] = useState(initialFollowers)
 
   // 포스팅 — 2분 캐싱
-  const { data: posts = [] } = useQuery({
+  const { data: rawPosts } = useQuery({
     queryKey: ['profile-posts', profile.id],
     queryFn: async () => {
       const { data } = await supabase
@@ -133,6 +133,7 @@ export default function ProfileClient({
     },
     staleTime: 2 * 60 * 1000,
   })
+  const posts = (rawPosts ?? []) as any[]
   const [isFollowing, setIsFollowing] = useState(initialFollowing)
   const [followStatus, setFollowStatus] = useState(initialFollowStatus)
   const [showTaste, setShowTaste] = useState(false)
