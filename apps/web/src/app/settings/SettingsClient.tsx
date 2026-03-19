@@ -237,6 +237,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
           <div className="flex gap-2">
             <input
               type="date"
+              lang="en"
               value={birthDate}
               onChange={e => setBirthDate(e.target.value)}
               max={new Date(new Date().setFullYear(new Date().getFullYear() - 14)).toISOString().slice(0, 10)}
