@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLikeStore } from '@/store/likeStore'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
@@ -66,6 +67,18 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   const [isPlaceSaved, setIsPlaceSaved] = useState(initialSaved)
   const [isPlaceLiked, setIsPlaceLiked] = useState(initialLiked)
   const [placeLikeCount, setPlaceLikeCount] = useState(initialLikeCount)
+
+  // Zustand store 초기화
+  const { init: initLikeStore } = useLikeStore()
+  useEffect(() => {
+    initLikeStore({
+      likedPostIds: likedPostIds,
+      likedPlaceIds: new Set(initialLiked ? [place.id] : []),
+      savedPostIds: savedPostIds,
+      savedPlaceIds: new Set(initialSaved ? [place.id] : []),
+      likeCountMap: {},
+    })
+  }, [])
   const [showReport, setShowReport] = useState(false)
   const [showMeetup, setShowMeetup] = useState(false)
 
@@ -242,19 +255,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
               )}
             </div>
 
-            {/* 국적 분포 */}
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              {Object.entries(nationalityCounts)
-                .sort((a, b) => b[1] - a[1])
-                .map(([nat, count]) => (
-                  <div key={nat} className="flex items-center gap-1 text-sm">
-                    <span>{NATIONALITY_FLAGS[nat]}</span>
-                    <span className="text-gray-500 text-xs">{count}</span>
-                  </div>
-                ))
-              }
-              <span className="text-xs text-gray-400 ml-auto">{totalPosts}{tPlace('totalPosts')}</span>
-            </div>
+            <span className="text-xs text-gray-400">{totalPosts}{tPlace('totalPosts')}</span>
 
             {/* 평점 분포 */}
             {visitedPosts.length > 0 && (
@@ -292,8 +293,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
             <PostGrid
               posts={posts}
               userId={userId}
-              savedPostIds={savedPostIds}
-              likedPostIds={likedPostIds}
+              hidePlaceLike
             />
           )}
         </div>

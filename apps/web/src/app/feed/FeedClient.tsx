@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLikeStore } from '@/store/likeStore'
 import { useRouter } from 'next/navigation'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
@@ -101,10 +102,21 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     staleTime: 5 * 60 * 1000,
   })
 
-  const savedPostIds = savedData?.savedPostIds ?? new Set<string>()
   const savedPlaceIds = savedData?.savedPlaceIds ?? new Set<string>()
-  const likedPostIds = savedData?.likedPostIds ?? new Set<string>()
   const likedPlaceIds = savedData?.likedPlaceIds ?? new Set<string>()
+
+  // Zustand store 초기화 — savedData 로드 시
+  const { init: initLikeStore, togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
+  useEffect(() => {
+    if (!savedData) return
+    initLikeStore({
+      likedPostIds: savedData.likedPostIds,
+      likedPlaceIds: savedData.likedPlaceIds,
+      savedPostIds: savedData.savedPostIds,
+      savedPlaceIds: savedData.savedPlaceIds,
+      likeCountMap: {},
+    })
+  }, [savedData])
 
   // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
   const { data: rawPosts, isLoading: loading } = useQuery({
@@ -160,6 +172,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
   async function togglePlaceSave(placeId: string) {
     const saved = savedPlaceIds.has(placeId)
+    storePlaceSave(placeId)
     queryClient.setQueryData(['user-saved', userId], (old: any) => {
       if (!old) return old
       const newSet = new Set(old.savedPlaceIds)
@@ -175,6 +188,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
   async function togglePlaceLike(placeId: string) {
     const liked = likedPlaceIds.has(placeId)
+    storePlaceLike(placeId)
     queryClient.setQueryData(['user-saved', userId], (old: any) => {
       if (!old) return old
       const newSet = new Set(old.likedPlaceIds)
@@ -631,10 +645,6 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           <PostGrid
             posts={sortedPosts}
             userId={userId}
-            savedPostIds={savedPostIds}
-            savedPlaceIds={savedPlaceIds}
-            likedPostIds={likedPostIds}
-            likedPlaceIds={likedPlaceIds}
           />
         )}
       </main>

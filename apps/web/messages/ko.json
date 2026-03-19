@@ -158,7 +158,7 @@
     "totalPosts": "개 포스팅",
     "noPostsTitle": "아직 포스팅이 없어요",
     "noPostsSubtitle": "첫 번째로 이 장소를 공유해보세요",
-    "meetupButton": "번개",
+    "meetupButton": "번개모임",
     "naverMenu": "네이버에서 메뉴 보기",
     "avgRating": {
       "must_go": "또 가고싶은",
@@ -421,8 +421,8 @@
     }
   },
   "meetup": {
-    "title": "번개",
-    "create": "번개 만들기",
+    "title": "번개모임",
+    "create": "번개모임 만들기",
     "detail": {
       "hostTeam": "주최자 팀",
       "wantedPartner": "원하는 상대",
@@ -444,15 +444,15 @@
       "reject": "거절",
       "unmatch": "언매치",
       "openThread": "스레드 열기",
-      "closeBtn": "번개 마감",
+      "closeBtn": "번개모임 마감",
       "noApplicants": "아직 신청자가 없어요",
       "accept": "수락"
     },
-    "threadTitle": "번개 스레드",
-    "createButton": "+ 번개 만들기",
-    "noMeetups": "아직 번개가 없어요",
-    "restrictionMsg": "공개 프로필 + 무취 이상 레벨만 번개를 만들 수 있어요",
-    "myMeetup": "내 번개",
+    "threadTitle": "번개모임 스레드",
+    "createButton": "+ 번개모임 만들기",
+    "noMeetups": "아직 번개모임이 없어요",
+    "restrictionMsg": "공개 프로필 + 무취 이상 레벨만 번개모임을 만들 수 있어요",
+    "myMeetup": "내 번개모임",
     "wantedLabel": "원하는 상대:",
     "status": {
       "accepted": "수락됨",
@@ -493,7 +493,7 @@
       "submit": "신청하기"
     },
     "thread": {
-      "openOnDay": "번개 당일에 스레드가 오픈됩니다",
+      "openOnDay": "번개모임 당일에 스레드가 오픈됩니다",
       "daysUntil": "약 {days}일 {hours}시간 후 오픈",
       "hoursUntil": "약 {hours}시간 {minutes}분 후 오픈",
       "minutesUntil": "약 {minutes}분 후 오픈",

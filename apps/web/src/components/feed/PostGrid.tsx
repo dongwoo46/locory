@@ -1,22 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
-import { getScentLevel, calcScentScore } from '@/types/database'
+import { getScentLevel } from '@/types/database'
+import { useLikeStore } from '@/store/likeStore'
 
 const RATING_COLORS: Record<string, string> = {
-  must_go: '#B090D4',
-  worth_it: '#6AC0D4',
-  neutral: '#90C490',
-  not_great: '#E8C070',
+  must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',
 }
-
 const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
 }
-
 const CATEGORY_EMOJIS: Record<string, string> = {
   cafe: '☕', restaurant: '🍽️', photospot: '📸', street: '🚶',
   bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
@@ -25,81 +21,69 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 interface Props {
   posts: any[]
   userId: string
-  savedPostIds: Set<string>
-  savedPlaceIds?: Set<string>
-  likedPostIds?: Set<string>
-  likedPlaceIds?: Set<string>
+  hidePlaceLike?: boolean
 }
 
-export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = new Set(), likedPostIds, likedPlaceIds = new Set() }: Props) {
+export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props) {
   const router = useRouter()
-  const [selected, setSelected] = useState<any | null>(null)
   const supabase = createClient()
   const t = useTranslations()
   const tPost = useTranslations('post')
   const tFeed = useTranslations('feed')
   const tDistricts = useTranslations('districts')
+  const [selected, setSelected] = useState<any | null>(null)
 
-  const [likedMap, setLikedMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(posts.map(p => [p.id, likedPostIds?.has(p.id) ?? false]))
-  )
-  const [likeCountMap, setLikeCountMap] = useState<Record<string, number>>(
-    Object.fromEntries(posts.map(p => [p.id, p.post_likes?.[0]?.count || 0]))
-  )
-  const [savedMap, setSavedMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(posts.map(p => [p.id, savedPostIds.has(p.id)]))
-  )
-  const [savedPlaceMap, setSavedPlaceMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(posts.map(p => [p.places?.id, savedPlaceIds.has(p.places?.id)]))
-  )
-  const [likedPlaceMap, setLikedPlaceMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(posts.map(p => [p.places?.id, likedPlaceIds.has(p.places?.id)]))
-  )
+  const {
+    likedPostIds, likeCountMap, likedPlaceIds, savedPostIds, savedPlaceIds,
+    togglePostLike, togglePlaceLike, togglePostSave, togglePlaceSave, mergePostCounts,
+  } = useLikeStore()
 
-  async function toggleLike(postId: string) {
-    const liked = likedMap[postId]
-    if (liked) {
+  // 포스트 좋아요 수 store에 병합
+  useEffect(() => {
+    const counts = Object.fromEntries(
+      posts.map(p => [p.id, parseInt(p.post_likes?.[0]?.count) || 0])
+    )
+    mergePostCounts(counts)
+  }, [posts, mergePostCounts])
+
+  async function handlePostLike(postId: string) {
+    const wasLiked = likedPostIds.has(postId)
+    togglePostLike(postId) // 즉시 UI 반영
+    if (wasLiked) {
       await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
-      setLikedMap(m => ({ ...m, [postId]: false }))
-      setLikeCountMap(m => ({ ...m, [postId]: (m[postId] || 0) - 1 }))
     } else {
       await supabase.from('post_likes').insert({ user_id: userId, post_id: postId })
-      setLikedMap(m => ({ ...m, [postId]: true }))
-      setLikeCountMap(m => ({ ...m, [postId]: (m[postId] || 0) + 1 }))
     }
   }
 
-  async function toggleSave(postId: string) {
-    const saved = savedMap[postId]
-    if (saved) {
+  async function handlePostSave(postId: string) {
+    const wasSaved = savedPostIds.has(postId)
+    togglePostSave(postId)
+    if (wasSaved) {
       await supabase.from('post_saves').delete().eq('user_id', userId).eq('post_id', postId)
-      setSavedMap(m => ({ ...m, [postId]: false }))
     } else {
       await supabase.from('post_saves').insert({ user_id: userId, post_id: postId })
-      setSavedMap(m => ({ ...m, [postId]: true }))
     }
   }
 
-  async function togglePlaceSave(placeId: string) {
-    const saved = savedPlaceMap[placeId]
-    if (saved) {
+  async function handlePlaceSave(placeId: string) {
+    const wasSaved = savedPlaceIds.has(placeId)
+    togglePlaceSave(placeId)
+    if (wasSaved) {
       await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
-      setSavedPlaceMap(m => ({ ...m, [placeId]: false }))
     } else {
       await supabase.from('place_saves').insert({ user_id: userId, place_id: placeId })
-      setSavedPlaceMap(m => ({ ...m, [placeId]: true }))
     }
   }
 
-  async function togglePlaceLike(e: React.MouseEvent, placeId: string) {
+  async function handlePlaceLike(e: React.MouseEvent, placeId: string) {
     e.stopPropagation()
-    const liked = likedPlaceMap[placeId]
-    if (liked) {
+    const wasLiked = likedPlaceIds.has(placeId)
+    togglePlaceLike(placeId)
+    if (wasLiked) {
       await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', placeId)
-      setLikedPlaceMap(m => ({ ...m, [placeId]: false }))
     } else {
       await supabase.from('place_likes').insert({ user_id: userId, place_id: placeId })
-      setLikedPlaceMap(m => ({ ...m, [placeId]: true }))
     }
   }
 
@@ -107,17 +91,17 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
 
   return (
     <>
-      {/* 2열 그리드 */}
+      {/* 3열 그리드 */}
       <div className="grid grid-cols-3 gap-1.5">
         {posts.map(p => {
           const place = p.places
+          const likeCount = likeCountMap[p.id] || 0
           return (
             <div
               key={p.id}
               onClick={() => setSelected(p)}
               className="bg-white rounded-xl overflow-hidden shadow-sm text-left cursor-pointer"
             >
-              {/* 사진 */}
               <div className="aspect-square bg-gray-100 relative">
                 {p.photos?.[0] ? (
                   <img src={p.photos[0]} alt="" className="w-full h-full object-cover" />
@@ -128,14 +112,14 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
                 )}
                 {p.type === 'visited' && p.rating && (
                   <div
-                    className="absolute top-1.5 left-1.5 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                    className="absolute top-2.5 left-1.5 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
                     style={{ backgroundColor: RATING_COLORS[p.rating] }}
                   >
                     {tPost('rating.' + p.rating)}
                   </div>
                 )}
                 {p.type === 'want' && (
-                  <div className="absolute top-1.5 left-1.5 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full">
+                  <div className="absolute top-2.5 left-1.5 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full">
                     {tFeed('wantTag')}
                   </div>
                 )}
@@ -144,30 +128,37 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
                     🔍 {tPost('hiddenSpot')}
                   </div>
                 )}
-                {place?.id && (
+                {place?.id && !hidePlaceLike && (
                   <button
-                    onClick={e => togglePlaceLike(e, place.id)}
+                    onClick={e => handlePlaceLike(e, place.id)}
                     className="absolute bottom-1.5 right-1.5 bg-black/40 rounded-full p-1"
                   >
                     <svg width="11" height="11" viewBox="0 0 24 24"
-                      fill={likedPlaceMap[place.id] ? '#ef4444' : 'none'}
-                      stroke={likedPlaceMap[place.id] ? '#ef4444' : 'white'}
+                      fill={likedPlaceIds.has(place.id) ? '#ef4444' : 'none'}
+                      stroke={likedPlaceIds.has(place.id) ? '#ef4444' : 'white'}
                       strokeWidth={2.5}>
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
                   </button>
                 )}
               </div>
-              {/* 정보 */}
               <div className="px-2 py-1.5">
                 <div className="flex items-center gap-1 leading-tight">
                   <span className="text-xs shrink-0">{CATEGORY_EMOJIS[place?.category]}</span>
-                  <p className="text-[11px] font-semibold text-gray-900 truncate">{place?.name}</p>
+                  <p className="text-[11px] font-semibold text-gray-900 line-clamp-2">{place?.name}</p>
                 </div>
-                <div className="flex items-center gap-1 mt-0.5">
+                <div className="flex items-center justify-between mt-0.5">
                   <span className="text-[9px] text-gray-400 truncate">
                     {NATIONALITY_FLAGS[p.profiles?.nationality]} {p.profiles?.nickname}
                   </span>
+                  {likeCount > 0 && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#9CA3AF" stroke="none">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                      <span className="text-[9px] text-gray-400">{likeCount}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -186,7 +177,6 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
             style={{ maxHeight: 'calc(100dvh - 120px)' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* 헤더 닫기 버튼 */}
             <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
               <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
               <button onClick={() => setSelected(null)} className="absolute right-4 top-3 p-1 text-gray-400">
@@ -196,102 +186,101 @@ export default function PostGrid({ posts, userId, savedPostIds, savedPlaceIds = 
               </button>
             </div>
             <div className="overflow-y-auto">
-
-            {/* 유저 헤더 */}
-            <div className="flex items-center gap-2.5 px-4 py-3">
-              <button
-                onClick={() => { setSelected(null); router.push(`/profile/${post.profiles?.id}`) }}
-                className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0"
-              >
-                {post.profiles?.avatar_url
-                  ? <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                      {post.profiles?.nickname?.[0]}
-                    </div>
-                }
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => { setSelected(null); router.push(`/profile/${post.profiles?.id}`) }}
-                    className="text-sm font-semibold text-gray-900"
-                  >
-                    {post.profiles?.nickname}
-                  </button>
-                  {post.profiles?.trust_score != null && (() => {
-                    const scent = getScentLevel(post.profiles.trust_score)
-                    return (
-                      <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                        style={{ color: scent.color, backgroundColor: scent.bg }}
-                      >
-                        {t(`scent.levels.${scent.id}`)}
-                      </span>
-                    )
-                  })()}
-                </div>
+              <div className="flex items-center gap-2.5 px-4 py-3">
                 <button
-                  onClick={() => { setSelected(null); router.push(`/place/${post.places?.id}`) }}
-                  className="block text-xs text-gray-400 hover:text-gray-600 truncate text-left"
+                  onClick={() => { setSelected(null); router.push(`/profile/${post.profiles?.id}`) }}
+                  className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0"
                 >
-                  {post.places?.name}{post.places?.district ? ` · ${post.places?.city ? tDistricts(`${post.places.city}.${post.places.district}`) : post.places.district}` : ''}
+                  {post.profiles?.avatar_url
+                    ? <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{post.profiles?.nickname?.[0]}</div>
+                  }
                 </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => { setSelected(null); router.push(`/profile/${post.profiles?.id}`) }}
+                      className="text-sm font-semibold text-gray-900"
+                    >
+                      {post.profiles?.nickname}
+                    </button>
+                    {post.profiles?.trust_score != null && (() => {
+                      const scent = getScentLevel(post.profiles.trust_score)
+                      return (
+                        <span
+                          className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                          style={{ color: scent.color, backgroundColor: scent.bg }}
+                        >
+                          {t(`scent.levels.${scent.id}`)}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                  <button
+                    onClick={() => { setSelected(null); router.push(`/place/${post.places?.id}`) }}
+                    className="block text-xs text-gray-400 hover:text-gray-600 truncate text-left"
+                  >
+                    {post.places?.name}{post.places?.district ? ` · ${post.places?.city ? tDistricts(`${post.places.city}.${post.places.district}`) : post.places.district}` : ''}
+                  </button>
+                </div>
+                {post.type === 'visited' && post.rating ? (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white shrink-0" style={{ backgroundColor: RATING_COLORS[post.rating] }}>
+                    {tPost('rating.' + post.rating)}
+                  </span>
+                ) : post.type === 'want' ? (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 shrink-0">
+                    {tFeed('wantTag')}
+                  </span>
+                ) : null}
               </div>
-              {post.type === 'visited' && post.rating ? (
-                <span
-                  className="px-2 py-0.5 rounded-full text-xs font-medium text-white shrink-0"
-                  style={{ backgroundColor: RATING_COLORS[post.rating] }}
-                >
-                  {tPost('rating.' + post.rating)}
-                </span>
-              ) : post.type === 'want' ? (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 shrink-0">
-                  {tFeed('wantTag')}
-                </span>
-              ) : null}
-            </div>
 
-            {/* 사진 */}
-            {post.photos?.length > 0 && (
-              <div className="aspect-square bg-gray-100">
-                <img src={post.photos[0]} alt="" className="w-full h-full object-cover" />
-              </div>
-            )}
+              {post.photos?.length > 0 && (
+                <div className="aspect-square bg-gray-100">
+                  <img src={post.photos[0]} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
 
-            {/* 하단 */}
-            <div className="px-4 py-3 pb-5 shrink-0">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-400">
-                  {tPost('category.' + post.places?.category)}
-                  {post.places?.place_type === 'hidden_spot' ? ` · ${tPost('hiddenSpot')}` : ''}
-                </span>
-                <div className="flex items-center gap-3">
-                  {post.places?.id && (
-                    <button onClick={() => togglePlaceSave(post.places.id)} className="flex items-center gap-1">
+              <div className="px-4 py-3 pb-5 shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">
+                    {tPost('category.' + post.places?.category)}
+                    {post.places?.place_type === 'hidden_spot' ? ` · ${tPost('hiddenSpot')}` : ''}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    {post.places?.id && (
+                      <button onClick={() => handlePlaceSave(post.places.id)}>
+                        <svg width="18" height="18" viewBox="0 0 24 24"
+                          fill={savedPlaceIds.has(post.places.id) ? '#111' : 'none'}
+                          stroke={savedPlaceIds.has(post.places.id) ? '#111' : '#9CA3AF'}
+                          strokeWidth={2}>
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                        </svg>
+                      </button>
+                    )}
+                    <button onClick={() => handlePostSave(post.id)}>
                       <svg width="18" height="18" viewBox="0 0 24 24"
-                        fill={savedPlaceMap[post.places.id] ? '#111' : 'none'}
-                        stroke={savedPlaceMap[post.places.id] ? '#111' : '#9CA3AF'}
+                        fill={savedPostIds.has(post.id) ? '#111' : 'none'}
+                        stroke={savedPostIds.has(post.id) ? '#111' : '#9CA3AF'}
                         strokeWidth={2}>
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                       </svg>
                     </button>
-                  )}
-<button onClick={() => toggleLike(post.id)} className="flex items-center gap-1">
-                    <svg width="18" height="18" viewBox="0 0 24 24"
-                      fill={likedMap[post.id] ? '#111' : 'none'}
-                      stroke={likedMap[post.id] ? '#111' : '#9CA3AF'}
-                      strokeWidth={2}>
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                    <span className="text-xs text-gray-400">{likeCountMap[post.id] || 0}</span>
-                  </button>
+                    <button onClick={() => handlePostLike(post.id)} className="flex items-center gap-1">
+                      <svg width="18" height="18" viewBox="0 0 24 24"
+                        fill={likedPostIds.has(post.id) ? '#111' : 'none'}
+                        stroke={likedPostIds.has(post.id) ? '#111' : '#9CA3AF'}
+                        strokeWidth={2}>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                      <span className="text-xs text-gray-400">{likeCountMap[post.id] || 0}</span>
+                    </button>
+                  </div>
                 </div>
+                {post.memo && (
+                  <p className="text-sm text-gray-700 leading-relaxed">{post.memo}</p>
+                )}
               </div>
-              {post.memo && (
-                <p className="text-sm text-gray-700 leading-relaxed">{post.memo}</p>
-              )}
             </div>
-            </div>{/* overflow-y-auto 닫기 */}
           </div>
         </div>
       )}

@@ -663,20 +663,14 @@ function MeetupCreateForm({
   const t = useTranslations('meetup');
   const tCommon = useTranslations('common');
 
-  const todayDate = () => {
-    const d = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  };
-
-  const defaultTime = () => {
+  const defaultScheduledAt = () => {
     const d = new Date();
     d.setHours(d.getHours() + 1, 0, 0, 0);
-    return `${String(d.getHours()).padStart(2, '0')}:00`;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
   };
 
-  const [scheduledTime, setScheduledTime] = useState(defaultTime());
-  const scheduledAt = `${todayDate()}T${scheduledTime}:00`;
+  const [scheduledAt, setScheduledAt] = useState(defaultScheduledAt());
   const [hostCount, setHostCount] = useState(1);
   const [hostGender, setHostGender] = useState<string>(
     myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed',
@@ -733,9 +727,10 @@ function MeetupCreateForm({
           {t('form.dateTime')}
         </p>
         <input
-          type="time"
-          value={scheduledTime}
-          onChange={(e) => setScheduledTime(e.target.value)}
+          type="datetime-local"
+          value={scheduledAt}
+          onChange={(e) => setScheduledAt(e.target.value)}
+          step={300}
           className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white"
         />
       </div>
