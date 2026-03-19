@@ -183,12 +183,14 @@
       "CN": "Chino",
       "ES": "Español/Latino",
       "RU": "Ruso",
+      "EU": "Europa",
       "OTHER": "Otro"
     },
     "gender": {
       "female": "Mujer",
       "male": "Hombre",
-      "other": "Otro"
+      "other": "Otro",
+      "label": "Género"
     },
     "styleTag": {
       "cafe": "Explorador de cafés",
@@ -263,7 +265,11 @@
     "errorNickname": "Por favor ingresa un apodo",
     "errorNationalityRequired": "Por favor selecciona tu nacionalidad",
     "errorNicknameLength": "El apodo debe tener entre 2 y 16 caracteres",
-    "errorSaveFailed": "Error al guardar. Por favor intenta de nuevo"
+    "errorSaveFailed": "Error al guardar. Por favor intenta de nuevo",
+    "optional": "opcional",
+    "birthDate": "Fecha de nacimiento",
+    "errorNicknameDuplicate": "Apodo ya en uso",
+    "errorNicknameInvalid": "Solo letras, números, ., _, - permitidos"
   },
   "nav": {
     "feed": "Inicio",

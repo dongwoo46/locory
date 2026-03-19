@@ -183,12 +183,14 @@
       "CN": "Chinese",
       "ES": "Spanish/Latin",
       "RU": "Russian",
+      "EU": "Europe",
       "OTHER": "Other"
     },
     "gender": {
       "female": "Female",
       "male": "Male",
-      "other": "Other"
+      "other": "Other",
+      "label": "Gender"
     },
     "styleTag": {
       "cafe": "Café Explorer",
@@ -263,7 +265,11 @@
     "errorNickname": "Please enter a nickname",
     "errorNationalityRequired": "Please select your nationality",
     "errorNicknameLength": "Nickname must be 2–16 characters",
-    "errorSaveFailed": "Failed to save. Please try again"
+    "errorSaveFailed": "Failed to save. Please try again",
+    "optional": "optional",
+    "birthDate": "Date of Birth",
+    "errorNicknameDuplicate": "Nickname already taken",
+    "errorNicknameInvalid": "Only letters, numbers, ., _, - allowed"
   },
   "nav": {
     "feed": "Feed",

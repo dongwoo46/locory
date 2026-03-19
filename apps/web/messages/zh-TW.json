@@ -183,12 +183,14 @@
       "CN": "中國",
       "ES": "西班牙/拉丁美洲",
       "RU": "俄羅斯",
+      "EU": "歐洲",
       "OTHER": "其他"
     },
     "gender": {
       "female": "女性",
       "male": "男性",
-      "other": "其他"
+      "other": "其他",
+      "label": "性別"
     },
     "styleTag": {
       "cafe": "咖啡廳探險家",
@@ -263,7 +265,11 @@
     "errorNickname": "請輸入暱稱",
     "errorNationalityRequired": "請選擇國籍",
     "errorNicknameLength": "暱稱需為2至16個字元",
-    "errorSaveFailed": "儲存失敗，請重試"
+    "errorSaveFailed": "儲存失敗，請重試",
+    "optional": "選填",
+    "birthDate": "出生日期",
+    "errorNicknameDuplicate": "暱稱已被使用",
+    "errorNicknameInvalid": "只能使用英文、數字、., _, -"
   },
   "nav": {
     "feed": "探索",

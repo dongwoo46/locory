@@ -183,12 +183,14 @@
       "CN": "中国",
       "ES": "スペイン/中南米",
       "RU": "ロシア",
+      "EU": "ヨーロッパ",
       "OTHER": "その他"
     },
     "gender": {
       "female": "女性",
       "male": "男性",
-      "other": "その他"
+      "other": "その他",
+      "label": "性別"
     },
     "styleTag": {
       "cafe": "カフェ巡り",
@@ -263,7 +265,11 @@
     "errorNickname": "ニックネームを入力してください",
     "errorNationalityRequired": "国籍を選択してください",
     "errorNicknameLength": "ニックネームは2〜16文字にしてください",
-    "errorSaveFailed": "保存に失敗しました。もう一度お試しください"
+    "errorSaveFailed": "保存に失敗しました。もう一度お試しください",
+    "optional": "任意",
+    "birthDate": "生年月日",
+    "errorNicknameDuplicate": "すでに使用されているニックネームです",
+    "errorNicknameInvalid": "英字、数字、., _, - のみ使用できます"
   },
   "nav": {
     "feed": "フィード",

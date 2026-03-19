@@ -13,18 +13,16 @@ const NATIONALITIES: { value: Nationality; flag: string }[] = [
   { value: 'US', flag: '🇺🇸' },
   { value: 'CN', flag: '🇨🇳' },
   { value: 'ES', flag: '🇪🇸' },
+  { value: 'EU', flag: '🇪🇺' },
   { value: 'RU', flag: '🇷🇺' },
   { value: 'OTHER', flag: '🌍' },
 ]
-
-const NATIONALITY_LABELS: Record<string, string> = {
-  KR: '한국', JP: '일본', US: '미국', CN: '중국', ES: '스페인/남미', RU: '러시아', OTHER: '기타',
-}
 
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('onboarding')
+  const tProfile = useTranslations('profile')
 
   const [nickname, setNickname] = useState('')
   const [nationality, setNationality] = useState<Nationality | null>(null)
@@ -61,8 +59,8 @@ export default function OnboardingPage() {
       .eq('id', user.id)
 
     if (updateError) {
-      if (updateError.code === '23505') setError('이미 사용 중인 닉네임이에요')
-      else if (updateError.code === '23514') setError('영문, 숫자, ., _, - 만 사용 가능해요')
+      if (updateError.code === '23505') setError(t('errorNicknameDuplicate'))
+      else if (updateError.code === '23514') setError(t('errorNicknameInvalid'))
       else setError(t('errorSaveFailed'))
       setLoading(false)
       return
@@ -116,7 +114,7 @@ export default function OnboardingPage() {
                 }`}
               >
                 <span>{n.flag}</span>
-                <span>{NATIONALITY_LABELS[n.value]}</span>
+                <span>{tProfile(`nationality.${n.value}`)}</span>
               </button>
             ))}
           </div>
@@ -125,24 +123,20 @@ export default function OnboardingPage() {
         {/* 성별 (선택) */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">
-            성별 <span className="text-gray-400 font-normal">(선택)</span>
+            {tProfile('gender.label')} <span className="text-gray-400 font-normal">({t('optional')})</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {([
-              { value: 'female' as const, label: '여자' },
-              { value: 'male' as const, label: '남자' },
-              { value: 'other' as const, label: '기타' },
-            ]).map(g => (
+            {(['female', 'male', 'other'] as const).map(g => (
               <button
-                key={g.value}
-                onClick={() => setGender(prev => prev === g.value ? null : g.value)}
+                key={g}
+                onClick={() => setGender(prev => prev === g ? null : g)}
                 className={`py-3 rounded-xl border text-sm transition-colors ${
-                  gender === g.value
+                  gender === g
                     ? 'border-gray-900 bg-gray-900 text-white'
                     : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                {g.label}
+                {tProfile(`gender.${g}`)}
               </button>
             ))}
           </div>
@@ -151,7 +145,7 @@ export default function OnboardingPage() {
         {/* 생년월일 (선택) */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">
-            생년월일 <span className="text-gray-400 font-normal">(선택)</span>
+            {t('birthDate')} <span className="text-gray-400 font-normal">({t('optional')})</span>
           </label>
           <input
             type="date"

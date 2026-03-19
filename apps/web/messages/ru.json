@@ -183,12 +183,14 @@
       "CN": "Китаец",
       "ES": "Испанец/Латиноамериканец",
       "RU": "Русский",
+      "EU": "Европа",
       "OTHER": "Другое"
     },
     "gender": {
       "female": "Женский",
       "male": "Мужской",
-      "other": "Другой"
+      "other": "Другой",
+      "label": "Пол"
     },
     "styleTag": {
       "cafe": "Любитель кафе",
@@ -263,7 +265,11 @@
     "errorNickname": "Введите никнейм",
     "errorNationalityRequired": "Выберите гражданство",
     "errorNicknameLength": "Никнейм должен содержать от 2 до 16 символов",
-    "errorSaveFailed": "Не удалось сохранить. Попробуйте ещё раз"
+    "errorSaveFailed": "Не удалось сохранить. Попробуйте ещё раз",
+    "optional": "необязательно",
+    "birthDate": "Дата рождения",
+    "errorNicknameDuplicate": "Никнейм уже занят",
+    "errorNicknameInvalid": "Только буквы, цифры, ., _, -"
   },
   "nav": {
     "feed": "Лента",

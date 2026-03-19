@@ -1,4 +1,4 @@
-export type Nationality = 'KR' | 'JP' | 'US' | 'CN' | 'ES' | 'RU' | 'OTHER'
+export type Nationality = 'KR' | 'JP' | 'US' | 'CN' | 'ES' | 'RU' | 'EU' | 'OTHER'
 
 export type UserRole = 'user' | 'admin'
 

@@ -25,7 +25,10 @@
       "Read(//c/Users/dw/Desktop/locory/**)",
       "Bash(supabase --version)",
       "Bash(docker --version)",
-      "Bash(find c:UsersdwDesktoplocory -name *migration* -o -name *.sql)"
+      "Bash(find c:UsersdwDesktoplocory -name *migration* -o -name *.sql)",
+      "Bash(grep -n '\"\"onboarding\"\"' messages/en.json messages/ja.json messages/zh-TW.json messages/es.json messages/ru.json)",
+      "Bash(sed -i 's/\"\"RU\"\": \"\"러시아\"\",\\\\n      \"\"OTHER\"\": \"\"기타\"\"/\"\"RU\"\": \"\"러시아\"\",\\\\n      \"\"EU\"\": \"\"유럽\"\",\\\\n      \"\"OTHER\"\": \"\"기타\"\"/' messages/ko.json)",
+      "Bash(python3 -c \":*)"
     ]
   }
 }

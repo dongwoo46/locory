@@ -183,12 +183,14 @@
       "CN": "중국",
       "ES": "스페인/남미",
       "RU": "러시아",
+      "EU": "유럽",
       "OTHER": "기타"
     },
     "gender": {
       "female": "여자",
       "male": "남자",
-      "other": "기타"
+      "other": "기타",
+      "label": "성별"
     },
     "styleTag": {
       "cafe": "카페 탐방러",
@@ -263,7 +265,11 @@
     "errorNickname": "닉네임을 입력해주세요",
     "errorNationalityRequired": "국적을 선택해주세요",
     "errorNicknameLength": "닉네임은 2~16자로 입력해주세요",
-    "errorSaveFailed": "저장에 실패했어요. 다시 시도해주세요"
+    "errorSaveFailed": "저장에 실패했어요. 다시 시도해주세요",
+    "optional": "선택",
+    "birthDate": "생년월일",
+    "errorNicknameDuplicate": "이미 사용 중인 닉네임이에요",
+    "errorNicknameInvalid": "영문, 숫자, ., _, - 만 사용 가능해요"
   },
   "nav": {
     "feed": "피드",
