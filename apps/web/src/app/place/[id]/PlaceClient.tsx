@@ -293,7 +293,6 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
             <PostGrid
               posts={posts}
               userId={userId}
-              hidePlaceLike
             />
           )}
         </div>
