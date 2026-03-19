@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { containsProfanity } from '@/lib/utils/profanity';
 
@@ -654,13 +655,20 @@ function MeetupCreateForm({
   const t = useTranslations('meetup');
   const tCommon = useTranslations('common');
 
-  const defaultDatetime = () => {
+  const todayDate = () => {
     const d = new Date();
-    d.setHours(d.getHours() + 1, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  const [scheduledAt, setScheduledAt] = useState(defaultDatetime());
+  const defaultTime = () => {
+    const d = new Date();
+    d.setHours(d.getHours() + 1, 0, 0, 0);
+    return `${String(d.getHours()).padStart(2, '0')}:00`;
+  };
+
+  const [scheduledTime, setScheduledTime] = useState(defaultTime());
+  const scheduledAt = `${todayDate()}T${scheduledTime}:00`;
   const [hostCount, setHostCount] = useState(1);
   const [hostGender, setHostGender] = useState<string>(
     myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed',
@@ -717,10 +725,9 @@ function MeetupCreateForm({
           {t('form.dateTime')}
         </p>
         <input
-          type="datetime-local"
-          value={scheduledAt}
-          min={new Date().toISOString().slice(0, 16)}
-          onChange={(e) => setScheduledAt(e.target.value)}
+          type="time"
+          value={scheduledTime}
+          onChange={(e) => setScheduledTime(e.target.value)}
           className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white"
         />
       </div>
@@ -1355,8 +1362,12 @@ function MeetupManageView({
 
 function JoinInfo({ join }: { join: JoinRow }) {
   const t = useTranslations('meetup');
+  const router = useRouter();
   return (
-    <div className="flex items-center gap-2 flex-1 min-w-0">
+    <div
+      className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+      onClick={() => router.push(`/profile/${join.profiles.id}`)}
+    >
       {join.profiles.avatar_url ? (
         <img
           src={join.profiles.avatar_url}
@@ -1449,13 +1460,8 @@ function MeetupThread({ meetup, userId }: { meetup: Meetup; userId: string }) {
   const [sendError, setSendError] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
-  // 스레드 오픈 여부: 번개 당일(KST 기준) 0시부터
-  const toKST = (d: Date) => new Date(d.getTime() + 9 * 3600000);
-  const scheduledMs = new Date(meetup.scheduled_at).getTime();
-  const now = Date.now();
-  const meetupKST = toKST(new Date(meetup.scheduled_at));
-  const nowKST = toKST(new Date());
-  const isOpen = meetupKST.toDateString() === nowKST.toDateString();
+  // 번개는 당일만 생성 가능 → 스레드 항상 오픈
+  const isOpen = true;
 
   useEffect(() => {
     if (!isOpen) return;

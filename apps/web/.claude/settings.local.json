@@ -21,7 +21,11 @@
       "Bash(sed -i 's/\"\"back\"\": \"\"戻る\"\"/\"\"back\"\": \"\"戻る\"\",\\\\n    \"\"profanityError\"\": \"\"不適切な内容が含まれています\"\"/' messages/ja.json)",
       "Bash(sed -i 's/\"\"back\"\": \"\"返回\"\"/\"\"back\"\": \"\"返回\"\",\\\\n    \"\"profanityError\"\": \"\"包含不適當的內容\"\"/' messages/zh-TW.json)",
       "Bash(sed -i 's/\"\"back\"\": \"\"Volver\"\"/\"\"back\"\": \"\"Volver\"\",\\\\n    \"\"profanityError\"\": \"\"Contenido inapropiado detectado\"\"/' messages/es.json)",
-      "Bash(sed -i 's/\"\"back\"\": \"\"Назад\"\"/\"\"back\"\": \"\"Назад\"\",\\\\n    \"\"profanityError\"\": \"\"Обнаружен неподходящий контент\"\"/' messages/ru.json)"
+      "Bash(sed -i 's/\"\"back\"\": \"\"Назад\"\"/\"\"back\"\": \"\"Назад\"\",\\\\n    \"\"profanityError\"\": \"\"Обнаружен неподходящий контент\"\"/' messages/ru.json)",
+      "Read(//c/Users/dw/Desktop/locory/**)",
+      "Bash(supabase --version)",
+      "Bash(docker --version)",
+      "Bash(find c:UsersdwDesktoplocory -name *migration* -o -name *.sql)"
     ]
   }
 }

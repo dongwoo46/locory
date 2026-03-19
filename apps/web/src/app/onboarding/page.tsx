@@ -64,6 +64,7 @@ export default function OnboardingPage() {
       return
     }
 
+    document.cookie = 'onboarded=1; path=/; max-age=31536000'
     router.push('/feed')
   }
 

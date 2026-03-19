@@ -41,6 +41,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // 로그인됐지만 온보딩 안 됐으면 온보딩으로 (쿠키로 캐싱해서 매 요청 DB 쿼리 방지)
+  if (user && isProtected) {
+    const onboardedCookie = request.cookies.get('onboarded')?.value
+    if (onboardedCookie !== '1') {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile?.onboarded) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/onboarding'
+        return NextResponse.redirect(url)
+      }
+      // 온보딩 완료 — 쿠키 세팅
+      supabaseResponse.cookies.set('onboarded', '1', { path: '/', maxAge: 60 * 60 * 24 * 365 })
+    }
+  }
+
   // 로그인된 유저가 로그인 페이지 접근 시 피드로
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone()
