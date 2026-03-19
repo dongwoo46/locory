@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "이미 사용 중인 닉네임이에요",
     "errorNicknameInvalid": "영문, 숫자, ., _, - 만 사용 가능해요",
     "errorGenderRequired": "성별을 선택해주세요",
-    "errorBirthDateRequired": "생년월일을 입력해주세요"
+    "errorBirthDateRequired": "생년월일을 입력해주세요",
+    "year": "년",
+    "month": "월",
+    "day": "일"
   },
   "nav": {
     "feed": "피드",

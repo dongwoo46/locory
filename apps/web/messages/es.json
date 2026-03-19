@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "Apodo ya en uso",
     "errorNicknameInvalid": "Solo letras, números, ., _, - permitidos",
     "errorGenderRequired": "Por favor selecciona tu género",
-    "errorBirthDateRequired": "Por favor ingresa tu fecha de nacimiento"
+    "errorBirthDateRequired": "Por favor ingresa tu fecha de nacimiento",
+    "year": "Año",
+    "month": "Mes",
+    "day": "Día"
   },
   "nav": {
     "feed": "Inicio",

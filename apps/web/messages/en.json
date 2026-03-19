@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "Nickname already taken",
     "errorNicknameInvalid": "Only letters, numbers, ., _, - allowed",
     "errorGenderRequired": "Please select your gender",
-    "errorBirthDateRequired": "Please enter your date of birth"
+    "errorBirthDateRequired": "Please enter your date of birth",
+    "year": "Year",
+    "month": "Month",
+    "day": "Day"
   },
   "nav": {
     "feed": "Feed",

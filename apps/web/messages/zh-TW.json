@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "暱稱已被使用",
     "errorNicknameInvalid": "只能使用英文、數字、., _, -",
     "errorGenderRequired": "請選擇性別",
-    "errorBirthDateRequired": "請輸入出生日期"
+    "errorBirthDateRequired": "請輸入出生日期",
+    "year": "年",
+    "month": "月",
+    "day": "日"
   },
   "nav": {
     "feed": "探索",

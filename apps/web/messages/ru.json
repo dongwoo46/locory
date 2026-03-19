@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "Никнейм уже занят",
     "errorNicknameInvalid": "Только буквы, цифры, ., _, -",
     "errorGenderRequired": "Пожалуйста, выберите пол",
-    "errorBirthDateRequired": "Пожалуйста, введите дату рождения"
+    "errorBirthDateRequired": "Пожалуйста, введите дату рождения",
+    "year": "Год",
+    "month": "Месяц",
+    "day": "День"
   },
   "nav": {
     "feed": "Лента",

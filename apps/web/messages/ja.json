@@ -271,7 +271,10 @@
     "errorNicknameDuplicate": "すでに使用されているニックネームです",
     "errorNicknameInvalid": "英字、数字、., _, - のみ使用できます",
     "errorGenderRequired": "性別を選択してください",
-    "errorBirthDateRequired": "生年月日を入力してください"
+    "errorBirthDateRequired": "生年月日を入力してください",
+    "year": "年",
+    "month": "月",
+    "day": "日"
   },
   "nav": {
     "feed": "フィード",

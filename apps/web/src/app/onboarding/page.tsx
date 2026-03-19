@@ -26,7 +26,12 @@ export default function OnboardingPage() {
 
   const [nickname, setNickname] = useState('')
   const [nationality, setNationality] = useState<Nationality | null>(null)
-  const [birthDate, setBirthDate] = useState('')
+  const [birthYear, setBirthYear] = useState('')
+  const [birthMonth, setBirthMonth] = useState('')
+  const [birthDay, setBirthDay] = useState('')
+  const birthDate = birthYear && birthMonth && birthDay
+    ? `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
+    : ''
   const [gender, setGender] = useState<'male' | 'female' | 'other' | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -146,20 +151,41 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* 생년월일 (선택) */}
+        {/* 생년월일 */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">
-            {t('birthDate')}
-          </label>
-          <input
-            type="date"
-            lang="en"
-            value={birthDate}
-            onChange={e => setBirthDate(e.target.value)}
-            max={new Date(new Date().setFullYear(new Date().getFullYear() - 14)).toISOString().slice(0, 10)}
-            min="1920-01-01"
-            className="px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 bg-white"
-          />
+          <label className="text-sm font-medium text-gray-700">{t('birthDate')}</label>
+          <div className="grid grid-cols-3 gap-2">
+            <select
+              value={birthYear}
+              onChange={e => setBirthYear(e.target.value)}
+              className="px-3 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 bg-white"
+            >
+              <option value="">{t('year')}</option>
+              {Array.from({ length: new Date().getFullYear() - 1919 - 14 }, (_, i) => new Date().getFullYear() - 14 - i).map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <select
+              value={birthMonth}
+              onChange={e => setBirthMonth(e.target.value)}
+              className="px-3 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 bg-white"
+            >
+              <option value="">{t('month')}</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <select
+              value={birthDay}
+              onChange={e => setBirthDay(e.target.value)}
+              className="px-3 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 bg-white"
+            >
+              <option value="">{t('day')}</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
