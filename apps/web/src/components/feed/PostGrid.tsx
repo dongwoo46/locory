@@ -94,7 +94,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   return (
     <>
       {/* 3열 그리드 */}
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-px">
         {posts.map(p => {
           const place = p.places
           const likeCount = likeCountMap[p.id] || 0
@@ -102,7 +102,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
             <div
               key={p.id}
               onClick={() => setSelected(p)}
-              className="bg-white rounded-xl overflow-hidden shadow-sm text-left cursor-pointer"
+              className="bg-white overflow-hidden text-left cursor-pointer"
             >
               <div className="aspect-square bg-gray-100 relative">
                 {p.photos?.[0] ? (
@@ -180,7 +180,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
       {/* 포스트 상세 모달 */}
       {post && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center px-4"
           onClick={() => { setSelected(null); setShowReport(false) }}
         >
           <div

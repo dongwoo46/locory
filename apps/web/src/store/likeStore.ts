@@ -39,13 +39,13 @@ export const useLikeStore = create<LikeStore>((set) => ({
   savedPostIds: new Set(),
   savedPlaceIds: new Set(),
 
-  init: (data) => set({
+  init: (data) => set((s) => ({
     likedPostIds: data.likedPostIds,
     likedPlaceIds: data.likedPlaceIds,
     savedPostIds: data.savedPostIds,
     savedPlaceIds: data.savedPlaceIds,
-    likeCountMap: data.likeCountMap,
-  }),
+    likeCountMap: s.likeCountMap, // 카운트는 mergePostCounts가 담당, 리셋 금지
+  })),
 
   togglePostLike: (postId) => set((s) => {
     const liked = s.likedPostIds.has(postId)
@@ -85,9 +85,8 @@ export const useLikeStore = create<LikeStore>((set) => ({
     return { savedPlaceIds: next }
   }),
 
-  mergePostCounts: (entries) => set((s) => {
-    const hasNew = Object.keys(entries).some(id => !(id in s.likeCountMap))
-    if (!hasNew) return s
-    return { likeCountMap: { ...entries, ...s.likeCountMap } }
-  }),
+  mergePostCounts: (entries) => set((s) => ({
+    // entries(서버값)보다 s.likeCountMap(유저 토글값) 우선 — 낙관적 업데이트 보존
+    likeCountMap: { ...entries, ...s.likeCountMap },
+  })),
 }))

@@ -101,11 +101,13 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
     setLocation({ name: result.name, lat: result.lat, lng: result.lng, address: result.address })
     setSearchResults([])
     setSearchQuery(result.name)
-    if (result.address) {
-      const detectedCity = inferCityFromAddress(result.address) || detectCity(result.lat, result.lng)
-      const detectedDistrict = inferDistrictFromAddress(result.address, detectedCity)
-      if (detectedDistrict) setDistrict(detectedDistrict)
-    }
+    const city = inferCityFromAddress(result.address) || detectCity(result.lat, result.lng)
+    autoSetDistrict(result.address, city)
+  }
+
+  function autoSetDistrict(address: string, city: City) {
+    const detected = inferDistrictFromAddress(address, city)
+    setDistrict(detected) // null이면 선택 UI 표시
   }
 
   async function handleGPS() {
@@ -119,7 +121,10 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
         try {
           const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          setLocation({ name: placeName || t('place.currentLocation'), lat, lng, address: data.address || '' })
+          const address = data.address || ''
+          const city = inferCityFromAddress(address) || detectCity(lat, lng)
+          setLocation({ name: placeName || t('place.currentLocation'), lat, lng, address })
+          autoSetDistrict(address, city)
         } catch {
           setLocation({ name: t('place.currentLocation'), lat, lng, address: '' })
         }
@@ -129,8 +134,19 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
     )
   }
 
-  function handleMapPick(lat: number, lng: number) {
+  async function handleMapPick(lat: number, lng: number) {
     setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address: '' })
+    try {
+      const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
+      const data = await res.json()
+      const address = data.address || ''
+      const city = inferCityFromAddress(address) || detectCity(lat, lng)
+      setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address })
+      autoSetDistrict(address, city)
+    } catch {
+      const city = detectCity(lat, lng)
+      autoSetDistrict('', city)
+    }
   }
 
   function handleConfirm() {
@@ -261,49 +277,23 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
             </div>
           </div>
 
-          {/* 동네 선택 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">{t('place.neighborhoodLabel')}</label>
-            {(() => {
-              const districtList = getDistricts(location ? detectCity(location.lat, location.lng) : 'seoul')
-              const isCustom = district === '__custom__' || (district != null && !districtList.find(d => d.value === district))
-              return (
-                <>
-                  <div className="flex gap-2 flex-wrap">
-                    {districtList.map(d => (
-                      <button
-                        key={d.value}
-                        onClick={() => setDistrict(d.value)}
-                        className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                          district === d.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setDistrict('__custom__')}
-                      className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                        isCustom ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {t('place.customInput')}
-                    </button>
-                  </div>
-                  {isCustom && (
-                    <input
-                      type="text"
-                      value={district === '__custom__' ? '' : district ?? ''}
-                      onChange={e => setDistrict(e.target.value || '__custom__')}
-                      placeholder={t('place.neighborhoodPlaceholder')}
-                      className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
-                      autoFocus
-                    />
-                  )}
-                </>
-              )
-            })()}
-          </div>
+          {/* 동네 — 자동 감지 실패 시만 선택 UI 표시 */}
+          {location && district === null && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700">{t('place.neighborhoodLabel')}</label>
+              <div className="flex gap-2 flex-wrap">
+                {getDistricts(detectCity(location.lat, location.lng)).map(d => (
+                  <button
+                    key={d.value}
+                    onClick={() => setDistrict(d.value)}
+                    className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600"
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {(() => {
             const city = location ? detectCity(location.lat, location.lng) : 'seoul'

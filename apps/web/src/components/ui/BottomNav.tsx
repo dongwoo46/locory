@@ -105,8 +105,8 @@ export default function BottomNav() {
       {/* 액션 시트 */}
       {showActionSheet && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-48" onClick={() => setShowActionSheet(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-52 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
+          <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-70 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
             <div className="flex justify-center mb-4">
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>

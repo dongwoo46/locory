@@ -15,11 +15,6 @@ import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib
 const OTHER_DISTRICT = '__other__'
 import type { City } from '@/types/database'
 
-const NATIONALITY_FLAGS: Record<string, string> = {
-  KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', TW: '🇹🇼',
-  ES: '🇪🇸', RU: '🇷🇺', GB: '🇬🇧', FR: '🇫🇷', DE: '🇩🇪',
-  IT: '🇮🇹', AU: '🇦🇺', OTHER: '🌍',
-}
 
 const NATIONALITY_CHIPS = [
   { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },
@@ -46,7 +41,6 @@ const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',
 }
 
-const CURRENT_YEAR = 2026
 
 interface Props {
   profile: { nickname: string; nationality: string; avatar_url: string | null; id: string } | null
@@ -114,7 +108,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       likedPlaceIds: savedData.likedPlaceIds,
       savedPostIds: savedData.savedPostIds,
       savedPlaceIds: savedData.savedPlaceIds,
-      likeCountMap: {},
+      likeCountMap: {}, // store의 init에서 무시됨 — likeCountMap은 mㅉergePostCounts가 관리
     })
   }, [savedData])
 
@@ -270,14 +264,14 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const hasDistrict = !!city
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40">
+    <div className="min-h-screen bg-white">
+      <header className="fixed top-0 left-0 right-0 bg-white z-40">
         <div className="max-w-lg mx-auto px-4 pt-3">
 
           {/* 로고 + 필터 + 프로필 */}
           <div className="flex items-center justify-between mb-2">
             <h1>
-              <img src="/logo40.png" alt="Locory" className="h-14 w-auto" />
+              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
             </h1>
             <div className="flex items-center gap-2">
               {/* 포스팅/장소 pill */}
@@ -404,15 +398,14 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       {/* 필터 바텀 시트 */}
       {showFilters && (
         <div
-          className="fixed inset-0 bg-black/40 z-60 flex items-end justify-center"
+          className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4"
           onClick={() => setShowFilters(false)}
         >
           <div
-            className="bg-white w-full max-w-lg rounded-t-2xl max-h-[80vh] overflow-y-auto pb-20"
+            className="bg-white w-full max-w-lg rounded-2xl max-h-[70vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex justify-center pt-3 pb-1"><div className="w-8 h-1 bg-gray-200 rounded-full" /></div>
-            <div className="px-4 pb-8 pt-2 flex flex-col gap-4">
+            <div className="px-4 pb-8 pt-4 flex flex-col gap-4">
 
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-gray-900">{t('filter')}</h2>
@@ -587,8 +580,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       )}
 
       <main
-        className="max-w-lg mx-auto pb-24 px-4"
-        style={{ paddingTop: hasDistrict ? '148px' : '108px' }}
+        className="max-w-lg mx-auto pb-24"
+        style={{ paddingTop: hasDistrict ? '156px' : '116px' }}
       >
         {loading ? (
           <div className="flex items-center justify-center py-20">

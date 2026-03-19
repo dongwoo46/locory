@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import BottomNav from '@/components/ui/BottomNav'
 
 const supabase = createClient()
 
@@ -23,11 +24,6 @@ interface Notification {
   data: { meetup_id?: string; join_id?: string; message_id?: string; place_id?: string } | null
   read_at: string | null
   created_at: string
-}
-
-interface Props {
-  userId: string
-  onClose: () => void
 }
 
 const TYPE_ICON: Record<NotifType, React.ReactNode> = {
@@ -74,7 +70,7 @@ const TYPE_COLOR: Record<NotifType, string> = {
   message_new:    'bg-purple-100 text-purple-600',
 }
 
-export default function NotificationSheet({ userId, onClose }: Props) {
+export default function NotificationsClient({ userId }: { userId: string }) {
   const router = useRouter()
   const t = useTranslations('notifications')
   const [notifs, setNotifs] = useState<Notification[]>([])
@@ -93,7 +89,6 @@ export default function NotificationSheet({ userId, onClose }: Props) {
   useEffect(() => {
     load()
 
-    // Realtime: 새 알림 실시간 수신
     const channel = supabase
       .channel(`notifications:${userId}`)
       .on('postgres_changes', {
@@ -143,33 +138,24 @@ export default function NotificationSheet({ userId, onClose }: Props) {
     if (!notif.read_at) await markRead(notif.id)
     const meetupId = notif.data?.meetup_id
     if (meetupId) {
-      // 번개가 있는 장소로 이동 — 향후 deep link 확장 가능
-      // 지금은 그냥 닫기 (장소 상세는 별도 UX 설계 필요)
+      // 향후 번개 deep link 확장 가능
     }
-    onClose()
   }
 
   const unreadCount = notifs.filter(n => !n.read_at).length
 
   return (
-    <div
-      className="fixed inset-0 bg-black/40 z-[70] flex flex-col justify-end"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white w-full max-w-lg mx-auto rounded-t-2xl overflow-hidden"
-        style={{ maxHeight: '75vh' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* 핸들 */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-8 h-1 bg-gray-200 rounded-full" />
-        </div>
-
-        {/* 헤더 */}
-        <div className="flex items-center justify-between px-4 pb-3 pt-1">
+    <div className="min-h-screen bg-white">
+      {/* 헤더 */}
+      <header className="fixed top-0 left-0 right-0 bg-white z-40">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-900">{t('title')}</h2>
+            <button onClick={() => router.back()} className="p-1 -ml-1 text-gray-500">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <h1 className="text-base font-bold text-gray-900">{t('title')}</h1>
             {unreadCount > 0 && (
               <span className="text-xs font-medium text-white bg-red-500 rounded-full px-1.5 py-0.5 leading-none">
                 {unreadCount}
@@ -177,65 +163,59 @@ export default function NotificationSheet({ userId, onClose }: Props) {
             )}
           </div>
           {unreadCount > 0 && (
-            <button
-              onClick={markAllRead}
-              className="text-xs text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={markAllRead} className="text-xs text-gray-400">
               {t('markAllRead')}
             </button>
           )}
         </div>
+      </header>
 
-        {/* 목록 */}
-        <div className="overflow-y-auto pb-8" style={{ maxHeight: 'calc(75vh - 80px)' }}>
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
-            </div>
-          ) : notifs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-2">
-              <svg width="32" height="32" fill="none" stroke="#D1D5DB" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              <p className="text-sm text-gray-400">{t('empty')}</p>
-            </div>
-          ) : (
-            notifs.map(notif => (
+      {/* 목록 */}
+      <main className="max-w-lg mx-auto pt-[60px] pb-20">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
+          </div>
+        ) : notifs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <svg width="40" height="40" fill="none" stroke="#D1D5DB" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <p className="text-sm text-gray-400">{t('empty')}</p>
+          </div>
+        ) : (
+          <div className="bg-white divide-y divide-gray-50">
+            {notifs.map(notif => (
               <div
                 key={notif.id}
-                className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                  notif.read_at ? 'bg-white' : 'bg-gray-50'
+                className={`flex items-start gap-3 px-4 py-3.5 cursor-pointer transition-colors active:bg-gray-50 ${
+                  notif.read_at ? 'bg-white' : 'bg-red-50/40'
                 }`}
                 onClick={() => handleClick(notif)}
               >
-                {/* 아이콘 */}
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${TYPE_COLOR[notif.type]}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${TYPE_COLOR[notif.type]}`}>
                   {TYPE_ICON[notif.type]}
                 </div>
-
-                {/* 텍스트 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <p className={`text-sm leading-snug ${notif.read_at ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
                       {notif.title}
                     </p>
-                    <span className="text-[10px] text-gray-400 shrink-0 mt-0.5">
-                      {timeAgo(notif.created_at)}
-                    </span>
+                    <span className="text-[10px] text-gray-400 shrink-0 mt-0.5">{timeAgo(notif.created_at)}</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5 truncate">{notif.body}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{notif.body}</p>
                 </div>
-
-                {/* 안읽음 dot */}
                 {!notif.read_at && (
-                  <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-1.5" />
+                  <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-2" />
                 )}
               </div>
-            ))
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <BottomNav />
     </div>
   )
 }

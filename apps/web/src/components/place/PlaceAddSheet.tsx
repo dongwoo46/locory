@@ -197,7 +197,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
   const canSave = found && category
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 z-60 flex items-end justify-center" onClick={onClose}>
       <div
         className="bg-white w-full max-w-lg rounded-t-2xl overflow-hidden max-h-[85vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
@@ -373,15 +373,8 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* 동네 — 자동 추출, 못 찾으면 입력 */}
-              {district ? (
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                  </svg>
-                  <span>{district}</span>
-                </div>
-              ) : (
+              {/* 동네 — 자동 추출 실패 시만 입력 */}
+              {!district && (
                 <div className="flex flex-col gap-1.5">
                   <p className="text-xs text-gray-400">{t('neighborhoodNotFound')}</p>
                   <input

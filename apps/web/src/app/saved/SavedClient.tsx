@@ -147,13 +147,13 @@ export default function SavedClient({ userId }: Props) {
     : [...new Set(followingPlaces.map((p: any) => p.city).filter(Boolean))]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40">
+    <div className="min-h-screen bg-white">
+      <header className="fixed top-0 left-0 right-0 bg-white z-40">
         <div className="max-w-lg mx-auto px-4">
           {/* 상단 바 */}
           <div className="flex items-center h-14 gap-2">
             <h1 className="flex-1">
-              <img src="/logo40.png" alt="Locory" className="h-14 w-auto" />
+              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
             </h1>
             <div className="flex items-center gap-2">
               {/* 필터 버튼 */}
@@ -180,7 +180,7 @@ export default function SavedClient({ userId }: Props) {
           </div>
 
           {/* 탭 */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex">
             {(['places', 'posts', 'following'] as const).map(key => (
               <button
                 key={key}
@@ -196,10 +196,17 @@ export default function SavedClient({ userId }: Props) {
         </div>
       </header>
 
-      {/* 필터 패널 */}
+      {/* 필터 모달 */}
       {showFilters && (
-        <div className="fixed top-[112px] left-0 right-0 bg-white border-b border-gray-100 z-60 shadow-sm">
-          <div className="max-w-lg mx-auto px-4 py-4 flex flex-col gap-4">
+        <div
+          className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4"
+          onClick={() => setShowFilters(false)}
+        >
+        <div
+          className="bg-white w-full max-w-lg rounded-2xl max-h-[70vh] overflow-y-auto"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="px-4 py-4 flex flex-col gap-4">
 
             {/* places & following 공통: 카테고리 */}
             {(tab === 'places' || tab === 'following' || tab === 'posts') && (
@@ -327,14 +334,10 @@ export default function SavedClient({ userId }: Props) {
             )}
           </div>
         </div>
+        </div>
       )}
 
-      {/* 필터 패널 닫기 오버레이 */}
-      {showFilters && (
-        <div className="fixed inset-0 z-59" onClick={() => setShowFilters(false)} />
-      )}
-
-      <main className="max-w-lg mx-auto pt-28 pb-24 px-4">
+      <main className="max-w-lg mx-auto pt-28 pb-24">
         {tab === 'places' ? (
           filteredPlaces.length === 0 ? (
             <div className="flex items-center justify-center py-20">
@@ -343,12 +346,12 @@ export default function SavedClient({ userId }: Props) {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col divide-y divide-gray-50">
               {filteredPlaces.map((place: any) => (
                 <div
                   key={place.id}
                   onClick={() => router.push(`/place/${place.id}`)}
-                  className="bg-white rounded-2xl px-4 py-4 text-left flex items-center gap-3 shadow-sm cursor-pointer"
+                  className="px-4 py-4 text-left flex items-center gap-3 cursor-pointer active:bg-gray-50"
                 >
                   <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 text-lg">
                     {CATEGORY_EMOJI[place.category] ?? '📍'}
@@ -390,12 +393,12 @@ export default function SavedClient({ userId }: Props) {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col divide-y divide-gray-50">
               {filteredFollowing.map((place: any, i: number) => (
                 <button
                   key={`${place.id}-${i}`}
                   onClick={() => router.push(`/place/${place.id}`)}
-                  className="bg-white rounded-2xl px-4 py-4 text-left flex items-center gap-3 shadow-sm"
+                  className="px-4 py-4 text-left flex items-center gap-3 active:bg-gray-50 w-full"
                 >
                   <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 text-lg">
                     {CATEGORY_EMOJI[place.category] ?? '📍'}

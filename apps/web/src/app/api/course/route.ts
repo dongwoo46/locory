@@ -1,34 +1,104 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
+function slotToTime(slot: number): string {
+  const totalMinutes = 6 * 60 + slot * 30
+  const h = Math.floor(totalMinutes / 60) % 24
+  const m = totalMinutes % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
 export async function POST(request: Request) {
-  const { places, days, transport, style, companion, startDate, startHour, startLocation, endLocation, extraConditions } = await request.json()
+  const {
+    places, startDate, endDate, transport, vibe, companion,
+    timeRange, startLocation, endLocation, extraConditions,
+    ragEnabled, ragMaxPlaces, userId,
+  } = await request.json()
+
+  // 날짜 범위에서 일수 계산
+  const days = Math.max(1, Math.round(
+    (new Date(endDate || startDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+  ) + 1)
 
   const transportKo = transport === 'walking' ? '도보' : transport === 'transit' ? '대중교통' : '자동차'
-  const styleKo = style === 'relaxed' ? '느긋하게' : style === 'packed' ? '알차게' : style === 'food' ? '맛집 위주' : style === 'photo' ? '포토스팟 위주' : '힐링'
+  const vibeKo = vibe === 'recording' ? '기록·사진 위주 (각 장소에서 충분한 시간)'
+    : vibe === 'foodie' ? '먹거리 탐방 (식사·카페 장소에 시간 집중)'
+    : vibe === 'explorer' ? '빠른 탐험 (여러 곳 짧게 체크인)'
+    : '여유로운 산책 (이동 여유 있게, 페이스 느리게)'
   const companionKo = companion === 'solo' ? '혼자' : companion === 'couple' ? '커플' : companion === 'friends' ? '친구들' : '가족'
+  const startTime = Array.isArray(timeRange) ? slotToTime(timeRange[0]) : '10:00'
+  const endTime = Array.isArray(timeRange) ? slotToTime(timeRange[1]) : '22:00'
 
   const placesDesc = places.map((p: any) =>
     `- id: "${p.id}", 이름: "${p.name}", 카테고리: ${p.category}, 위치: ${p.district || p.city} (위도 ${p.lat}, 경도 ${p.lng}), 평균평점: ${p.avg_rating ?? 'N/A'}${p.recommended_menu ? `, 추천메뉴: ${p.recommended_menu}` : ''}`
   ).join('\n')
 
-  const dailyCount = style === 'relaxed' ? '3-4' : style === 'packed' ? '6-8' : '4-6'
+  // RAG: 동선에 추가할 장소 조회
+  let ragPlacesDesc = ''
+  if (ragEnabled && userId) {
+    try {
+      const supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      // 선택된 장소들의 district 목록
+      const districts = [...new Set(places.map((p: any) => p.district).filter(Boolean))]
+      const cities = [...new Set(places.map((p: any) => p.city).filter(Boolean))]
+      const selectedIds = places.map((p: any) => p.id)
+
+      // 유저 프로필 조회
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('nationality, gender, birth_date')
+        .eq('id', userId)
+        .single()
+
+      // 같은 district의 장소 조회 (이미 선택된 장소 제외)
+      let query = supabase
+        .from('places')
+        .select('id, name, category, district, city, lat, lng, avg_rating')
+        .not('id', 'in', `(${selectedIds.join(',')})`)
+        .order('avg_rating', { ascending: false })
+        .limit(ragMaxPlaces > 0 ? ragMaxPlaces * 3 : 20)
+
+      if (districts.length > 0) {
+        query = query.in('district', districts)
+      } else {
+        query = query.in('city', cities)
+      }
+
+      const { data: ragPlaces } = await query
+
+      if (ragPlaces && ragPlaces.length > 0) {
+        const maxAdd = ragMaxPlaces > 0 ? ragMaxPlaces : undefined
+        const candidates = maxAdd ? ragPlaces.slice(0, maxAdd * 3) : ragPlaces
+        ragPlacesDesc = `\n[추가 추천 후보 장소 (Locory DB — 동선에 맞으면 자연스럽게 삽입, 억지로 넣지 말 것)]\n` +
+          candidates.map((p: any) =>
+            `- id: "${p.id}", 이름: "${p.name}", 카테고리: ${p.category}, 위치: ${p.district || p.city} (위도 ${p.lat}, 경도 ${p.lng}), 평균평점: ${p.avg_rating ?? 'N/A'}`
+          ).join('\n') +
+          (maxAdd ? `\n→ 추가 장소는 최대 ${maxAdd}개만 삽입 가능합니다.` : '\n→ 몇 개 삽입할지는 AI가 동선 흐름에 맞게 재량으로 결정합니다.')
+      }
+    } catch (e) {
+      console.error('RAG fetch error:', e)
+    }
+  }
 
   const prompt = `당신은 한국 여행 코스 전문가입니다. 아래 장소들로 ${days}일 최적 동선을 짜주세요.
 ${extraConditions ? `\n[최우선 조건 - 아래 모든 규칙보다 반드시 우선 적용]\n${extraConditions}\n` : ''}
 
-[장소 목록]
+[선택된 장소 목록 — 반드시 모두 포함]
 ${placesDesc}
+${ragPlacesDesc}
 
 [여행 조건]
-- 여행 시작일: ${startDate || '미지정'}${startDate ? ` (${new Date(startDate).toLocaleDateString('ko-KR', { weekday: 'long' })})` : ''}
-- 여행 일수: ${days}일
+- 여행 기간: ${startDate} ~ ${endDate || startDate} (${days}일)
 - 이동수단: ${transportKo}
-- 여행 스타일: ${styleKo}
+- 여행 분위기: ${vibeKo}
 - 동반자: ${companionKo}
-- 하루 시작 시간: ${startHour}:00
+- 활동 시간: ${startTime} ~ ${endTime}
 - 출발지: ${startLocation || '미지정'}
 - 도착지: ${endLocation || '미지정'}
 
@@ -38,12 +108,11 @@ ${placesDesc}
 - 맛집: 점심(12-14시), 저녁(18-20시)
 - 바/유흥: 저녁 20시 이후
 - 자연/뷰: 오전 또는 일몰
+- 활동 종료 시간(${endTime}) 이후로 일정 배치 금지
 - 지리적으로 가까운 장소끼리 같은 날에 배치
-- 하루 장소 수: ${dailyCount}개
-- 출발지가 있으면 출발지와 가까운 장소부터 시작하고 도착지와 가까운 장소로 마무리
-- 여행 시작일 기준으로 공휴일·연휴·설날·추석 등 한국 특수일 여부를 판단하고, 해당 날에 혼잡하거나 휴무인 장소 유형을 tip에 반드시 안내
-- 주말/연휴에는 인기 장소 대기 시간을 고려해 여유 시간을 추가하고, 평일에는 점심 직장인 혼잡 시간(12-13시) 카페/맛집 회피 권장
-- 추천 메뉴가 있는 카페/음식점은 tip에 언급
+- 출발지가 있으면 출발지와 가까운 장소부터 시작
+- 여행 시작일 기준으로 공휴일·연휴 여부를 tip에 안내
+- 추천 메뉴가 있는 장소는 tip에 언급
 
 JSON만 반환 (마크다운 없이):
 {
