@@ -342,7 +342,6 @@ export default function ProfileClient({
             <PostGrid
               posts={visiblePosts}
               userId={myId}
-              savedPostIds={new Set()}
             />
           </div>
         )}

@@ -380,7 +380,7 @@ export default function SavedClient({ userId }: Props) {
               </p>
             </div>
           ) : (
-            <PostGrid posts={filteredPosts} userId={userId} savedPostIds={savedPostIds} />
+            <PostGrid posts={filteredPosts} userId={userId} />
           )
         ) : (
           filteredFollowing.length === 0 ? (

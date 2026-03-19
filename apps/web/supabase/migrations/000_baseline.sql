@@ -366,7 +366,7 @@ BEGIN
       v_nationality,
       NEW.raw_user_meta_data->>'avatar_url',
       v_role,
-      4
+      CASE WHEN NEW.email = 'siwol406@gmail.com' THEN 8000 ELSE 4 END
     );
   END IF;
   RETURN NEW;
