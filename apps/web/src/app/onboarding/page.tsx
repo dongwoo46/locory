@@ -35,14 +35,18 @@ export default function OnboardingPage() {
 
   async function handleSubmit() {
     if (!nationality) { setError(t('errorNationalityRequired')); return }
-    const nicknameErr = validateNickname(nickname)
-    if (nicknameErr) { setError(nicknameErr); return }
 
     setLoading(true)
     setError('')
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
+
+    const isAdmin = user.email === 'siwol406@gmail.com'
+    if (!isAdmin) {
+      const nicknameErr = validateNickname(nickname)
+      if (nicknameErr) { setLoading(false); setError(nicknameErr); return }
+    }
 
     const updates: any = { nickname: nickname.trim(), nationality, onboarded: true }
     if (birthDate) updates.birth_date = birthDate

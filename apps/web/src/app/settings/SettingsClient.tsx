@@ -92,8 +92,10 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
   }
 
   async function handleSaveNickname() {
-    const err = validateNickname(nickname)
-    if (err) { setNicknameError(err); return }
+    if (!isAdmin) {
+      const err = validateNickname(nickname)
+      if (err) { setNicknameError(err); return }
+    }
     setNicknameSaving(true)
     setNicknameError('')
     const { error } = await supabase
