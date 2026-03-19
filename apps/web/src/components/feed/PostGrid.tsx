@@ -22,10 +22,9 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 interface Props {
   posts: any[]
   userId: string
-  hidePlaceLike?: boolean
 }
 
-export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props) {
+export default function PostGrid({ posts, userId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations()
@@ -36,7 +35,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   const [showReport, setShowReport] = useState(false)
 
   const {
-    likedPostIds, likeCountMap, likedPlaceIds, savedPostIds, savedPlaceIds,
+    likedPostIds, likeCountMap, savedPostIds, savedPlaceIds,
     mergePostCounts,
   } = useLikeStore()
 
@@ -81,18 +80,6 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
     }
   }
 
-  async function handlePlaceLike(e: React.MouseEvent, placeId: string) {
-    e.stopPropagation()
-    const { likedPlaceIds: cur, togglePlaceLike: toggle } = useLikeStore.getState()
-    const wasLiked = cur.has(placeId)
-    toggle(placeId)
-    if (wasLiked) {
-      await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', placeId)
-    } else {
-      await supabase.from('place_likes').insert({ user_id: userId, place_id: placeId })
-    }
-  }
-
   const post = selected
 
   return (
@@ -134,19 +121,6 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
                   <div className="absolute bottom-2 left-2 bg-purple-600/80 text-white text-[9px] px-2 pt-1 pb-[2px] rounded-full flex items-center gap-0.5">
                     <span className="text-[10px]">🔍</span> <span>{tPost('hiddenSpot')}</span>
                   </div>
-                )}
-                {place?.id && !hidePlaceLike && (
-                  <button
-                    onClick={e => handlePlaceLike(e, place.id)}
-                    className="absolute bottom-1.5 right-1.5 bg-black/40 rounded-full p-1"
-                  >
-                    <svg width="11" height="11" viewBox="0 0 24 24"
-                      fill={likedPlaceIds.has(place.id) ? '#ef4444' : 'none'}
-                      stroke={likedPlaceIds.has(place.id) ? '#ef4444' : 'white'}
-                      strokeWidth={2.5}>
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
                 )}
               </div>
               <div className="px-2 py-1.5">
