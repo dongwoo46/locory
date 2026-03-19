@@ -85,8 +85,11 @@ export const useLikeStore = create<LikeStore>((set) => ({
     return { savedPlaceIds: next }
   }),
 
-  mergePostCounts: (entries) => set((s) => ({
+  mergePostCounts: (entries) => set((s) => {
+    // 새로 추가되는 항목이 없으면 업데이트 스킵 → 무한루프 방지
+    const hasNew = Object.keys(entries).some((id) => !(id in s.likeCountMap))
+    if (!hasNew) return s
     // entries(서버값)보다 s.likeCountMap(유저 토글값) 우선 — 낙관적 업데이트 보존
-    likeCountMap: { ...entries, ...s.likeCountMap },
-  })),
+    return { likeCountMap: { ...entries, ...s.likeCountMap } }
+  }),
 }))
