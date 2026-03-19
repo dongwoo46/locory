@@ -269,7 +269,9 @@
     "optional": "opcional",
     "birthDate": "Fecha de nacimiento",
     "errorNicknameDuplicate": "Apodo ya en uso",
-    "errorNicknameInvalid": "Solo letras, números, ., _, - permitidos"
+    "errorNicknameInvalid": "Solo letras, números, ., _, - permitidos",
+    "errorGenderRequired": "Por favor selecciona tu género",
+    "errorBirthDateRequired": "Por favor ingresa tu fecha de nacimiento"
   },
   "nav": {
     "feed": "Inicio",

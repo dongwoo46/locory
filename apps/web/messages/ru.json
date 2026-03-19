@@ -269,7 +269,9 @@
     "optional": "необязательно",
     "birthDate": "Дата рождения",
     "errorNicknameDuplicate": "Никнейм уже занят",
-    "errorNicknameInvalid": "Только буквы, цифры, ., _, -"
+    "errorNicknameInvalid": "Только буквы, цифры, ., _, -",
+    "errorGenderRequired": "Пожалуйста, выберите пол",
+    "errorBirthDateRequired": "Пожалуйста, введите дату рождения"
   },
   "nav": {
     "feed": "Лента",

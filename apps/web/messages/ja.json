@@ -269,7 +269,9 @@
     "optional": "任意",
     "birthDate": "生年月日",
     "errorNicknameDuplicate": "すでに使用されているニックネームです",
-    "errorNicknameInvalid": "英字、数字、., _, - のみ使用できます"
+    "errorNicknameInvalid": "英字、数字、., _, - のみ使用できます",
+    "errorGenderRequired": "性別を選択してください",
+    "errorBirthDateRequired": "生年月日を入力してください"
   },
   "nav": {
     "feed": "フィード",

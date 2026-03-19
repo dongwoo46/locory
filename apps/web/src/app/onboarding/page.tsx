@@ -33,6 +33,8 @@ export default function OnboardingPage() {
 
   async function handleSubmit() {
     if (!nationality) { setError(t('errorNationalityRequired')); return }
+    if (!gender) { setError(t('errorGenderRequired')); return }
+    if (!birthDate) { setError(t('errorBirthDateRequired')); return }
 
     setLoading(true)
     setError('')
@@ -46,11 +48,13 @@ export default function OnboardingPage() {
       if (nicknameErr) { setLoading(false); setError(nicknameErr); return }
     }
 
-    const updates: any = { nickname: nickname.trim(), nationality, onboarded: true }
-    if (birthDate) updates.birth_date = birthDate
-    if (gender) {
-      updates.gender = gender
-      updates.gender_changed_at = new Date().toISOString()
+    const updates: any = {
+      nickname: nickname.trim(),
+      nationality,
+      gender,
+      gender_changed_at: new Date().toISOString(),
+      birth_date: birthDate,
+      onboarded: true,
     }
 
     const { error: updateError } = await supabase
@@ -123,7 +127,7 @@ export default function OnboardingPage() {
         {/* 성별 (선택) */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">
-            {tProfile('gender.label')} <span className="text-gray-400 font-normal">({t('optional')})</span>
+            {tProfile('gender.label')}
           </label>
           <div className="grid grid-cols-3 gap-2">
             {(['female', 'male', 'other'] as const).map(g => (
@@ -145,7 +149,7 @@ export default function OnboardingPage() {
         {/* 생년월일 (선택) */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">
-            {t('birthDate')} <span className="text-gray-400 font-normal">({t('optional')})</span>
+            {t('birthDate')}
           </label>
           <input
             type="date"

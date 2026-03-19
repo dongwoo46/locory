@@ -269,7 +269,9 @@
     "optional": "optional",
     "birthDate": "Date of Birth",
     "errorNicknameDuplicate": "Nickname already taken",
-    "errorNicknameInvalid": "Only letters, numbers, ., _, - allowed"
+    "errorNicknameInvalid": "Only letters, numbers, ., _, - allowed",
+    "errorGenderRequired": "Please select your gender",
+    "errorBirthDateRequired": "Please enter your date of birth"
   },
   "nav": {
     "feed": "Feed",
