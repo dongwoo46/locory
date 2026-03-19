@@ -35,7 +35,7 @@ export default function PostGrid({ posts, userId }: Props) {
   const [showReport, setShowReport] = useState(false)
 
   const {
-    likedPostIds, likeCountMap, savedPostIds, savedPlaceIds,
+    likedPostIds, likeCountMap, savedPostIds,
     mergePostCounts,
   } = useLikeStore()
 
@@ -66,17 +66,6 @@ export default function PostGrid({ posts, userId }: Props) {
       await supabase.from('post_saves').delete().eq('user_id', userId).eq('post_id', postId)
     } else {
       await supabase.from('post_saves').insert({ user_id: userId, post_id: postId })
-    }
-  }
-
-  async function handlePlaceSave(placeId: string) {
-    const { savedPlaceIds: cur, togglePlaceSave: toggle } = useLikeStore.getState()
-    const wasSaved = cur.has(placeId)
-    toggle(placeId)
-    if (wasSaved) {
-      await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
-    } else {
-      await supabase.from('place_saves').insert({ user_id: userId, place_id: placeId })
     }
   }
 
@@ -153,15 +142,6 @@ export default function PostGrid({ posts, userId }: Props) {
         })}
       </div>
 
-      {/* 신고 시트 */}
-      {post && showReport && (
-        <ReportSheet
-          targetType="post"
-          targetId={post.id}
-          onClose={() => setShowReport(false)}
-        />
-      )}
-
       {/* 포스트 상세 모달 */}
       {post && (
         <div
@@ -169,10 +149,17 @@ export default function PostGrid({ posts, userId }: Props) {
           onClick={() => { setSelected(null); setShowReport(false) }}
         >
           <div
-            className="bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col"
+            className="relative bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col"
             style={{ maxHeight: 'calc(100dvh - 120px)' }}
             onClick={e => e.stopPropagation()}
           >
+          {showReport && (
+            <ReportSheet
+              targetType="post"
+              targetId={post.id}
+              onClose={() => setShowReport(false)}
+            />
+          )}
             <div className="flex items-center px-4 pt-3 pb-1 shrink-0">
               <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
               <button onClick={() => setShowReport(true)} className="absolute left-4 top-3 p-1 text-gray-300 hover:text-gray-500">
@@ -249,16 +236,6 @@ export default function PostGrid({ posts, userId }: Props) {
                     {post.places?.place_type === 'hidden_spot' ? ` · ${tPost('hiddenSpot')}` : ''}
                   </span>
                   <div className="flex items-center gap-3">
-                    {post.places?.id && (
-                      <button onClick={() => handlePlaceSave(post.places.id)}>
-                        <svg width="18" height="18" viewBox="0 0 24 24"
-                          fill={savedPlaceIds.has(post.places.id) ? '#111' : 'none'}
-                          stroke={savedPlaceIds.has(post.places.id) ? '#111' : '#9CA3AF'}
-                          strokeWidth={2}>
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                        </svg>
-                      </button>
-                    )}
                     <button onClick={() => handlePostSave(post.id)}>
                       <svg width="18" height="18" viewBox="0 0 24 24"
                         fill={savedPostIds.has(post.id) ? '#111' : 'none'}

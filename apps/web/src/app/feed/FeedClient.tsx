@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
+import { useFeedFilterStore, FEED_FILTER_DEFAULT } from '@/store/filterStore'
 import { useRouter } from 'next/navigation'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
@@ -58,19 +59,17 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const tCities = useTranslations('cities')
   const tDistricts = useTranslations('districts')
 
-  const [city, setCity] = useState<City | null>(null)
-  const [district, setDistrict] = useState<string | null>(null)
+  const {
+    city, district, feedTab, postType, sortBy, minRating,
+    categories, hiddenOnly, nationalities, ageRange, genderFilter,
+    setFilter, resetFilter,
+  } = useFeedFilterStore()
+
   const [showFilters, setShowFilters] = useState(false)
-  const [feedTab, setFeedTab] = useState<'all' | 'following'>('all')
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
-  const [postType, setPostType] = useState<'all' | 'visited' | 'want'>('all')
-  const [sortBy, setSortBy] = useState<'latest' | 'likes' | 'saves'>('latest')
-  const [minRating, setMinRating] = useState<number | null>(null)
-  const [categories, setCategories] = useState<Set<string>>(new Set())
-  const [hiddenOnly, setHiddenOnly] = useState(false)
-  const [nationalities, setNationalities] = useState<Set<string>>(new Set())
-  const [ageRange, setAgeRange] = useState<string | null>(null)
-  const [genderFilter, setGenderFilter] = useState<string | null>(null)
+
+  const categoriesSet = new Set(categories)
+  const nationalitiesSet = new Set(nationalities)
 
   const allDistricts = city ? [...getMainDistricts(city), ...getExtraDistricts(city)] : []
   const cityScroll = useDragScroll()
@@ -108,7 +107,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       likedPlaceIds: savedData.likedPlaceIds,
       savedPostIds: savedData.savedPostIds,
       savedPlaceIds: savedData.savedPlaceIds,
-      likeCountMap: {}, // store의 init에서 무시됨 — likeCountMap은 mㅉergePostCounts가 관리
+      likeCountMap: {},
     })
   }, [savedData])
 
@@ -152,7 +151,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           id, type, rating, memo, photos, recommended_menu, created_at,
           profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
           places!place_id (id, name, category, district, city, place_type),
-          post_likes (count)
+          post_likes (count),
+          post_saves (count)
         `)
         .eq('is_public', true)
         .in('place_id', placeIds)
@@ -198,12 +198,16 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     }
   }
 
-  function selectCity(c: City | null) { setCity(c); setDistrict(null) }
+  function selectCity(c: City | null) { setFilter({ city: c, district: null }) }
   function toggleCategory(cat: string) {
-    setCategories(prev => { const n = new Set(prev); n.has(cat) ? n.delete(cat) : n.add(cat); return n })
+    const next = new Set(categoriesSet)
+    next.has(cat) ? next.delete(cat) : next.add(cat)
+    setFilter({ categories: Array.from(next) })
   }
   function toggleNationality(nat: string) {
-    setNationalities(prev => { const n = new Set(prev); n.has(nat) ? n.delete(nat) : n.add(nat); return n })
+    const next = new Set(nationalitiesSet)
+    next.has(nat) ? next.delete(nat) : next.add(nat)
+    setFilter({ nationalities: Array.from(next) })
   }
 
   // 클라이언트 필터링
@@ -215,9 +219,9 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       const score: Record<string, number> = { must_go: 4, worth_it: 3, neutral: 2, not_great: 1 }
       return (score[p.rating] || 0) >= minRating
     })
-    .filter(p => categories.size === 0 || categories.has(p.places?.category))
+    .filter(p => categoriesSet.size === 0 || categoriesSet.has(p.places?.category))
     .filter(p => !hiddenOnly || p.places?.place_type === 'hidden_spot')
-    .filter(p => nationalities.size === 0 || nationalities.has(p.profiles?.nationality))
+    .filter(p => nationalitiesSet.size === 0 || nationalitiesSet.has(p.profiles?.nationality))
     .filter(p => !genderFilter || p.profiles?.gender === genderFilter)
     .filter(p => {
       if (!ageRange) return true
@@ -233,8 +237,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
   // 정렬
   const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (sortBy === 'likes') return (b.post_likes?.[0]?.count || 0) - (a.post_likes?.[0]?.count || 0)
-    if (sortBy === 'saves') return ((b as any).post_saves?.[0]?.count || 0) - ((a as any).post_saves?.[0]?.count || 0)
+    if (sortBy === 'likes') return (parseInt(b.post_likes?.[0]?.count) || 0) - (parseInt(a.post_likes?.[0]?.count) || 0)
+    if (sortBy === 'saves') return (parseInt(b.post_saves?.[0]?.count) || 0) - (parseInt(a.post_saves?.[0]?.count) || 0)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
@@ -257,10 +261,11 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     postType !== 'all',
     sortBy !== 'latest',
     minRating != null,
-    categories.size > 0,
+    categoriesSet.size > 0,
     hiddenOnly,
-    nationalities.size > 0,
+    nationalitiesSet.size > 0,
     ageRange != null,
+    genderFilter != null,
   ].filter(Boolean).length
 
   const hasDistrict = !!city
@@ -365,7 +370,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 py-2 select-none"
             >
               <button
-                onClick={() => setDistrict(null)}
+                onClick={() => setFilter({ district: null })}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   !district ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                 }`}
@@ -375,7 +380,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               {allDistricts.map(d => (
                 <button
                   key={d.value}
-                  onClick={() => setDistrict(d.value)}
+                  onClick={() => setFilter({ district: d.value })}
                   className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                     district === d.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}
@@ -384,7 +389,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </button>
               ))}
               <button
-                onClick={() => setDistrict(OTHER_DISTRICT)}
+                onClick={() => setFilter({ district: OTHER_DISTRICT })}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   district === OTHER_DISTRICT ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                 }`}
@@ -397,33 +402,38 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         </div>
       </header>
 
-      {/* 필터 바텀 시트 */}
+      {/* 필터 모달 */}
       {showFilters && (
         <div
           className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4"
           onClick={() => setShowFilters(false)}
         >
           <div
-            className="bg-white w-full max-w-lg rounded-2xl max-h-[70vh] overflow-y-auto"
+            className="bg-white w-full max-w-lg rounded-2xl flex flex-col"
+            style={{ maxHeight: '75vh' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="px-4 pb-8 pt-4 flex flex-col gap-4">
-
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-900">{t('filter')}</h2>
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={() => {
-                      setFeedTab('all'); setPostType('all'); setSortBy('latest')
-                      setMinRating(null); setCategories(new Set()); setHiddenOnly(false)
-                      setNationalities(new Set()); setAgeRange(null)
-                    }}
-                    className="text-xs text-gray-400 underline"
-                  >
-                    {t('filterReset')}
-                  </button>
-                )}
+            {/* 고정 헤더: 제목 + 초기화 + 적용 */}
+            <div className="shrink-0 px-4 pt-4 pb-3 flex items-center justify-between gap-3 border-b border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900">{t('filter')}</h2>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={resetFilter}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium text-gray-400 border border-gray-200"
+                >
+                  {t('filterReset')}
+                </button>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white"
+                >
+                  {t('filterApply')}
+                </button>
               </div>
+            </div>
+
+            {/* 스크롤 가능한 필터 내용 */}
+            <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4">
 
               {/* 전체/팔로잉 */}
               <div>
@@ -433,7 +443,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     { key: 'all', label: t('all') },
                     { key: 'following', label: t('followingTab') },
                   ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => setFeedTab(opt.key)}
+                    <button key={opt.key} onClick={() => setFilter({ feedTab: opt.key })}
                       className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${feedTab === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
                       {opt.label}
                     </button>
@@ -450,7 +460,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     { key: 'likes', label: t('filterSortLikes') },
                     { key: 'saves', label: t('filterSortSaves') },
                   ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => setSortBy(opt.key)}
+                    <button key={opt.key} onClick={() => setFilter({ sortBy: opt.key })}
                       className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${sortBy === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
                       {opt.label}
                     </button>
@@ -467,7 +477,10 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     { key: 'visited', label: t('filterPostVisited') },
                     { key: 'want', label: t('filterPostWant') },
                   ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => { setPostType(opt.key); if (opt.key !== 'visited') setMinRating(null) }}
+                    <button key={opt.key} onClick={() => {
+                      setFilter({ postType: opt.key })
+                      if (opt.key !== 'visited') setFilter({ minRating: null })
+                    }}
                       className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${postType === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
                       {opt.label}
                     </button>
@@ -480,7 +493,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <div>
                   <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterRatingAbove')}</p>
                   <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => setMinRating(null)}
+                    <button onClick={() => setFilter({ minRating: null })}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${minRating == null ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
                       {t('all')}
                     </button>
@@ -489,7 +502,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                       { score: 3, key: 'worth_it' },
                       { score: 2, key: 'neutral' },
                     ].map(r => (
-                      <button key={r.score} onClick={() => setMinRating(minRating === r.score ? null : r.score)}
+                      <button key={r.score} onClick={() => setFilter({ minRating: minRating === r.score ? null : r.score })}
                         className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                         style={minRating === r.score
                           ? { backgroundColor: RATING_COLORS[r.key], color: 'white', borderColor: 'transparent' }
@@ -508,9 +521,9 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(CATEGORY_COLORS).map(cat => (
                     <button key={cat} onClick={() => toggleCategory(cat)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${categories.has(cat) ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
-                      style={categories.has(cat) ? { backgroundColor: CATEGORY_COLORS[cat] } : {}}>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categories.has(cat) ? 'white' : CATEGORY_COLORS[cat] }} />
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${categoriesSet.has(cat) ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
+                      style={categoriesSet.has(cat) ? { backgroundColor: CATEGORY_COLORS[cat] } : {}}>
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categoriesSet.has(cat) ? 'white' : CATEGORY_COLORS[cat] }} />
                       {tPost(`category.${cat}`)}
                     </button>
                   ))}
@@ -520,7 +533,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               {/* 현지인 추천 */}
               <div>
                 <button
-                  onClick={() => setHiddenOnly(v => !v)}
+                  onClick={() => setFilter({ hiddenOnly: !hiddenOnly })}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors border ${hiddenOnly ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
                 >
                   {t('filterLocalOnly')}
@@ -533,7 +546,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <div className="flex flex-wrap gap-2">
                   {NATIONALITY_CHIPS.map(({ code, flag }) => (
                     <button key={code} onClick={() => toggleNationality(code)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${nationalities.has(code) ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${nationalitiesSet.has(code) ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
                       {flag} {code}
                     </button>
                   ))}
@@ -545,7 +558,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterGender')}</p>
                 <div className="flex gap-2">
                   {([null, 'female', 'male'] as const).map(g => (
-                    <button key={String(g)} onClick={() => setGenderFilter(g)}
+                    <button key={String(g)} onClick={() => setFilter({ genderFilter: g })}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${genderFilter === g ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
                       {g === null ? t('all') : tProfile(`gender.${g}`)}
                     </button>
@@ -564,7 +577,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     { key: '30s', label: t('filterAge30s') },
                     { key: '40s+', label: t('filterAge40s') },
                   ] as const).map(opt => (
-                    <button key={String(opt.key)} onClick={() => setAgeRange(opt.key)}
+                    <button key={String(opt.key)} onClick={() => setFilter({ ageRange: opt.key })}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${ageRange === opt.key ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
                       {opt.label}
                     </button>
@@ -572,10 +585,6 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </div>
               </div>
 
-              <button onClick={() => setShowFilters(false)}
-                className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold">
-                {t('filterApply')}
-              </button>
             </div>
           </div>
         </div>

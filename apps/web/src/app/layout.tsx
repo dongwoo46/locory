@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getLocale } from 'next-intl/server'
 import { Analytics } from '@vercel/analytics/next'
 import QueryProvider from '@/components/providers/QueryProvider'
+import Script from 'next/script'
 import './globals.css'
 
 const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -19,6 +20,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale}>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9095120612475154"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${geist.variable} antialiased`}>
         <QueryProvider>
           <NextIntlClientProvider messages={messages}>
