@@ -1747,61 +1747,46 @@ export default function MapClient({ userId }: Props) {
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
-            <div className="px-4 pb-24 pt-2 flex flex-col gap-4">
+            <div className="px-4 pb-24 pt-2 flex flex-col gap-3">
               <h2 className="text-base font-bold text-gray-900">{t('course.travelConditions')}</h2>
 
-              {/* 여행 시작일 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1">
-                  {t('course.startDate')}
-                </p>
-                <p className="text-[10px] text-gray-400 mb-2">
-                  {t('course.startDateHint')}
-                </p>
-                <input
-                  type="date"
-                  value={courseSettings.startDate}
-                  onChange={(e) =>
-                    setCourseSettings((s) => ({
-                      ...s,
-                      startDate: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
-                />
-              </div>
-
-              {/* 며칠 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-500 mb-2">
-                  {t('course.days')}
-                </p>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() =>
-                      setCourseSettings((s) => ({
-                        ...s,
-                        days: Math.max(1, s.days - 1),
-                      }))
+              {/* 여행 시작일 + 며칠 (한 줄) */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">{t('course.startDate')}</p>
+                  <input
+                    type="date"
+                    value={courseSettings.startDate}
+                    onChange={(e) =>
+                      setCourseSettings((s) => ({ ...s, startDate: e.target.value }))
                     }
-                    className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-600"
-                  >
-                    −
-                  </button>
-                  <span className="text-2xl font-bold text-gray-900 w-16 text-center">
-                    {t('course.daysValue', { days: courseSettings.days })}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCourseSettings((s) => ({
-                        ...s,
-                        days: Math.min(7, s.days + 1),
-                      }))
-                    }
-                    className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-600"
-                  >
-                    +
-                  </button>
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">{t('course.startDateHint')}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">{t('course.days')}</p>
+                  <div className="flex items-center gap-2 h-[38px]">
+                    <button
+                      onClick={() =>
+                        setCourseSettings((s) => ({ ...s, days: Math.max(1, s.days - 1) }))
+                      }
+                      className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-gray-600"
+                    >
+                      −
+                    </button>
+                    <span className="text-base font-bold text-gray-900 w-10 text-center">
+                      {t('course.daysValue', { days: courseSettings.days })}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setCourseSettings((s) => ({ ...s, days: Math.min(7, s.days + 1) }))
+                      }
+                      className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold text-gray-600"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1967,7 +1952,7 @@ export default function MapClient({ userId }: Props) {
                       e.key === 'Enter' && searchAccomPlaces(accomQuery)
                     }
                     placeholder={t('course.accomPlaceholder')}
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                   />
                   <button
                     onClick={() => searchAccomPlaces(accomQuery)}
@@ -2013,7 +1998,7 @@ export default function MapClient({ userId }: Props) {
                       }))
                     }
                     placeholder={t('course.startLocationPlaceholder')}
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                   />
                   {savedAccommodation && (
                     <button
@@ -2047,7 +2032,7 @@ export default function MapClient({ userId }: Props) {
                       }))
                     }
                     placeholder={t('course.endLocationPlaceholder')}
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
                   />
                   {savedAccommodation && (
                     <button
@@ -2082,8 +2067,8 @@ export default function MapClient({ userId }: Props) {
                     }))
                   }
                   placeholder={t('course.extraConditionsPlaceholder')}
-                  rows={3}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 resize-none"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400 resize-none"
                 />
               </div>
 

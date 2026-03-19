@@ -159,7 +159,7 @@ export default function PostCard({ post, userId, isSaved: initialSaved = false, 
               style={{ backgroundColor: CATEGORY_COLORS[place.category] || '#9CA3AF' }}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
+              <p className="text-sm font-bold text-gray-900 line-clamp-2">
                 {place.name}
                 {place.place_type === 'hidden_spot' && (
                   <span className="ml-1.5 text-xs font-medium text-gray-400">{tPost('hiddenSpot')}</span>
