@@ -5,7 +5,8 @@ import SettingsClient from './SettingsClient'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
   if (!user) redirect('/login')
 
   // birth_year/role 컬럼이 없는 환경(migration 미적용)에서도 fallback

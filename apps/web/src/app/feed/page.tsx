@@ -3,7 +3,8 @@ import FeedClient from './FeedClient'
 
 export default async function FeedPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   const [{ data: profile }, { data: following }] = await Promise.all([
     supabase.from('profiles').select('nickname, nationality, avatar_url, id').eq('id', user!.id).single(),

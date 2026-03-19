@@ -64,8 +64,7 @@ export default function OnboardingPage() {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
+      .upsert({ id: user.id, ...updates })
 
     if (updateError) {
       if (updateError.code === '23505') setError(t('errorNicknameDuplicate'))

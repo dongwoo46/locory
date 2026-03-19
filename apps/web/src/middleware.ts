@@ -27,13 +27,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession()은 쿠키에서 읽어서 네트워크 요청 없음 (빠름)
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
-  // 로그인 안 된 유저가 보호된 페이지 접근 시 로그인으로
+  const { pathname } = request.nextUrl
+
   const protectedPaths = ['/feed', '/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
-  const isProtected = protectedPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
-  )
+  const isProtected = protectedPaths.some(path => pathname.startsWith(path))
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone()
@@ -41,7 +42,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 로그인됐지만 온보딩 안 됐으면 온보딩으로 (쿠키로 캐싱해서 매 요청 DB 쿼리 방지)
+  // 로그인됐지만 온보딩 안 됐으면 온보딩으로 (쿠키 캐싱)
   if (user && isProtected) {
     const onboardedCookie = request.cookies.get('onboarded')?.value
     if (onboardedCookie !== '1') {
@@ -56,13 +57,12 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/onboarding'
         return NextResponse.redirect(url)
       }
-      // 온보딩 완료 — 쿠키 세팅
       supabaseResponse.cookies.set('onboarded', '1', { path: '/', maxAge: 60 * 60 * 24 * 365 })
     }
   }
 
   // 로그인된 유저가 로그인 페이지 접근 시 피드로
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/feed'
     return NextResponse.redirect(url)
@@ -73,6 +73,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/feed/:path*',
+    '/map/:path*',
+    '/upload/:path*',
+    '/profile/:path*',
+    '/place/:path*',
+    '/post/:path*',
+    '/settings/:path*',
+    '/saved/:path*',
+    '/login',
+    '/onboarding',
   ],
 }
