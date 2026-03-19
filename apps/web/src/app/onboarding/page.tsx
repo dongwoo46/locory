@@ -84,7 +84,7 @@ export default function OnboardingPage() {
 
         <div className="flex flex-col gap-1">
           <h1>
-            <img src="/logo40.png" alt="Locory" className="h-8 w-auto" />
+            <img src="/logo40.png" alt="Locory" className="h-10 w-auto" />
           </h1>
           <p className="text-sm text-gray-500 mt-1">{t('title')}</p>
         </div>
