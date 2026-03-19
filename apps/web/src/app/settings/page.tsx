@@ -28,7 +28,7 @@ export default async function SettingsPage() {
     return <SettingsClient profile={{ ...fallback, birth_date: null, gender: null, gender_changed_at: null, bio: null, role: 'user' }} currentLocale={locale} isAdmin={false} />
   }
 
-  if (!profile) redirect('/login')
+  if (!profile) redirect('/api/auth/signout')
 
   const locale = await getLocale()
 

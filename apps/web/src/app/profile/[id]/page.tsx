@@ -43,7 +43,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     if (followRow) followStatus = followRow.status as 'pending' | 'accepted'
   }
 
-  if (!profile) redirect('/feed')
+  // 내 프로필이 없으면 세션 초기화, 타인 프로필이 없으면 피드로
+  if (!profile) {
+    if (targetId === user.id) redirect('/api/auth/signout')
+    else redirect('/feed')
+  }
 
   return (
     <ProfileClient
