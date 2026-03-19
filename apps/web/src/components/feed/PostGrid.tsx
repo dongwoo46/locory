@@ -93,8 +93,8 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
 
   return (
     <>
-      {/* 3열 그리드 */}
-      <div className="grid grid-cols-3 gap-px">
+      {/* 헤더와 너비를 일치시킨 2열 그리드 */}
+      <div className="grid grid-cols-2 gap-3 px-4">
         {posts.map(p => {
           const place = p.places
           const likeCount = likeCountMap[p.id] || 0
@@ -102,7 +102,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
             <div
               key={p.id}
               onClick={() => setSelected(p)}
-              className="bg-white overflow-hidden text-left cursor-pointer"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 text-left cursor-pointer"
             >
               <div className="aspect-square bg-gray-100 relative">
                 {p.photos?.[0] ? (
@@ -144,8 +144,8 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
                   </button>
                 )}
               </div>
-              <div className="px-2 py-1.5">
-                <div className="flex items-center gap-1 leading-tight">
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5 leading-tight mb-0.5">
                   <span className="text-xs shrink-0">{CATEGORY_EMOJIS[place?.category]}</span>
                   <p className="text-[11px] font-semibold text-gray-900 line-clamp-2">{place?.name}</p>
                 </div>
