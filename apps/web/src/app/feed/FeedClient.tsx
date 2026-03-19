@@ -262,15 +262,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
           {/* 로고 + 필터 + 프로필 */}
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-xl font-bold tracking-tight">
-              <span style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #f093fb 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                Locory
-              </span>
+            <h1>
+              <img src="/logo40.png" alt="Locory" className="h-7 w-auto" />
             </h1>
             <div className="flex items-center gap-2">
               {/* 포스팅/장소 pill */}

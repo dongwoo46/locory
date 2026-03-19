@@ -152,15 +152,8 @@ export default function SavedClient({ userId }: Props) {
         <div className="max-w-lg mx-auto px-4">
           {/* 상단 바 */}
           <div className="flex items-center h-14 gap-2">
-            <h1 className="text-xl font-bold tracking-tight flex-1">
-              <span style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #f093fb 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                Locory
-              </span>
+            <h1 className="flex-1">
+              <img src="/logo40.png" alt="Locory" className="h-7 w-auto" />
             </h1>
             <div className="flex items-center gap-2">
               {/* 필터 버튼 */}

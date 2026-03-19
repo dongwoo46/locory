@@ -83,13 +83,8 @@ export default function OnboardingPage() {
       <div className="w-full max-w-sm flex flex-col gap-7">
 
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold" style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #f093fb 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
-            Locory
+          <h1>
+            <img src="/logo40.png" alt="Locory" className="h-8 w-auto" />
           </h1>
           <p className="text-sm text-gray-500 mt-1">{t('title')}</p>
         </div>
