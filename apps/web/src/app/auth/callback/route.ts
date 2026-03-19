@@ -2,23 +2,30 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { locales, defaultLocale, type Locale } from '@/i18n/config'
 
-// Accept-Language 헤더에서 지원 locale 매핑
-function detectLocale(acceptLanguage: string | null): Locale {
-  if (!acceptLanguage) return defaultLocale
+// locale 문자열 → 지원 Locale 매핑
+function mapToLocale(lang: string): Locale | null {
+  const l = lang.toLowerCase()
+  if (l === 'ko' || l.startsWith('ko-')) return 'ko'
+  if (l === 'ja' || l.startsWith('ja-')) return 'ja'
+  if (l === 'zh-tw' || l === 'zh-hant') return 'zh-TW'
+  if (l === 'zh-cn' || l === 'zh-hans' || l.startsWith('zh')) return 'zh-CN'
+  if (l === 'es' || l.startsWith('es-')) return 'es'
+  if (l === 'ru' || l.startsWith('ru-')) return 'ru'
+  if (l === 'en' || l.startsWith('en-')) return 'en'
+  return null
+}
 
-  const preferred = acceptLanguage
-    .split(',')
-    .map(s => s.split(';')[0].trim().toLowerCase())
-
-  for (const lang of preferred) {
-    if (lang === 'ko' || lang.startsWith('ko-')) return 'ko'
-    if (lang === 'ja' || lang.startsWith('ja-')) return 'ja'
-    if (lang === 'zh-tw' || lang === 'zh-hant') return 'zh-TW'
-    if (lang === 'zh-cn' || lang === 'zh-hans' || lang.startsWith('zh')) return 'zh-CN'
-    if (lang === 'es' || lang.startsWith('es-')) return 'es'
-    if (lang === 'en' || lang.startsWith('en-')) return 'en'
+// Google user_metadata.locale 우선, 없으면 Accept-Language
+function detectLocale(googleLocale: string | undefined, acceptLanguage: string | null): Locale {
+  if (googleLocale) {
+    const mapped = mapToLocale(googleLocale)
+    if (mapped) return mapped
   }
-
+  if (!acceptLanguage) return defaultLocale
+  for (const lang of acceptLanguage.split(',').map(s => s.split(';')[0].trim())) {
+    const mapped = mapToLocale(lang)
+    if (mapped) return mapped
+  }
   return defaultLocale
 }
 
@@ -48,7 +55,8 @@ export async function GET(request: Request) {
         // 처음 로그인 시에만 언어 자동 설정 (쿠키 없을 때)
         const existingLocale = request.headers.get('cookie')?.match(/locale=([^;]+)/)?.[1]
         if (!existingLocale) {
-          const locale = detectLocale(request.headers.get('accept-language'))
+          const googleLocale = user.user_metadata?.locale as string | undefined
+          const locale = detectLocale(googleLocale, request.headers.get('accept-language'))
           response.cookies.set('locale', locale, { path: '/', maxAge: 60 * 60 * 24 * 365 })
         }
 
