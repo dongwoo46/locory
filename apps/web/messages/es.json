@@ -603,6 +603,7 @@
       "neighborhoodLabel": "Barrio",
       "customInput": "Escribir",
       "neighborhoodPlaceholder": "Ej: Hongdae, Itaewon...",
+      "neighborhoodOther": "Otro",
       "hiddenSpotLabel": "Recomendación local",
       "hiddenSpotDesc": "Puntos extra +15 al registrar",
       "next": "Siguiente",

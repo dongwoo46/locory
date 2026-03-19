@@ -37,7 +37,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
 
   const {
     likedPostIds, likeCountMap, likedPlaceIds, savedPostIds, savedPlaceIds,
-    togglePostLike, togglePlaceLike, togglePostSave, togglePlaceSave, mergePostCounts,
+    mergePostCounts,
   } = useLikeStore()
 
   // 포스트 좋아요 수 store에 병합
@@ -49,8 +49,9 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   }, [posts, mergePostCounts])
 
   async function handlePostLike(postId: string) {
-    const wasLiked = likedPostIds.has(postId)
-    togglePostLike(postId) // 즉시 UI 반영
+    const { likedPostIds: cur, togglePostLike: toggle } = useLikeStore.getState()
+    const wasLiked = cur.has(postId)
+    toggle(postId)
     if (wasLiked) {
       await supabase.from('post_likes').delete().eq('user_id', userId).eq('post_id', postId)
     } else {
@@ -59,8 +60,9 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   }
 
   async function handlePostSave(postId: string) {
-    const wasSaved = savedPostIds.has(postId)
-    togglePostSave(postId)
+    const { savedPostIds: cur, togglePostSave: toggle } = useLikeStore.getState()
+    const wasSaved = cur.has(postId)
+    toggle(postId)
     if (wasSaved) {
       await supabase.from('post_saves').delete().eq('user_id', userId).eq('post_id', postId)
     } else {
@@ -69,8 +71,9 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   }
 
   async function handlePlaceSave(placeId: string) {
-    const wasSaved = savedPlaceIds.has(placeId)
-    togglePlaceSave(placeId)
+    const { savedPlaceIds: cur, togglePlaceSave: toggle } = useLikeStore.getState()
+    const wasSaved = cur.has(placeId)
+    toggle(placeId)
     if (wasSaved) {
       await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
     } else {
@@ -80,8 +83,9 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
 
   async function handlePlaceLike(e: React.MouseEvent, placeId: string) {
     e.stopPropagation()
-    const wasLiked = likedPlaceIds.has(placeId)
-    togglePlaceLike(placeId)
+    const { likedPlaceIds: cur, togglePlaceLike: toggle } = useLikeStore.getState()
+    const wasLiked = cur.has(placeId)
+    toggle(placeId)
     if (wasLiked) {
       await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', placeId)
     } else {
@@ -97,7 +101,8 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
       <div className="grid grid-cols-3 gap-px px-4">
         {posts.map(p => {
           const place = p.places
-          const likeCount = likeCountMap[p.id] || 0
+          const likeCount = likeCountMap[p.id] ?? parseInt(p.post_likes?.[0]?.count) ?? 0
+          const saveCount = parseInt(p.post_saves?.[0]?.count) || 0
           return (
             <div
               key={p.id}
@@ -153,14 +158,20 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
                   <span className="text-[9px] text-gray-400 truncate">
                     {NATIONALITY_FLAGS[p.profiles?.nationality]} {p.profiles?.nickname}
                   </span>
-                  {likeCount > 0 && (
-                    <div className="flex items-center gap-0.5 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-0.5">
                       <svg width="8" height="8" viewBox="0 0 24 24" fill="#9CA3AF" stroke="none">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                       </svg>
                       <span className="text-[9px] text-gray-400">{likeCount}</span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-0.5">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#9CA3AF" stroke="none">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                      </svg>
+                      <span className="text-[9px] text-gray-400">{saveCount}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

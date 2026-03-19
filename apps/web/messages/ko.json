@@ -603,6 +603,7 @@
       "neighborhoodLabel": "동네",
       "customInput": "직접 입력",
       "neighborhoodPlaceholder": "동네명 입력 (예: 을지로, 북촌...)",
+      "neighborhoodOther": "기타",
       "hiddenSpotLabel": "현지인 추천 장소",
       "hiddenSpotDesc": "등록 시 보너스 포인트 +15",
       "next": "다음",

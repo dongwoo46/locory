@@ -25,6 +25,11 @@ function detectCity(lat: number, lng: number): City {
   if (lat >= 33.0 && lat <= 34.0) return 'jeju'
   if (lat >= 34.8 && lat <= 35.4 && lng >= 128.8) return 'busan'
   if (lat >= 35.6 && lat <= 36.1 && lng >= 128.9 && lng <= 129.4) return 'gyeongju'
+  if (lat >= 35.7 && lat <= 35.9 && lng >= 127.0 && lng <= 127.3) return 'jeonju'
+  if (lat >= 37.7 && lat <= 37.95 && lng >= 128.8 && lng <= 129.0) return 'gangneung'
+  if (lat >= 38.1 && lat <= 38.3 && lng >= 128.5 && lng <= 128.7) return 'sokcho'
+  if (lat >= 34.6 && lat <= 34.9 && lng >= 127.5 && lng <= 127.8) return 'yeosu'
+  if (lat >= 37.3 && lat <= 37.6 && lng >= 126.5 && lng <= 126.8) return 'incheon'
   return 'seoul'
 }
 
@@ -50,6 +55,8 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
   const [location, setLocation] = useState<LocationInfo | null>(null)
   const [category, setCategory] = useState<Category | null>(null)
   const [district, setDistrict] = useState<string | null>(null)
+  const [customDistrict, setCustomDistrict] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [gpsLoading, setGpsLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
@@ -150,8 +157,9 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
   }
 
   function handleConfirm() {
-    if (!location || !category || !district) return
-    const city = detectCity(location.lat, location.lng)
+    const effectiveDistrict = district || (customDistrict.trim() || null)
+    if (!location || !category || !effectiveDistrict) return
+    const city = inferCityFromAddress(location.address) || detectCity(location.lat, location.lng)
     const requiredNat = CITY_NATIONALITY[city]
     const canMarkLocal = userNationality === requiredNat
     onSelect({
@@ -161,7 +169,7 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
       lng: location.lng,
       address: location.address,
       city,
-      district,
+      district: effectiveDistrict,
       category,
       place_type: isHidden && canMarkLocal ? 'hidden_spot' : 'normal',
     })
@@ -281,17 +289,35 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
           {location && district === null && (
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-700">{t('place.neighborhoodLabel')}</label>
-              <div className="flex gap-2 flex-wrap">
-                {getDistricts(detectCity(location.lat, location.lng)).map(d => (
+              {showCustomInput ? (
+                <input
+                  type="text"
+                  value={customDistrict}
+                  onChange={e => setCustomDistrict(e.target.value)}
+                  onBlur={() => { if (customDistrict.trim()) setDistrict(customDistrict.trim()) }}
+                  placeholder={t('place.neighborhoodPlaceholder')}
+                  className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
+                  autoFocus
+                />
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {getDistricts(detectCity(location.lat, location.lng)).map(d => (
+                    <button
+                      key={d.value}
+                      onClick={() => setDistrict(d.value)}
+                      className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600"
+                    >
+                      {d.label}
+                    </button>
+                  ))}
                   <button
-                    key={d.value}
-                    onClick={() => setDistrict(d.value)}
+                    onClick={() => setShowCustomInput(true)}
                     className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600"
                   >
-                    {d.label}
+                    {t('place.neighborhoodOther')}
                   </button>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 

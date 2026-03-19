@@ -603,6 +603,7 @@
       "neighborhoodLabel": "區域",
       "customInput": "手動輸入",
       "neighborhoodPlaceholder": "例：弘大、梨泰院...",
+      "neighborhoodOther": "其他",
       "hiddenSpotLabel": "在地推薦",
       "hiddenSpotDesc": "登記可獲得獎勵點數 +15",
       "next": "下一步",

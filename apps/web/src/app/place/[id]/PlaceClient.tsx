@@ -98,23 +98,23 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
 
   async function togglePlaceSave() {
     if (isPlaceSaved) {
-      await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', place.id)
       setIsPlaceSaved(false)
+      await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', place.id)
     } else {
-      await supabase.from('place_saves').insert({ user_id: userId, place_id: place.id })
       setIsPlaceSaved(true)
+      await supabase.from('place_saves').insert({ user_id: userId, place_id: place.id })
     }
   }
 
   async function togglePlaceLike() {
     if (isPlaceLiked) {
-      await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', place.id)
       setIsPlaceLiked(false)
       setPlaceLikeCount(c => c - 1)
+      await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', place.id)
     } else {
-      await supabase.from('place_likes').insert({ user_id: userId, place_id: place.id })
       setIsPlaceLiked(true)
       setPlaceLikeCount(c => c + 1)
+      await supabase.from('place_likes').insert({ user_id: userId, place_id: place.id })
     }
   }
 

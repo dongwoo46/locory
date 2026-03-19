@@ -603,6 +603,7 @@
       "neighborhoodLabel": "エリア",
       "customInput": "直接入力",
       "neighborhoodPlaceholder": "例: 弘大、梨泰院...",
+      "neighborhoodOther": "その他",
       "hiddenSpotLabel": "地元のおすすめ",
       "hiddenSpotDesc": "登録でボーナスポイント +15",
       "next": "次へ",

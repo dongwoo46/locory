@@ -603,6 +603,7 @@
       "neighborhoodLabel": "Район",
       "customInput": "Ввести вручную",
       "neighborhoodPlaceholder": "Напр.: Хондэ, Итэвон...",
+      "neighborhoodOther": "Другой",
       "hiddenSpotLabel": "Местная рекомендация",
       "hiddenSpotDesc": "Бонусные очки +15 при регистрации",
       "next": "Далее",

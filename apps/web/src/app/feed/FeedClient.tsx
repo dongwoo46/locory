@@ -165,7 +165,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const posts = (rawPosts ?? []) as any[]
 
   async function togglePlaceSave(placeId: string) {
-    const saved = savedPlaceIds.has(placeId)
+    const cur = (queryClient.getQueryData(['user-saved', userId]) as any)?.savedPlaceIds as Set<string> | undefined
+    const saved = cur?.has(placeId) ?? savedPlaceIds.has(placeId)
     storePlaceSave(placeId)
     queryClient.setQueryData(['user-saved', userId], (old: any) => {
       if (!old) return old
@@ -181,7 +182,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   }
 
   async function togglePlaceLike(placeId: string) {
-    const liked = likedPlaceIds.has(placeId)
+    const cur = (queryClient.getQueryData(['user-saved', userId]) as any)?.likedPlaceIds as Set<string> | undefined
+    const liked = cur?.has(placeId) ?? likedPlaceIds.has(placeId)
     storePlaceLike(placeId)
     queryClient.setQueryData(['user-saved', userId], (old: any) => {
       if (!old) return old

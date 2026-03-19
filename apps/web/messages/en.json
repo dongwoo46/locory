@@ -603,6 +603,7 @@
       "neighborhoodLabel": "Neighborhood",
       "customInput": "Enter manually",
       "neighborhoodPlaceholder": "e.g. Hongdae, Itaewon...",
+      "neighborhoodOther": "Other",
       "hiddenSpotLabel": "Local's pick",
       "hiddenSpotDesc": "Bonus points +15 for registering",
       "next": "Next",
