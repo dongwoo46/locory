@@ -18,14 +18,18 @@ export default function UploadFlow() {
   const t = useTranslations('upload')
   const [state, setState] = useState<UploadState>(INITIAL_STATE)
   const [loading, setLoading] = useState(false)
+  const [userNationality, setUserNationality] = useState<string | null>(null)
 
-  // 계정 공개 여부에 따라 포스팅 기본값 설정
+  // 계정 공개 여부 + 국적 가져오기
   useEffect(() => {
     supabase.from('profiles')
-      .select('is_public')
+      .select('is_public, nationality')
       .single()
       .then(({ data }) => {
-        if (data) setState(prev => ({ ...prev, isPublic: data.is_public }))
+        if (data) {
+          setState(prev => ({ ...prev, isPublic: data.is_public }))
+          setUserNationality(data.nationality)
+        }
       })
   }, [])
 
@@ -171,6 +175,7 @@ export default function UploadFlow() {
       <main className="flex-1 max-w-lg w-full mx-auto px-4 py-6 overflow-y-auto">
         {state.step === 1 && (
           <StepPlace
+            userNationality={userNationality}
             onSelect={place => {
               update({ place })
               goNext()

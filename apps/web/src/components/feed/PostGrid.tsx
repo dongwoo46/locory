@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import { getScentLevel } from '@/types/database'
 import { useLikeStore } from '@/store/likeStore'
+import ReportSheet from '@/components/ui/ReportSheet'
 
 const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',
@@ -32,6 +33,7 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
   const tFeed = useTranslations('feed')
   const tDistricts = useTranslations('districts')
   const [selected, setSelected] = useState<any | null>(null)
+  const [showReport, setShowReport] = useState(false)
 
   const {
     likedPostIds, likeCountMap, likedPlaceIds, savedPostIds, savedPlaceIds,
@@ -112,20 +114,20 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
                 )}
                 {p.type === 'visited' && p.rating && (
                   <div
-                    className="absolute top-2.5 left-1.5 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                    className="absolute top-3 left-2 text-white text-[9px] font-semibold px-2 pt-1 pb-[2px] rounded-full"
                     style={{ backgroundColor: RATING_COLORS[p.rating] }}
                   >
                     {tPost('rating.' + p.rating)}
                   </div>
                 )}
                 {p.type === 'want' && (
-                  <div className="absolute top-2.5 left-1.5 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-full">
+                  <div className="absolute top-3 left-2 bg-black/50 text-white text-[9px] px-2 pt-1 pb-[2px] rounded-full">
                     {tFeed('wantTag')}
                   </div>
                 )}
                 {place?.place_type === 'hidden_spot' && (
-                  <div className="absolute bottom-1.5 left-1.5 bg-purple-600/80 text-white text-[9px] px-1.5 py-0.5 rounded-full">
-                    🔍 {tPost('hiddenSpot')}
+                  <div className="absolute bottom-2 left-2 bg-purple-600/80 text-white text-[9px] px-2 pt-1 pb-[2px] rounded-full flex items-center gap-0.5">
+                    <span className="text-[10px]">🔍</span> <span>{tPost('hiddenSpot')}</span>
                   </div>
                 )}
                 {place?.id && !hidePlaceLike && (
@@ -166,19 +168,34 @@ export default function PostGrid({ posts, userId, hidePlaceLike = false }: Props
         })}
       </div>
 
+      {/* 신고 시트 */}
+      {post && showReport && (
+        <ReportSheet
+          targetType="post"
+          targetId={post.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
+
       {/* 포스트 상세 모달 */}
       {post && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4"
-          onClick={() => setSelected(null)}
+          onClick={() => { setSelected(null); setShowReport(false) }}
         >
           <div
             className="bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col"
             style={{ maxHeight: 'calc(100dvh - 120px)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
+            <div className="flex items-center px-4 pt-3 pb-1 shrink-0">
               <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
+              <button onClick={() => setShowReport(true)} className="absolute left-4 top-3 p-1 text-gray-300 hover:text-gray-500">
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                </svg>
+              </button>
               <button onClick={() => setSelected(null)} className="absolute right-4 top-3 p-1 text-gray-400">
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round"/>

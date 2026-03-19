@@ -27,9 +27,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // getSession()은 쿠키에서 읽어서 네트워크 요청 없음 (빠름)
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user ?? null
+  // getUser()로 Auth 서버에서 검증 (미들웨어에서 1회만 호출)
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 

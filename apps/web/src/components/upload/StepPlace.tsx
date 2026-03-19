@@ -4,8 +4,14 @@ import { useState, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import type { SelectedPlace } from './types'
-import type { Category, City } from '@/types/database'
+import type { Category, City, Nationality } from '@/types/database'
 import { getDistricts, inferCityFromAddress, inferDistrictFromAddress } from '@/lib/utils/districts'
+
+// 도시 → 현지인 국적 매핑 (향후 다른 나라 도시 추가 시 여기에 추가)
+const CITY_NATIONALITY: Record<City, Nationality> = {
+  seoul: 'KR', busan: 'KR', jeju: 'KR', gyeongju: 'KR', jeonju: 'KR',
+  gangneung: 'KR', sokcho: 'KR', yeosu: 'KR', incheon: 'KR',
+}
 
 const CATEGORY_VALUES: Category[] = ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping']
 
@@ -31,10 +37,11 @@ interface LocationInfo {
 }
 
 interface Props {
+  userNationality: string | null
   onSelect: (place: SelectedPlace) => void
 }
 
-export default function StepPlace({ onSelect }: Props) {
+export default function StepPlace({ userNationality, onSelect }: Props) {
   const t = useTranslations('upload')
   const tPost = useTranslations('post')
   const [mode, setMode] = useState<'search' | 'map' | 'gps'>('search')
@@ -129,6 +136,8 @@ export default function StepPlace({ onSelect }: Props) {
   function handleConfirm() {
     if (!location || !category || !district) return
     const city = detectCity(location.lat, location.lng)
+    const requiredNat = CITY_NATIONALITY[city]
+    const canMarkLocal = userNationality === requiredNat
     onSelect({
       id: location.existingId,
       name: location.name,
@@ -138,7 +147,7 @@ export default function StepPlace({ onSelect }: Props) {
       city,
       district,
       category,
-      place_type: isHidden ? 'hidden_spot' : 'normal',
+      place_type: isHidden && canMarkLocal ? 'hidden_spot' : 'normal',
     })
   }
 
@@ -296,20 +305,27 @@ export default function StepPlace({ onSelect }: Props) {
             })()}
           </div>
 
-          <button
-            onClick={() => setIsHidden(!isHidden)}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
-              isHidden ? 'border-gray-900 bg-gray-50' : 'border-gray-200'
-            }`}
-          >
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-medium text-gray-900">{t('place.hiddenSpotLabel')}</span>
-              <span className="text-xs text-gray-400">{t('place.hiddenSpotDesc')}</span>
-            </div>
-            <div className={`w-5 h-5 rounded-full border-2 transition-colors ${
-              isHidden ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
-            }`} />
-          </button>
+          {(() => {
+            const city = location ? detectCity(location.lat, location.lng) : 'seoul'
+            const requiredNat = CITY_NATIONALITY[city]
+            const canMarkLocal = userNationality === requiredNat
+            return canMarkLocal ? (
+              <button
+                onClick={() => setIsHidden(!isHidden)}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
+                  isHidden ? 'border-gray-900 bg-gray-50' : 'border-gray-200'
+                }`}
+              >
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-medium text-gray-900">{t('place.hiddenSpotLabel')}</span>
+                  <span className="text-xs text-gray-400">{t('place.hiddenSpotDesc')}</span>
+                </div>
+                <div className={`w-5 h-5 rounded-full border-2 transition-colors ${
+                  isHidden ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
+                }`} />
+              </button>
+            ) : null
+          })()}
 
           <button
             onClick={handleConfirm}

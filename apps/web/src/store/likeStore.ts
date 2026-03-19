@@ -85,7 +85,9 @@ export const useLikeStore = create<LikeStore>((set) => ({
     return { savedPlaceIds: next }
   }),
 
-  mergePostCounts: (entries) => set((s) => ({
-    likeCountMap: { ...entries, ...s.likeCountMap },
-  })),
+  mergePostCounts: (entries) => set((s) => {
+    const hasNew = Object.keys(entries).some(id => !(id in s.likeCountMap))
+    if (!hasNew) return s
+    return { likeCountMap: { ...entries, ...s.likeCountMap } }
+  }),
 }))
