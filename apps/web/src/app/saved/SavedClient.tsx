@@ -153,7 +153,7 @@ export default function SavedClient({ userId }: Props) {
           {/* 상단 바 */}
           <div className="flex items-center h-14 gap-2">
             <h1 className="flex-1">
-              <img src="/logo40.png" alt="Locory" className="h-10 w-auto" />
+              <img src="/logo40.png" alt="Locory" className="h-14 w-auto" />
             </h1>
             <div className="flex items-center gap-2">
               {/* 필터 버튼 */}

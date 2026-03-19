@@ -236,7 +236,13 @@ export default function ProfileClient({
                 <span>{t(`gender.${profile.gender}`)}</span>
               )}
               {profile.birth_date && (
-                <span>{new Date().getFullYear() - new Date(profile.birth_date).getFullYear()}세</span>
+                <span>{(() => {
+                  const today = new Date()
+                  const birth = new Date(profile.birth_date!)
+                  let age = today.getFullYear() - birth.getFullYear()
+                  if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--
+                  return age
+                })()}세</span>
               )}
             </div>
             {profile.bio && (

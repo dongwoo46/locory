@@ -69,9 +69,17 @@ function vibeLabel(v: string) {
   return VIBES.find((a) => a.value === v)?.label ?? v;
 }
 
+function calcAge(birthDate: string): number {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 function getAgeGroup(birthDate: string | null): string | null {
   if (!birthDate) return null;
-  const age = new Date().getFullYear() - new Date(birthDate).getFullYear();
+  const age = calcAge(birthDate);
   if (age < 20) return 'teens';
   if (age <= 23) return '20s_early';
   if (age <= 26) return '20s_mid';
@@ -975,11 +983,7 @@ function MeetupDetailView({
               </span>
             )}
             {meetup.profiles.birth_date && (
-              <span>
-                {new Date().getFullYear() -
-                  new Date(meetup.profiles.birth_date).getFullYear()}
-                세
-              </span>
+              <span>{calcAge(meetup.profiles.birth_date)}세</span>
             )}
           </div>
         </div>

@@ -30,7 +30,7 @@ export default function LoginPage() {
         {/* 로고 */}
         <div className="flex flex-col items-center gap-2">
           <h1>
-            <img src="/logo40.png" alt="Locory" className="h-10 w-auto" />
+            <img src="/logo_letter.png" alt="Locory" className="h-40 w-auto" />
           </h1>
           <p className="text-sm text-gray-500 text-center">
             한국의 숨겨진 장소를 발견하고 공유하세요

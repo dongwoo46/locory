@@ -93,7 +93,7 @@ export interface TrustLog {
 // 냄새 점수 계산 (trust_score → 0~100 표시 점수)
 export function calcScentScore(trustScore: number): number {
   if (trustScore <= 0) return 0
-  return Math.min(100, Math.round(Math.log(trustScore) / Math.log(2000) * 100))
+  return Math.min(100, Math.round(Math.log(trustScore) / Math.log(8000) * 100))
 }
 
 // 냄새 등급
