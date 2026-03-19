@@ -14,7 +14,8 @@ import BottomNav from '@/components/ui/BottomNav';
 import { CITIES, getMainDistricts, getDistricts } from '@/lib/utils/districts';
 import type { City } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
-import { useDragScroll } from '@/hooks/useDragScroll';
+import { useDragScroll } from '@/hooks/useDragScroll'
+import { useUserInteractions } from '@/hooks/useUserInteractions';
 import { Range, getTrackBackground } from 'react-range'
 import { DayPicker } from 'react-day-picker'
 import type { DateRange } from 'react-day-picker'
@@ -395,7 +396,7 @@ export default function MapClient({ userId }: Props) {
   const { data: mapData } = useQuery({
     queryKey: ['map-data', userId],
     queryFn: async () => {
-      const [{ data: posts }, { data: savedRows }, { data: courses }] =
+      const [{ data: posts }, { data: courses }] =
         await Promise.all([
           supabase
             .from('posts')
@@ -405,7 +406,6 @@ export default function MapClient({ userId }: Props) {
             .eq('is_public', true)
             .order('created_at', { ascending: false })
             .limit(500),
-          supabase.from('place_saves').select('place_id').eq('user_id', userId),
           supabase
             .from('saved_courses')
             .select('*')
@@ -463,7 +463,6 @@ export default function MapClient({ userId }: Props) {
 
       return {
         allPlaces,
-        savedPlaceIds: new Set((savedRows || []).map((r) => r.place_id)),
         savedCourses: courses || [],
       };
     },
@@ -471,7 +470,8 @@ export default function MapClient({ userId }: Props) {
   });
 
   const allPlaces: Place[] = mapData?.allPlaces ?? [];
-  const savedPlaceIds: Set<string> = mapData?.savedPlaceIds ?? new Set();
+  const { data: interactions } = useUserInteractions(userId);
+  const savedPlaceIds: Set<string> = interactions?.savedPlaceIds ?? new Set();
 
   // 기본 상태
   const [mode, setMode] = useState<'all' | 'saved'>('all');

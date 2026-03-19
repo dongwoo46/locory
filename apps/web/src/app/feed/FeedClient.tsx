@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
-import { useFeedFilterStore, FEED_FILTER_DEFAULT } from '@/store/filterStore'
+import { useFeedFilterStore } from '@/store/filterStore'
+import { useUserInteractions } from '@/hooks/useUserInteractions'
 import { useRouter } from 'next/navigation'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
@@ -75,57 +76,29 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const cityScroll = useDragScroll()
   const districtScroll = useDragScroll()
 
-  // saved/liked 상태 — 5분 캐싱
-  const { data: savedData } = useQuery({
-    queryKey: ['user-saved', userId],
-    queryFn: async () => {
-      const [{ data: ps }, { data: pls }, { data: pl }, { data: pll }] = await Promise.all([
-        supabase.from('post_saves').select('post_id').eq('user_id', userId),
-        supabase.from('place_saves').select('place_id').eq('user_id', userId),
-        supabase.from('post_likes').select('post_id').eq('user_id', userId),
-        supabase.from('place_likes').select('place_id').eq('user_id', userId),
-      ])
-      return {
-        savedPostIds: new Set((ps || []).map((s: any) => s.post_id)),
-        savedPlaceIds: new Set((pls || []).map((s: any) => s.place_id)),
-        likedPostIds: new Set((pl || []).map((s: any) => s.post_id)),
-        likedPlaceIds: new Set((pll || []).map((s: any) => s.place_id)),
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-  })
+  // user interactions — RPC 1번으로 통합 (post_saves + place_saves + post_likes + place_likes)
+  const { data: interactions } = useUserInteractions(userId)
+  const savedPlaceIds = interactions?.savedPlaceIds ?? new Set<string>()
+  const likedPlaceIds = interactions?.likedPlaceIds ?? new Set<string>()
 
-  const savedPlaceIds = savedData?.savedPlaceIds ?? new Set<string>()
-  const likedPlaceIds = savedData?.likedPlaceIds ?? new Set<string>()
-
-  // Zustand store 초기화 — savedData 로드 시
-  const { init: initLikeStore, togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
-  useEffect(() => {
-    if (!savedData) return
-    initLikeStore({
-      likedPostIds: savedData.likedPostIds,
-      likedPlaceIds: savedData.likedPlaceIds,
-      savedPostIds: savedData.savedPostIds,
-      savedPlaceIds: savedData.savedPlaceIds,
-      likeCountMap: {},
-    })
-  }, [savedData])
+  const { togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
 
   // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
+  // all탭: places!inner embedded join으로 2-step 쿼리를 1개로 통합
   const { data: rawPosts, isLoading: loading } = useQuery({
     queryKey: ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
     queryFn: async () => {
+      const SELECT = `
+        id, type, rating, memo, photos, recommended_menu, created_at,
+        profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
+        places!place_id!inner (id, name, category, district, city, place_type),
+        post_likes (count),
+        post_saves (count)
+      `
       if (feedTab === 'following') {
         if (followingUserIds.length === 0) return []
         const { data } = await supabase
-          .from('posts')
-          .select(`
-            id, type, rating, memo, photos, recommended_menu, created_at,
-            profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
-            places!place_id (id, name, category, district, city, place_type),
-            post_likes (count),
-            post_saves (count)
-          `)
+          .from('posts').select(SELECT)
           .eq('is_public', true)
           .in('user_id', followingUserIds)
           .order('created_at', { ascending: false })
@@ -133,31 +106,25 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         return data || []
       }
 
-      let placesQuery = supabase.from('places').select('id')
-      if (city) placesQuery = placesQuery.eq('city', city)
-      if (city && district && district !== OTHER_DISTRICT) {
-        placesQuery = placesQuery.eq('district', district)
-      } else if (city && district === OTHER_DISTRICT) {
-        const knownDistricts = getDistricts(city).map(d => d.value)
-        placesQuery = placesQuery.or(`district.is.null,district.not.in.(${knownDistricts.join(',')})`)
-      }
-      const { data: matchedPlaces } = await placesQuery
-      const placeIds = (matchedPlaces || []).map((p: any) => p.id)
-      if (placeIds.length === 0) return []
-
-      const { data } = await supabase
-        .from('posts')
-        .select(`
-          id, type, rating, memo, photos, recommended_menu, created_at,
-          profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
-          places!place_id (id, name, category, district, city, place_type),
-          post_likes (count),
-          post_saves (count)
-        `)
+      let q = supabase.from('posts').select(SELECT)
         .eq('is_public', true)
-        .in('place_id', placeIds)
         .order('created_at', { ascending: false })
         .limit(60)
+
+      if (city) {
+        q = (q as any).eq('places.city', city)
+        if (district && district !== OTHER_DISTRICT) {
+          q = (q as any).eq('places.district', district)
+        } else if (district === OTHER_DISTRICT) {
+          const knownDistricts = getDistricts(city).map(d => d.value)
+          q = (q as any).or(
+            `district.is.null,district.not.in.(${knownDistricts.join(',')})`,
+            { referencedTable: 'places' }
+          )
+        }
+      }
+
+      const { data } = await q
       return data || []
     },
     staleTime: 60 * 1000,

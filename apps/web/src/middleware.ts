@@ -67,6 +67,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // 인증된 유저의 현재 경로를 쿠키에 저장 (루트 복원용)
+  if (user && isProtected) {
+    supabaseResponse.cookies.set('last-route', pathname, { path: '/', maxAge: 60 * 60 * 24 * 7 })
+  }
+
   return supabaseResponse
 }
 

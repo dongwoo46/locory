@@ -160,15 +160,10 @@ export default function PostGrid({ posts, userId }: Props) {
               onClose={() => setShowReport(false)}
             />
           )}
-            <div className="flex items-center px-4 pt-3 pb-1 shrink-0">
-              <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto" />
-              <button onClick={() => setShowReport(true)} className="absolute left-4 top-3 p-1 text-gray-300 hover:text-gray-500">
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
-                </svg>
-              </button>
-              <button onClick={() => setSelected(null)} className="absolute right-4 top-3 p-1 text-gray-400">
+            <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
+              <div className="w-8" />
+              <div className="w-8 h-1 bg-gray-200 rounded-full" />
+              <button onClick={() => setSelected(null)} className="p-1 text-gray-400 w-8 flex justify-end">
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round"/>
                 </svg>
@@ -212,15 +207,23 @@ export default function PostGrid({ posts, userId }: Props) {
                     {post.places?.name}{post.places?.district ? ` · ${post.places?.city ? tDistricts(`${post.places.city}.${post.places.district}`) : post.places.district}` : ''}
                   </button>
                 </div>
-                {post.type === 'visited' && post.rating ? (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white shrink-0" style={{ backgroundColor: RATING_COLORS[post.rating] }}>
-                    {tPost('rating.' + post.rating)}
-                  </span>
-                ) : post.type === 'want' ? (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 shrink-0">
-                    {tFeed('wantTag')}
-                  </span>
-                ) : null}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {post.type === 'visited' && post.rating ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: RATING_COLORS[post.rating] }}>
+                      {tPost('rating.' + post.rating)}
+                    </span>
+                  ) : post.type === 'want' ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      {tFeed('wantTag')}
+                    </span>
+                  ) : null}
+                  <button onClick={() => setShowReport(true)} className="p-1 text-gray-300">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                      <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {post.photos?.length > 0 && (

@@ -32,9 +32,10 @@ const CITY_LABEL: Record<string, string> = {
 
 interface Props {
   userId: string
+  followingUserIds: string[]
 }
 
-export default function SavedClient({ userId }: Props) {
+export default function SavedClient({ userId, followingUserIds }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('saved')
@@ -46,36 +47,34 @@ export default function SavedClient({ userId }: Props) {
   const { data: savedData } = useQuery({
     queryKey: ['saved-data', userId],
     queryFn: async () => {
-      const { data: followingData } = await supabase
-        .from('follows').select('following_id').eq('follower_id', userId).eq('status', 'accepted')
-      const followingIds = (followingData || []).map((f: any) => f.following_id as string)
+      // follows는 서버에서 props로 전달 — place_saves + post_saves + following places 모두 병렬 조회
+      const followingQuery = followingUserIds.length > 0
+        ? supabase.from('place_saves')
+            .select('id, user_id, created_at, places!place_id(id, name, category, city, district, place_type), profiles!user_id(id, nickname, avatar_url)')
+            .in('user_id', followingUserIds).order('created_at', { ascending: false }).limit(50)
+        : Promise.resolve({ data: [] })
 
-      const [{ data: savedPlacesRaw }, { data: savedPostsRaw }] = await Promise.all([
+      const [
+        { data: savedPlacesRaw },
+        { data: savedPostsRaw },
+        { data: fData },
+      ] = await Promise.all([
         supabase.from('place_saves')
           .select('id, created_at, places!place_id(id, name, category, city, district, place_type, lat, lng)')
           .eq('user_id', userId).order('created_at', { ascending: false }),
         supabase.from('post_saves')
           .select('id, created_at, posts!post_id(id, type, rating, memo, photos, created_at, profiles!user_id(id, nickname, nationality, avatar_url, trust_score), places!place_id(id, name, category, district, city, place_type), post_likes(count))')
           .eq('user_id', userId).order('created_at', { ascending: false }),
+        followingQuery,
       ])
 
-      let followingPlacesRaw: any[] = []
-      if (followingIds.length > 0) {
-        const { data: fData } = await supabase
-          .from('place_saves')
-          .select('id, user_id, created_at, places!place_id(id, name, category, city, district, place_type), profiles!user_id(id, nickname, avatar_url)')
-          .in('user_id', followingIds).order('created_at', { ascending: false }).limit(50)
-        followingPlacesRaw = (fData || []).filter((s: any) => s.places).map((s: any) => ({ ...s.places, savedBy: s.profiles }))
-      }
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const places = (savedPlacesRaw || []).map((s: any) => s.places).filter(Boolean)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const posts = (savedPostsRaw || []).map((s: any) => s.posts).filter(Boolean)
-      return {
-        places,
-        posts,
-        savedPostIds: new Set(posts.map((p: any) => p.id as string)),
-        followingPlaces: followingPlacesRaw,
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const followingPlaces = (fData || []).filter((s: any) => s.places).map((s: any) => ({ ...s.places, savedBy: s.profiles }))
+      return { places, posts, followingPlaces }
     },
     staleTime: 3 * 60 * 1000,
   })
@@ -84,7 +83,7 @@ export default function SavedClient({ userId }: Props) {
   const [savedPlacesOverride, setSavedPlacesOverride] = useState<any[] | null>(null)
   const savedPlaces = savedPlacesOverride ?? savedData?.places ?? []
   const posts = savedData?.posts ?? []
-  const savedPostIds = savedData?.savedPostIds ?? new Set<string>()
+  const savedPostIds = new Set<string>((savedData?.posts ?? []).map((p: { id: string }) => p.id))
   const followingPlaces = savedData?.followingPlaces ?? []
   const [showFilters, setShowFilters] = useState(false)
 

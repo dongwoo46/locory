@@ -94,7 +94,13 @@ export default function AdminClient() {
   async function handleDeleteTarget(reportId: string, type: 'post' | 'place', targetId: string) {
     if (!confirm(`이 ${TARGET_LABEL[type]}을 삭제할까요?`)) return
     setActionLoading(reportId + 'delete')
-    await fetch(`/api/admin/${type}s/${targetId}`, { method: 'DELETE' })
+    const res = await fetch(`/api/admin/${type}s/${targetId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      alert(`삭제 실패: ${data.error || res.status}`)
+      setActionLoading(null)
+      return
+    }
     await fetch(`/api/admin/reports/${reportId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
