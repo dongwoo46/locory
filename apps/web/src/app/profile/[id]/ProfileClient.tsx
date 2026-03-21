@@ -406,7 +406,13 @@ export default function ProfileClient({
         </div>
       )}
 
-      {showPlaceAdd && <PlaceAddSheet onClose={() => setShowPlaceAdd(false)} />}
+      {showPlaceAdd && (
+        <PlaceAddSheet
+          userId={myId}
+          onClose={() => setShowPlaceAdd(false)}
+          onSaved={() => setShowPlaceAdd(false)}
+        />
+      )}
 
       <BottomNav avatarUrl={profile.avatar_url} />
     </div>
