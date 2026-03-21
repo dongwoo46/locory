@@ -14,9 +14,6 @@ import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import ReportSheet from '@/components/ui/ReportSheet'
-import MeetupSheet from '@/components/place/MeetupSheet'
-
-
 const RATING_KEYS = ['must_go', 'worth_it', 'neutral', 'not_great', 'never']
 
 const RATING_COLORS: Record<string, string> = {
@@ -80,7 +77,6 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
     })
   }, [])
   const [showReport, setShowReport] = useState(false)
-  const [showMeetup, setShowMeetup] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   // 통계 계산
@@ -178,20 +174,6 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
       {showReport && (
         <ReportSheet targetType="place" targetId={place.id} onClose={() => setShowReport(false)} />
       )}
-      {showMeetup && (
-        <MeetupSheet
-          placeId={place.id}
-          placeName={place.name}
-          userId={userId}
-          userBirthDate={userBirthDate}
-          userGender={userGender}
-          userNationality={userNationality}
-          userIsPublic={userIsPublic}
-          userTrustScore={userTrustScore}
-          onClose={() => setShowMeetup(false)}
-        />
-      )}
-
       <main className="max-w-lg mx-auto pt-14 pb-24">
         {/* 지도 */}
         <div className="h-52 bg-gray-100">
@@ -237,7 +219,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
         {/* 즉석만남 버튼 */}
         <div className="px-4 py-3 bg-white border-b border-gray-100">
           <button
-            onClick={() => setShowMeetup(true)}
+            onClick={() => router.push('/place/' + place.id + '/meetups')}
             className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100"
           >
             <div className="flex items-center gap-2">

@@ -255,15 +255,15 @@ interface Props {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-type View = 'list' | 'create' | 'detail' | 'join' | 'manage';
+type View = 'list' | 'create';
 
 export default function MeetupSheet({
   placeId,
-  placeName,
+  placeName: _placeName,
   userId,
   userBirthDate,
   userGender,
-  userNationality,
+  userNationality: _userNationality,
   userIsPublic,
   userTrustScore,
   onClose,
@@ -273,9 +273,6 @@ export default function MeetupSheet({
   const t = useTranslations('meetup');
   const [view, setView] = useState<View>('list');
   const [meetups, setMeetups] = useState<Meetup[]>([]);
-  const [selected, setSelected] = useState<Meetup | null>(null);
-  const [joins, setJoins] = useState<JoinRow[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const myAgeGroup = getAgeGroup(userBirthDate);
   const canParticipate = userIsPublic && userTrustScore >= 3;
@@ -303,50 +300,6 @@ export default function MeetupSheet({
   useEffect(() => {
     loadMeetups();
   }, []);
-
-  // ── 미팅 선택 (상세/신청) ──────────────────────────────────────────────────
-
-  async function openDetail(m: Meetup) {
-    setSelected(m);
-    if (m.organizer_id === userId) {
-      // 주최자 → 신청 목록 로드
-      const { data } = await supabase
-        .from('meetup_joins')
-        .select(
-          '*, profiles!applicant_id (id, nickname, avatar_url, gender, birth_date)',
-        )
-        .eq('meetup_id', m.id)
-        .order('created_at', { ascending: true });
-      setJoins((data as any[]) ?? []);
-      setView('manage');
-    } else {
-      setView('detail');
-    }
-  }
-
-  // ── 수락/거절/언매치 ────────────────────────────────────────────────────────
-
-  async function updateJoinStatus(
-    joinId: string,
-    status: 'accepted' | 'rejected' | 'unmatched',
-  ) {
-    await supabase.from('meetup_joins').update({ status }).eq('id', joinId);
-    setJoins((j) => j.map((x) => (x.id === joinId ? { ...x, status } : x)));
-
-    // 수락 → 모집 인원 충족 시 자동 마감
-    if (status === 'accepted' && selected) {
-      const accepted =
-        joins.filter((x) => x.status === 'accepted' || x.id === joinId).length +
-        1;
-      if (selected.wanted_count && accepted >= selected.wanted_count) {
-        await supabase
-          .from('place_meetups')
-          .update({ status: 'closed' })
-          .eq('id', selected.id);
-        setSelected((s) => (s ? { ...s, status: 'closed' } : s));
-      }
-    }
-  }
 
   // ── 렌더 ───────────────────────────────────────────────────────────────────
 
@@ -388,9 +341,6 @@ export default function MeetupSheet({
           <h2 className="text-base font-bold text-gray-900 flex-1">
             {view === 'list' && t('title')}
             {view === 'create' && t('create')}
-            {view === 'detail' && t('detail.openThread')}
-            {view === 'join' && t('join.title')}
-            {view === 'manage' && t('manage.title')}
           </h2>
           <button onClick={onClose} className="p-1 text-gray-400">
             <svg
@@ -417,7 +367,7 @@ export default function MeetupSheet({
               meetups={meetups}
               userId={userId}
               canParticipate={canParticipate}
-              onSelect={openDetail}
+              onSelect={(m) => { onClose(); router.push('/meetup/' + m.id); }}
               onCreate={() => setView('create')}
             />
           )}
@@ -431,50 +381,6 @@ export default function MeetupSheet({
                 await loadMeetups();
                 setView('list');
               }}
-            />
-          )}
-
-          {view === 'detail' && selected && (
-            <MeetupDetailView
-              meetup={selected}
-              userId={userId}
-              myAgeGroup={myAgeGroup}
-              myGender={userGender}
-              myNationality={userNationality}
-              canParticipate={canParticipate}
-              onJoin={() => setView('join')}
-              onThread={() => { onClose(); router.push(`/chat/${selected!.id}`) }}
-            />
-          )}
-          {view === 'join' && selected && (
-            <MeetupJoinForm
-              meetup={selected}
-              userId={userId}
-              myAgeGroup={myAgeGroup}
-              myGender={userGender}
-              onDone={async () => {
-                await loadMeetups();
-                setView('list');
-              }}
-            />
-          )}
-          {view === 'manage' && selected && (
-            <MeetupManageView
-              meetup={selected}
-              joins={joins}
-              userId={userId}
-              onUpdateStatus={updateJoinStatus}
-              onThread={() => { onClose(); router.push(`/chat/${selected!.id}`) }}
-              onClose={() =>
-                supabase
-                  .from('place_meetups')
-                  .update({ status: 'closed' })
-                  .eq('id', selected.id)
-                  .then(() => {
-                    loadMeetups();
-                    setView('list');
-                  })
-              }
             />
           )}
         </div>

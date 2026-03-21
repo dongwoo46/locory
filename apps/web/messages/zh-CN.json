@@ -16,7 +16,11 @@
     "all": "全部",
     "other": "其他",
     "allTab": "全部",
-    "followingTab": "关注"
+    "followingTab": "关注",
+    "addFeed": "创建动态",
+    "addFeedDesc": "分享你去过或想去的地方",
+    "addPlace": "保存地点",
+    "addPlaceDesc": "通过链接或搜索将地点加入清单"
   },
   "cities": {
     "seoul": "首尔",
@@ -215,18 +219,6 @@
     "noPosts": "没有收藏的帖子",
     "noFollowingPlaces": "关注的用户没有收藏的地点"
   },
-  "meetup": "闪聚",
-    "map": {
-    "all": "全部",
-    "saved": "收藏",
-    "posts": "篇",
-    "detail": "详情",
-    "noPlaces": "暂无地点",
-    "popular": "热门",
-    "latest": "最新",
-    "category": "分类",
-    "placeCount": "个地点"
-  },
   "meetup": {
     "inbox": {
       "title": "闪聚活动",
@@ -256,12 +248,44 @@
       "blockConfirm": "确认屏蔽该用户？屏蔽后双方无法互发消息。",
       "headerTitle": "{name}活动"
     },
+    "explore": {
+      "title": "闪聚探索",
+      "myMeetupsBtn": "我的聚会",
+      "filterActivity": "活动",
+      "filterVibe": "氛围",
+      "filterWantedGender": "理想伙伴",
+      "filterDate": "日期",
+      "dateToday": "今天",
+      "dateWeek": "本周",
+      "dateWeekend": "周末",
+      "empty": "找不到符合条件的闪聚",
+      "chatBtn": "聊天",
+      "applyDone": "已申请",
+      "closed": "已结束",
+      "viewDetail": "详情"
+    },
+    "placeMeetups": {
+      "title": "闪聚",
+      "empty": "暂无闪聚",
+      "createBtn": "创建闪聚"
+    },
     "status": {
       "accepted": "已接受",
       "rejected": "已拒绝",
       "unmatched": "已取消",
       "pending": "待定"
     }
+  },
+  "map": {
+    "all": "全部",
+    "saved": "收藏",
+    "posts": "篇",
+    "detail": "详情",
+    "noPlaces": "暂无地点",
+    "popular": "热门",
+    "latest": "最新",
+    "category": "分类",
+    "placeCount": "个地点"
   },
   "login": {
     "inAppBrowser": {

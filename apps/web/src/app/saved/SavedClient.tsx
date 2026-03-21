@@ -84,6 +84,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   const posts = savedData?.posts ?? []
   const followingPlaces = savedData?.followingPlaces ?? []
   const [showFilters, setShowFilters] = useState(false)
+  const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
 
   // 도시/동네 공통 필터 (헤더)
@@ -160,16 +161,16 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
       <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-100">
         <div className="max-w-lg mx-auto px-4">
           {/* 상단 바 */}
-          <div className="flex items-center h-12 gap-2">
+          <div className="flex items-center h-16 gap-2">
             {/* 왼쪽: + 버튼 */}
-            <button onClick={() => setShowPlaceAdd(true)} className="p-2 -ml-1 text-gray-700">
+            <button onClick={() => setShowActionSheet(true)} className="p-2 -ml-1 text-gray-700">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14" strokeLinecap="round" />
               </svg>
             </button>
             {/* 중앙: 로고 */}
             <h1 className="flex-1 flex justify-center">
-              <img src="/logo40.png" alt="Locory" className="h-full w-auto max-h-12" />
+              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
             </h1>
             {/* 오른쪽: 필터 + 알림 */}
             <div className="flex items-center gap-1.5">
@@ -444,6 +445,49 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
       </main>
 
       <BottomNav avatarUrl={avatarUrl} />
+
+      {/* + 액션시트 */}
+      {showActionSheet && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-70 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
+            <div className="flex justify-center mb-4">
+              <div className="w-8 h-1 bg-gray-200 rounded-full" />
+            </div>
+            <div className="flex flex-col gap-2 px-4">
+              <button
+                onClick={() => { setShowActionSheet(false); router.push('/upload') }}
+                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
+              >
+                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{tFeed('addFeed')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{tFeed('addFeedDesc')}</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { setShowActionSheet(false); setShowPlaceAdd(true) }}
+                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
+              >
+                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{tFeed('addPlace')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{tFeed('addPlaceDesc')}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {showPlaceAdd && (
         <PlaceAddSheet
           userId={userId}
