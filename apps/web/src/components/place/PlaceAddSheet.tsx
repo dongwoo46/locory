@@ -57,7 +57,6 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
   const [gpsLoading, setGpsLoading] = useState(false)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [customDistrict, setCustomDistrict] = useState('')
   const searchCache = useRef<Record<string, FoundPlace[]>>({})
 
   async function handleGPS() {
@@ -118,17 +117,14 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
 
   function selectPlace(r: FoundPlace) {
     setFound(r)
-    setDistrict(null)
-    if (r.address) {
-      const detectedCity = inferCityFromAddress(r.address) || detectCity(r.lat, r.lng)
-      const detectedDistrict = inferDistrictFromAddress(r.address, detectedCity)
-      if (detectedDistrict) setDistrict(detectedDistrict)
-    }
+    const detectedCity = inferCityFromAddress(r.address || '') || detectCity(r.lat, r.lng)
+    const detectedDistrict = r.address ? inferDistrictFromAddress(r.address, detectedCity) : null
+    setDistrict(detectedDistrict ?? 'other') // 매핑 안되면 기타로 자동 분류
   }
 
   async function handleSave() {
     if (!found || !category) return
-    const effectiveDistrict = district || customDistrict.trim() || null
+    const effectiveDistrict = district || null
     setSaving(true)
     try {
       const city = detectCity(found.lat, found.lng)
@@ -372,20 +368,6 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
                   ))}
                 </div>
               </div>
-
-              {/* 동네 — 자동 추출 실패 시만 입력 */}
-              {!district && (
-                <div className="flex flex-col gap-1.5">
-                  <p className="text-xs text-gray-400">{t('neighborhoodNotFound')}</p>
-                  <input
-                    type="text"
-                    value={customDistrict}
-                    onChange={e => setCustomDistrict(e.target.value)}
-                    placeholder={t('neighborhoodPlaceholder')}
-                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
-                  />
-                </div>
-              )}
 
               <button
                 onClick={handleSave}

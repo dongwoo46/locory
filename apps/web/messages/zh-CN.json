@@ -125,7 +125,8 @@
       "nature": "自然景观",
       "shopping": "购物"
     },
-    "hiddenSpot": "隐藏景点"
+    "hiddenSpot": "隐藏景点",
+    "deleteConfirm": "确定删除这篇帖子？"
   },
   "place": {
     "visitorStats": "访客统计",
@@ -223,5 +224,54 @@
     "latest": "最新",
     "category": "分类",
     "placeCount": "个地点"
+  },
+  "meetup": {
+    "inbox": {
+      "title": "闪聚活动",
+      "tabConnected": "已连接",
+      "tabMy": "我创建的",
+      "tabApplied": "我申请的",
+      "participantLabel": "参与者",
+      "organizerLabel": "主办方",
+      "organizerOpen": "主办方 · 进行中",
+      "organizerClosed": "主办方 · 已结束",
+      "emptyConnected": "暂无已连接活动",
+      "emptyMy": "暂无创建的活动",
+      "emptyApplied": "暂无申请的活动",
+      "pendingLabel": "等待中"
+    },
+    "chat": {
+      "emptyState": "发送第一条消息吧",
+      "read": "已读",
+      "sending": "发送中",
+      "placeholder": "输入消息...",
+      "profanityError": "消息包含不当内容",
+      "permissionError": "暂时无法发送消息",
+      "sendFailed": "消息发送失败",
+      "blockedMessage": "无法与已屏蔽的用户通信",
+      "blockUser": "屏蔽用户",
+      "unblockUser": "取消屏蔽",
+      "blockConfirm": "确认屏蔽该用户？屏蔽后双方无法互发消息。",
+      "headerTitle": "{name}活动"
+    },
+    "status": {
+      "accepted": "已接受",
+      "rejected": "已拒绝",
+      "unmatched": "已取消",
+      "pending": "待定"
+    }
+  },
+  "login": {
+    "inAppBrowser": {
+      "title": "在{app}内无法使用Google登录",
+      "subtitle": "Google安全政策屏蔽了内置浏览器登录",
+      "confirm": "确认",
+      "iosStep1": "点击底部的分享(↑)按钮",
+      "iosStep2": "选择「在Safari中打开」",
+      "iosStep3": "在Safari中再次点击「使用Google继续」",
+      "androidStep1": "点击右上角的菜单(⋮)",
+      "androidStep2": "选择「用其他浏览器打开」或「用Chrome打开」",
+      "androidStep3": "在Chrome中再次点击「使用Google继续」"
+    }
   }
 }

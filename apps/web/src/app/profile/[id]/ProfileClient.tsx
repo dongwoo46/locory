@@ -128,6 +128,7 @@ export default function ProfileClient({
           post_likes (count)
         `)
         .eq('user_id', profile.id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
       return data || []
     },

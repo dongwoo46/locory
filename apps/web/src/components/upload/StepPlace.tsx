@@ -114,7 +114,7 @@ export default function StepPlace({ userNationality, onSelect }: Props) {
 
   function autoSetDistrict(address: string, city: City) {
     const detected = inferDistrictFromAddress(address, city)
-    setDistrict(detected) // null이면 선택 UI 표시
+    setDistrict(detected ?? 'other') // 매핑 안되면 기타로 자동 분류
   }
 
   async function handleGPS() {

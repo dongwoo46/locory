@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import NotificationBell from '@/components/ui/NotificationBell'
+import MeetupInboxIcon from '@/components/ui/MeetupInboxIcon'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
@@ -100,6 +101,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         const { data } = await supabase
           .from('posts').select(SELECT)
           .eq('is_public', true)
+          .is('deleted_at', null)
           .in('user_id', followingUserIds)
           .order('created_at', { ascending: false })
           .limit(60)
@@ -108,6 +110,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
       let q = supabase.from('posts').select(SELECT)
         .eq('is_public', true)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(60)
 
@@ -282,6 +285,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                   </span>
                 )}
               </button>
+              {/* 번개 모임 */}
+              <MeetupInboxIcon userId={userId} />
               {/* 알림 */}
               <NotificationBell userId={userId} />
               {/* 프로필 */}
@@ -586,7 +591,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                     <p className="text-sm font-bold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {tPost(`category.${place.category}`)}
-                      {place.district ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 shrink-0">{place.postCount}개</span>
@@ -616,6 +621,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           <PostGrid
             posts={sortedPosts}
             userId={userId}
+            onDelete={(postId) => {
+              queryClient.setQueryData(
+                ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
+                (old: any[]) => old?.filter(p => p.id !== postId) ?? []
+              )
+            }}
           />
         )}
       </main>

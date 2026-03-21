@@ -151,7 +151,8 @@
       "shopping": "ショッピング"
     },
     "hiddenSpot": "地元のおすすめ",
-    "hiddenSpotOnly": "地元のおすすめのみ"
+    "hiddenSpotOnly": "地元のおすすめのみ",
+    "deleteConfirm": "この投稿を削除しますか？"
   },
   "place": {
     "visitorStats": "訪問者統計",
@@ -246,10 +247,22 @@
     "inquiryDoneMsg": "できるだけ早くご返信いたします",
     "adminPage": "管理ページ",
     "deleteAccount": "退会する",
-    "deleteConfirm": "本当に退会しますか？\n\nアカウント情報とすべての投稿が削除されます。",
+    "deleteConfirmTitle": "本当に退会しますか？",
+    "deleteConfirmDesc": "すべての投稿、保存した場所、フォロワー情報が完全に削除され、復元できません。",
+    "deleteConfirmPlaceholder": "退会します",
+    "deleteConfirmHint": "確認のため「退会します」と入力してください",
+    "deleteConfirmKeyword": "退会します",
+    "deleteConfirmButton": "退会する",
     "deleteError": "退会処理に失敗しました。もう一度お試しください。",
+    "dormantAccount": "休眠アカウントに切替",
+    "dormantDesc": "アカウントを非表示にして休憩できます。再ログインするといつでも再開できます。",
+    "dormantButton": "休眠に切替",
+    "dormantSuccess": "休眠アカウントに切り替わりました。",
     "nicknameErrorDuplicate": "このニックネームはすでに使われています",
-    "nicknameErrorInvalid": "英字・数字・. _ - のみ使用できます",
+    "nicknameErrorTooShort": "ニックネームは2文字以上です",
+    "nicknameErrorTooLong": "ニックネームは16文字以下にしてください",
+    "nicknameErrorInvalid": "英字・数字・_ - のみ使用できます",
+    "nicknameErrorReserved": "このニックネームは使用できません",
     "nicknameErrorFailed": "保存に失敗しました"
   },
   "onboarding": {
@@ -269,7 +282,10 @@
     "optional": "任意",
     "birthDate": "生年月日",
     "errorNicknameDuplicate": "すでに使用されているニックネームです",
-    "errorNicknameInvalid": "英字、数字、., _, - のみ使用できます",
+    "errorNicknameTooShort": "ニックネームは2文字以上です",
+    "errorNicknameTooLong": "ニックネームは16文字以下にしてください",
+    "errorNicknameReserved": "このニックネームは使用できません",
+    "errorNicknameInvalid": "英字、数字、_, - のみ使用できます",
     "errorGenderRequired": "性別を選択してください",
     "errorBirthDateRequired": "生年月日を入力してください",
     "year": "年",
@@ -453,7 +469,7 @@
     "detail": {
       "hostTeam": "主催チーム",
       "wantedPartner": "希望条件",
-      "openThread": "スレッドを開く",
+      "openThread": "チャットを開く",
       "cannotApply": "申請不可",
       "conditionMismatchNat": "条件不一致（国籍）",
       "conditionMismatchGender": "条件不一致（性別）",
@@ -463,6 +479,7 @@
     },
     "applyTitle": "参加申請",
     "manage": {
+      "title": "申請管理",
       "closed": "終了",
       "pending": "申請待ち",
       "accepted": "承認済み",
@@ -470,12 +487,12 @@
       "rejectUnmatch": "拒否/アンマッチ",
       "reject": "拒否",
       "unmatch": "アンマッチ",
-      "openThread": "スレッドを開く",
+      "openThread": "チャットを開く",
       "closeBtn": "ミートアップを終了",
       "noApplicants": "まだ申請者がいません",
       "accept": "承認"
     },
-    "threadTitle": "スレッド",
+    "threadTitle": "チャット",
     "createButton": "+ ミートアップを作る",
     "noMeetups": "まだミートアップがありません",
     "restrictionMsg": "公開プロフィール + 無臭レベル以上のみ作成できます",
@@ -520,7 +537,8 @@
       "submit": "申請する"
     },
     "thread": {
-      "openOnDay": "当日にスレッドがオープンします",
+      "title": "チャット",
+      "openOnDay": "当日にチャットがオープンします",
       "daysUntil": "約{days}日{hours}時間後にオープン",
       "hoursUntil": "約{hours}時間{minutes}分後にオープン",
       "minutesUntil": "約{minutes}分後にオープン",
@@ -558,6 +576,47 @@
       "male": "男性",
       "mixed": "混合",
       "any": "不問"
+    },
+    "inbox": {
+      "title": "フラッシュミート",
+      "tabConnected": "つながり",
+      "tabMy": "自分のミート",
+      "tabApplied": "申請済み",
+      "participantLabel": "参加者",
+      "organizerLabel": "主催者",
+      "organizerOpen": "主催者 · 進行中",
+      "organizerClosed": "主催者 · 終了",
+      "emptyConnected": "つながったミートがありません",
+      "emptyMy": "作成したミートがありません",
+      "emptyApplied": "申請したミートがありません",
+      "pendingLabel": "待機中"
+    },
+    "chat": {
+      "emptyState": "最初のメッセージを送りましょう",
+      "read": "既読",
+      "sending": "送信中",
+      "placeholder": "メッセージを入力...",
+      "profanityError": "不適切な表現が含まれています",
+      "permissionError": "まだメッセージを送信できません",
+      "sendFailed": "メッセージの送信に失敗しました",
+      "blockedMessage": "ブロックしたユーザーとはメッセージを送受信できません",
+      "blockUser": "ブロックする",
+      "unblockUser": "ブロック解除",
+      "blockConfirm": "このユーザーをブロックしますか？互いにメッセージを送れなくなります。",
+      "headerTitle": "{name} ミート"
+    }
+  },
+  "login": {
+    "inAppBrowser": {
+      "title": "{app}内ではGoogleログインができません",
+      "subtitle": "Googleのセキュリティポリシーによりインアプリブラウザがブロックされます",
+      "confirm": "確認",
+      "iosStep1": "下部の共有(↑)ボタンをタップ",
+      "iosStep2": "「Safariで開く」を選択",
+      "iosStep3": "Safariで「Googleで続ける」を再度タップ",
+      "androidStep1": "右上のメニュー(⋮)をタップ",
+      "androidStep2": "「他のブラウザで開く」または「Chromeで開く」を選択",
+      "androidStep3": "Chromeで「Googleで続ける」を再度タップ"
     }
   },
   "notifications": {

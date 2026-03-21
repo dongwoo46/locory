@@ -49,8 +49,18 @@ export default function OnboardingPage() {
 
     const isAdmin = user.email === 'siwol406@gmail.com'
     if (!isAdmin) {
-      const nicknameErr = validateNickname(nickname)
-      if (nicknameErr) { setLoading(false); setError(nicknameErr); return }
+      const errCode = validateNickname(nickname)
+      if (errCode) {
+        const msgMap: Record<string, string> = {
+          tooShort: t('errorNicknameTooShort'),
+          tooLong: t('errorNicknameTooLong'),
+          invalidChars: t('errorNicknameInvalid'),
+          reserved: t('errorNicknameReserved'),
+        }
+        setLoading(false)
+        setError(msgMap[errCode] ?? t('errorNicknameInvalid'))
+        return
+      }
     }
 
     const updates: any = {

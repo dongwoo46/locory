@@ -81,6 +81,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   }, [])
   const [showReport, setShowReport] = useState(false)
   const [showMeetup, setShowMeetup] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   // 통계 계산
   const visitedPosts = posts.filter(p => p.type === 'visited' && p.rating)
@@ -128,12 +129,31 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
             </svg>
           </button>
           <h1 className="text-base font-bold text-gray-900 flex-1 truncate">{place.name}</h1>
-          <button onClick={() => setShowReport(true)} className="p-1 text-gray-300 hover:text-gray-500">
-            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button onClick={() => setShowMenu(v => !v)} className="p-1 text-gray-400">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+              </svg>
+            </button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 top-8 z-50 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[100px]">
+                  <button
+                    onClick={() => { setShowMenu(false); setShowReport(true) }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-600 hover:bg-gray-50"
+                  >
+                    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"
+                      className="rounded border border-red-200 text-red-400 p-0.5 box-content">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                      <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                    </svg>
+                    신고
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <button onClick={togglePlaceLike} className="flex items-center gap-1 p-1">
             <svg width="20" height="20" viewBox="0 0 24 24"
               fill={isPlaceLiked ? '#ef4444' : 'none'}
@@ -195,7 +215,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
               <h2 className="text-lg font-bold text-gray-900 mt-1">{place.name}</h2>
               <p className="text-sm text-gray-400">
                 {tCities(place.city)}
-                {place.district ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
               </p>
               {place.address && (
                 <p className="text-xs text-gray-400 mt-0.5">{place.address}</p>

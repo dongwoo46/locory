@@ -22,9 +22,10 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 interface Props {
   posts: any[]
   userId: string
+  onDelete?: (postId: string) => void
 }
 
-export default function PostGrid({ posts, userId }: Props) {
+export default function PostGrid({ posts, userId, onDelete }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations()
@@ -33,6 +34,7 @@ export default function PostGrid({ posts, userId }: Props) {
   const tDistricts = useTranslations('districts')
   const [selected, setSelected] = useState<any | null>(null)
   const [showReport, setShowReport] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   const {
     likedPostIds, likeCountMap, savedPostIds,
@@ -67,6 +69,14 @@ export default function PostGrid({ posts, userId }: Props) {
     } else {
       await supabase.from('post_saves').insert({ user_id: userId, post_id: postId })
     }
+  }
+
+  async function handleDeletePost(postId: string) {
+    if (!confirm(tPost('deleteConfirm'))) return
+    const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' })
+    if (!res.ok) return
+    setSelected(null)
+    onDelete?.(postId)
   }
 
   const post = selected
@@ -146,7 +156,7 @@ export default function PostGrid({ posts, userId }: Props) {
       {post && (
         <div
           className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center px-4"
-          onClick={() => { setSelected(null); setShowReport(false) }}
+          onClick={() => { setSelected(null); setShowReport(false); setShowMenu(false) }}
         >
           <div
             className="relative bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col"
@@ -204,7 +214,7 @@ export default function PostGrid({ posts, userId }: Props) {
                     onClick={() => { setSelected(null); router.push(`/place/${post.places?.id}`) }}
                     className="block text-xs text-gray-400 hover:text-gray-600 truncate text-left"
                   >
-                    {post.places?.name}{post.places?.district ? ` · ${post.places?.city ? tDistricts(`${post.places.city}.${post.places.district}`) : post.places.district}` : ''}
+                    {post.places?.name}{post.places?.district && post.places?.district !== 'other' ? ` · ${post.places?.city ? tDistricts(`${post.places.city}.${post.places.district}`) : post.places.district}` : ''}
                   </button>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -217,12 +227,50 @@ export default function PostGrid({ posts, userId }: Props) {
                       {tFeed('wantTag')}
                     </span>
                   ) : null}
-                  <button onClick={() => setShowReport(true)} className="p-1 text-gray-300">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
-                      <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
-                    </svg>
-                  </button>
+                  {/* 점 3개 메뉴 */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMenu(v => !v)}
+                      className="p-1 text-gray-400"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                      </svg>
+                    </button>
+                    {showMenu && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                        <div className="absolute right-0 top-7 z-20 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[100px]">
+                          {post.profiles?.id === userId && (
+                            <button
+                              onClick={() => { setShowMenu(false); handleDeletePost(post.id) }}
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-500 hover:bg-red-50"
+                            >
+                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <polyline points="3 6 5 6 21 6" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              삭제
+                            </button>
+                          )}
+                          {post.profiles?.id !== userId && (
+                            <button
+                              onClick={() => { setShowMenu(false); setShowReport(true) }}
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-600 hover:bg-gray-50"
+                            >
+                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"
+                                className="rounded border border-red-200 text-red-400 p-0.5 box-content">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                                <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                              </svg>
+                              신고
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 

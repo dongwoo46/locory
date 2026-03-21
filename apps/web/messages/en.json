@@ -151,7 +151,8 @@
       "shopping": "Shopping"
     },
     "hiddenSpot": "Local's pick",
-    "hiddenSpotOnly": "Local's pick only"
+    "hiddenSpotOnly": "Local's pick only",
+    "deleteConfirm": "Delete this post?"
   },
   "place": {
     "visitorStats": "Visitor stats",
@@ -246,10 +247,22 @@
     "inquiryDoneMsg": "We'll get back to you soon",
     "adminPage": "Admin Page",
     "deleteAccount": "Delete Account",
-    "deleteConfirm": "Are you sure you want to delete your account?\n\nAll your data and posts will be permanently deleted.",
+    "deleteConfirmTitle": "Are you sure you want to leave?",
+    "deleteConfirmDesc": "All your posts, saved places, and followers will be permanently deleted and cannot be recovered.",
+    "deleteConfirmPlaceholder": "I want to delete my account",
+    "deleteConfirmHint": "Type \"I want to delete my account\" below to confirm",
+    "deleteConfirmKeyword": "I want to delete my account",
+    "deleteConfirmButton": "Delete Account",
     "deleteError": "Failed to delete account. Please try again.",
+    "dormantAccount": "Go Dormant",
+    "dormantDesc": "Hide your account and take a break. You can reactivate anytime by logging back in.",
+    "dormantButton": "Go Dormant",
+    "dormantSuccess": "Your account is now dormant.",
     "nicknameErrorDuplicate": "Nickname already in use",
-    "nicknameErrorInvalid": "Only letters, numbers, ., _, - are allowed",
+    "nicknameErrorTooShort": "Nickname must be at least 2 characters",
+    "nicknameErrorTooLong": "Nickname must be 16 characters or less",
+    "nicknameErrorInvalid": "Only letters, numbers, _, - are allowed",
+    "nicknameErrorReserved": "This nickname is not available",
     "nicknameErrorFailed": "Failed to save"
   },
   "onboarding": {
@@ -269,7 +282,10 @@
     "optional": "optional",
     "birthDate": "Date of Birth",
     "errorNicknameDuplicate": "Nickname already taken",
-    "errorNicknameInvalid": "Only letters, numbers, ., _, - allowed",
+    "errorNicknameTooShort": "Nickname must be at least 2 characters",
+    "errorNicknameTooLong": "Nickname must be 16 characters or less",
+    "errorNicknameReserved": "This nickname is not available",
+    "errorNicknameInvalid": "Only letters, numbers, _, - allowed",
     "errorGenderRequired": "Please select your gender",
     "errorBirthDateRequired": "Please enter your date of birth",
     "year": "Year",
@@ -453,7 +469,7 @@
     "detail": {
       "hostTeam": "Host Team",
       "wantedPartner": "Looking for",
-      "openThread": "Open Thread",
+      "openThread": "Open Chat",
       "cannotApply": "Cannot Apply",
       "conditionMismatchNat": "Condition mismatch (nationality)",
       "conditionMismatchGender": "Condition mismatch (gender)",
@@ -463,6 +479,7 @@
     },
     "applyTitle": "Apply",
     "manage": {
+      "title": "Manage Applications",
       "closed": "Closed",
       "pending": "Pending",
       "accepted": "Accepted",
@@ -470,12 +487,12 @@
       "rejectUnmatch": "Reject/Unmatch",
       "reject": "Reject",
       "unmatch": "Unmatch",
-      "openThread": "Open Thread",
+      "openThread": "Open Chat",
       "closeBtn": "Close Meetup",
       "noApplicants": "No applicants yet",
       "accept": "Accept"
     },
-    "threadTitle": "Thread",
+    "threadTitle": "Chat",
     "createButton": "+ Create Meetup",
     "noMeetups": "No meetups yet",
     "restrictionMsg": "Only public profiles with Odorless level or above can create meetups",
@@ -520,7 +537,8 @@
       "submit": "Apply"
     },
     "thread": {
-      "openOnDay": "Thread opens on the day of the meetup",
+      "title": "Chat",
+      "openOnDay": "Chat opens on the day of the meetup",
       "daysUntil": "Opens in ~{days}d {hours}h",
       "hoursUntil": "Opens in ~{hours}h {minutes}m",
       "minutesUntil": "Opens in ~{minutes}m",
@@ -558,6 +576,47 @@
       "male": "Male",
       "mixed": "Mixed",
       "any": "Any"
+    },
+    "inbox": {
+      "title": "Lightning Meetups",
+      "tabConnected": "Connected",
+      "tabMy": "My Meetups",
+      "tabApplied": "Applied",
+      "participantLabel": "Participant",
+      "organizerLabel": "Organizer",
+      "organizerOpen": "Organizer · Active",
+      "organizerClosed": "Organizer · Closed",
+      "emptyConnected": "No connected meetups",
+      "emptyMy": "No meetups created",
+      "emptyApplied": "No applied meetups",
+      "pendingLabel": "Pending"
+    },
+    "chat": {
+      "emptyState": "Send the first message",
+      "read": "Read",
+      "sending": "Sending",
+      "placeholder": "Type a message...",
+      "profanityError": "Message contains inappropriate content",
+      "permissionError": "You can't send messages yet",
+      "sendFailed": "Failed to send message",
+      "blockedMessage": "You can't message a blocked user",
+      "blockUser": "Block user",
+      "unblockUser": "Unblock user",
+      "blockConfirm": "Block this user? You won't be able to message each other.",
+      "headerTitle": "{name} Meetup"
+    }
+  },
+  "login": {
+    "inAppBrowser": {
+      "title": "Google login unavailable in {app}",
+      "subtitle": "Google blocks sign-in in in-app browsers",
+      "confirm": "OK",
+      "iosStep1": "Tap the Share (↑) button at the bottom",
+      "iosStep2": "Select 'Open in Safari'",
+      "iosStep3": "Tap 'Continue with Google' again in Safari",
+      "androidStep1": "Tap the Menu (⋮) at the top right",
+      "androidStep2": "Select 'Open in browser' or 'Open in Chrome'",
+      "androidStep3": "Tap 'Continue with Google' again in Chrome"
     }
   },
   "notifications": {

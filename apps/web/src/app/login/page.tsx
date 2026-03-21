@@ -1,27 +1,75 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslations } from 'next-intl'
+
+function detectInAppBrowser(): { isInApp: boolean; isAndroid: boolean; isIOS: boolean; appName: string } {
+  if (typeof navigator === 'undefined') return { isInApp: false, isAndroid: false, isIOS: false, appName: '' }
+
+  const ua = navigator.userAgent
+  const isAndroid = /Android/i.test(ua)
+  const isIOS = /iPhone|iPad|iPod/i.test(ua)
+
+  const inAppPatterns: Record<string, RegExp> = {
+    '카카오톡': /KAKAOTALK/i,
+    '인스타그램': /Instagram/i,
+    '네이버': /NAVER/i,
+    '페이스북': /FBAN|FBAV|FB_IAB/i,
+    '라인': /Line\//i,
+    '다음': /Daum/i,
+    '트위터': /Twitter/i,
+    '웨이보': /Weibo/i,
+    '위챗': /MicroMessenger/i,
+    '에브리타임': /everytime/i,
+  }
+
+  for (const [name, pattern] of Object.entries(inAppPatterns)) {
+    if (pattern.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: name }
+  }
+
+  // Generic WebView detection
+  if (isAndroid && /wv/.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: '앱' }
+  if (isIOS && /AppleWebKit/i.test(ua) && !/Safari/i.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: '앱' }
+
+  return { isInApp: false, isAndroid, isIOS, appName: '' }
+}
 
 export default function LoginPage() {
   const supabase = createClient()
+  const t = useTranslations('login.inAppBrowser')
+  const [inAppInfo, setInAppInfo] = useState<ReturnType<typeof detectInAppBrowser> | null>(null)
+  const [showGuide, setShowGuide] = useState(false)
 
-  async function signInWithGoogle() {
+  useEffect(() => {
+    const info = detectInAppBrowser()
+    setInAppInfo(info)
+
+    if (info.isInApp && info.isAndroid) {
+      // Android: intent:// 로 Chrome 강제 전환 시도
+      const currentUrl = window.location.href
+      const intentUrl = `intent://${currentUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+      window.location.href = intentUrl
+      // 실패 시 fallback으로 안내 표시
+      setTimeout(() => setShowGuide(true), 1500)
+    } else if (info.isInApp) {
+      setShowGuide(true)
+    }
+  }, [])
+
+  async function handleGoogleLogin() {
+    if (inAppInfo?.isInApp) {
+      setShowGuide(true)
+      return
+    }
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
   }
 
-  async function signInWithApple() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-  }
+  const isIOS = inAppInfo?.isIOS ?? false
+  const appName = inAppInfo?.appName ?? '앱'
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
@@ -40,7 +88,7 @@ export default function LoginPage() {
         {/* 소셜 로그인 버튼 */}
         <div className="w-full flex flex-col gap-3">
           <button
-            onClick={signInWithGoogle}
+            onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 18 18">
@@ -51,15 +99,70 @@ export default function LoginPage() {
             </svg>
             Google로 계속하기
           </button>
-
-          {/* Apple 로그인 - 추후 활성화 */}
-          {/* <button onClick={signInWithApple} ...> */}
         </div>
 
         <p className="text-xs text-gray-400 text-center">
           계속하면 서비스 이용약관 및 개인정보처리방침에 동의하는 것으로 간주합니다
         </p>
       </div>
+
+      {/* 인앱 브라우저 안내 모달 */}
+      {showGuide && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-8">
+          <div className="w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-xl">
+            <div className="px-6 pt-6 pb-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="#EF4444" strokeWidth={2} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4M12 16h.01" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{t('title', { app: appName })}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('subtitle')}</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-col gap-3 text-sm text-gray-700">
+                {isIOS ? (
+                  <>
+                    <Step n={1} text={t('iosStep1')} />
+                    <Step n={2} text={t('iosStep2')} />
+                    <Step n={3} text={t('iosStep3')} />
+                  </>
+                ) : (
+                  <>
+                    <Step n={1} text={t('androidStep1')} />
+                    <Step n={2} text={t('androidStep2')} />
+                    <Step n={3} text={t('androidStep3')} />
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="px-6 py-4">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-medium"
+              >
+                {t('confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Step({ n, text }: { n: number; text: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+        {n}
+      </span>
+      <p className="leading-snug">{text}</p>
     </div>
   )
 }

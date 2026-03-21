@@ -151,7 +151,8 @@
       "shopping": "購物"
     },
     "hiddenSpot": "在地推薦",
-    "hiddenSpotOnly": "只看在地推薦"
+    "hiddenSpotOnly": "只看在地推薦",
+    "deleteConfirm": "確定刪除這篇貼文？"
   },
   "place": {
     "visitorStats": "訪客統計",
@@ -246,10 +247,22 @@
     "inquiryDoneMsg": "我們會盡快回覆您",
     "adminPage": "管理頁面",
     "deleteAccount": "刪除帳號",
-    "deleteConfirm": "確定要刪除帳號嗎？\n\n所有資料和貼文將永久刪除。",
+    "deleteConfirmTitle": "確定要刪除帳號嗎？",
+    "deleteConfirmDesc": "所有貼文、儲存的地點和追蹤者資料將永久刪除，無法復原。",
+    "deleteConfirmPlaceholder": "我要刪除帳號",
+    "deleteConfirmHint": "請在下方輸入「我要刪除帳號」以確認",
+    "deleteConfirmKeyword": "我要刪除帳號",
+    "deleteConfirmButton": "確認刪除",
     "deleteError": "刪除帳號失敗，請重試。",
+    "dormantAccount": "帳號休眠",
+    "dormantDesc": "隱藏帳號暫時休息，重新登入後隨時可恢復。",
+    "dormantButton": "切換休眠",
+    "dormantSuccess": "已切換為休眠帳號。",
     "nicknameErrorDuplicate": "暱稱已被使用",
-    "nicknameErrorInvalid": "只能使用字母、數字、. _ -",
+    "nicknameErrorTooShort": "暱稱至少需要2個字",
+    "nicknameErrorTooLong": "暱稱最多16個字",
+    "nicknameErrorInvalid": "只能使用字母、數字、_ -",
+    "nicknameErrorReserved": "此暱稱無法使用",
     "nicknameErrorFailed": "儲存失敗"
   },
   "onboarding": {
@@ -269,7 +282,10 @@
     "optional": "選填",
     "birthDate": "出生日期",
     "errorNicknameDuplicate": "暱稱已被使用",
-    "errorNicknameInvalid": "只能使用英文、數字、., _, -",
+    "errorNicknameTooShort": "暱稱至少需要2個字",
+    "errorNicknameTooLong": "暱稱最多16個字",
+    "errorNicknameReserved": "此暱稱無法使用",
+    "errorNicknameInvalid": "只能使用英文、數字、_, -",
     "errorGenderRequired": "請選擇性別",
     "errorBirthDateRequired": "請輸入出生日期",
     "year": "年",
@@ -453,7 +469,7 @@
     "detail": {
       "hostTeam": "主辦隊伍",
       "wantedPartner": "希望對方",
-      "openThread": "開啟討論串",
+      "openThread": "開啟聊天",
       "cannotApply": "無法申請",
       "conditionMismatchNat": "條件不符（國籍）",
       "conditionMismatchGender": "條件不符（性別）",
@@ -463,6 +479,7 @@
     },
     "applyTitle": "申請參加",
     "manage": {
+      "title": "申請管理",
       "closed": "已結束",
       "pending": "待審核",
       "accepted": "已接受",
@@ -470,12 +487,12 @@
       "rejectUnmatch": "拒絕/取消配對",
       "reject": "拒絕",
       "unmatch": "取消配對",
-      "openThread": "開啟討論串",
+      "openThread": "開啟聊天",
       "closeBtn": "結束閃聚",
       "noApplicants": "還沒有申請者",
       "accept": "接受"
     },
-    "threadTitle": "討論串",
+    "threadTitle": "聊天",
     "createButton": "+ 建立閃聚",
     "noMeetups": "還沒有閃聚",
     "restrictionMsg": "僅公開個人檔案 + 無臭等級以上才能建立閃聚",
@@ -520,7 +537,8 @@
       "submit": "申請"
     },
     "thread": {
-      "openOnDay": "討論串將在當天開啟",
+      "title": "聊天",
+      "openOnDay": "聊天將在當天開啟",
       "daysUntil": "約{days}天{hours}小時後開啟",
       "hoursUntil": "約{hours}小時{minutes}分鐘後開啟",
       "minutesUntil": "約{minutes}分鐘後開啟",
@@ -558,6 +576,47 @@
       "male": "男性",
       "mixed": "混合",
       "any": "不限"
+    },
+    "inbox": {
+      "title": "閃聚活動",
+      "tabConnected": "已連結",
+      "tabMy": "我建立的",
+      "tabApplied": "我申請的",
+      "participantLabel": "參與者",
+      "organizerLabel": "主辦方",
+      "organizerOpen": "主辦方 · 進行中",
+      "organizerClosed": "主辦方 · 已結束",
+      "emptyConnected": "目前沒有已連結的活動",
+      "emptyMy": "目前沒有建立的活動",
+      "emptyApplied": "目前沒有申請的活動",
+      "pendingLabel": "等待中"
+    },
+    "chat": {
+      "emptyState": "發送第一則訊息吧",
+      "read": "已讀",
+      "sending": "傳送中",
+      "placeholder": "輸入訊息...",
+      "profanityError": "訊息包含不當內容",
+      "permissionError": "暫時無法傳送訊息",
+      "sendFailed": "訊息傳送失敗",
+      "blockedMessage": "無法與已封鎖的使用者通訊",
+      "blockUser": "封鎖使用者",
+      "unblockUser": "解除封鎖",
+      "blockConfirm": "確認封鎖此使用者？封鎖後雙方無法互傳訊息。",
+      "headerTitle": "{name}活動"
+    }
+  },
+  "login": {
+    "inAppBrowser": {
+      "title": "在{app}內無法使用Google登入",
+      "subtitle": "Google安全政策封鎖了內建瀏覽器登入",
+      "confirm": "確認",
+      "iosStep1": "點擊底部的分享(↑)按鈕",
+      "iosStep2": "選擇「在Safari中開啟」",
+      "iosStep3": "在Safari中再次點擊「使用Google繼續」",
+      "androidStep1": "點擊右上角的選單(⋮)",
+      "androidStep2": "選擇「用其他瀏覽器開啟」或「用Chrome開啟」",
+      "androidStep3": "在Chrome中再次點擊「使用Google繼續」"
     }
   },
   "notifications": {

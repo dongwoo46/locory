@@ -9,9 +9,20 @@ const PROFANITY_WORDS = [
 ]
 
 const RESERVED_NAMES = [
+  // English
   'admin', 'administrator', 'root', 'superuser', 'staff', 'system',
-  'locory', 'locory_admin', 'moderator', 'official',
-  '관리자', '운영자', '운영팀', '로코리', '어드민', '시스템',
+  'locory', 'locory_admin', 'moderator', 'official', 'support',
+  // Korean
+  '관리자', '운영자', '운영팀', '로코리', '어드민', '시스템', '공식',
+  // Japanese
+  '管理者', '管理人', '運営', 'システム', '公式', 'かんりしゃ',
+  // Chinese (Simplified + Traditional)
+  '管理员', '管理者', '系统', '运营', '官方',
+  '管理員', '系統', '官方',
+  // Spanish / Latin American
+  'administrador', 'sistema', 'moderador', 'soporte', 'oficial',
+  // Russian
+  'администратор', 'система', 'модератор', 'официальный',
 ]
 
 export function containsProfanity(text: string): boolean {

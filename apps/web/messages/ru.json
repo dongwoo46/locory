@@ -151,7 +151,8 @@
       "shopping": "Шопинг"
     },
     "hiddenSpot": "Местная рекомендация",
-    "hiddenSpotOnly": "Только местные рекомендации"
+    "hiddenSpotOnly": "Только местные рекомендации",
+    "deleteConfirm": "Удалить эту запись?"
   },
   "place": {
     "visitorStats": "Статистика посетителей",
@@ -246,10 +247,22 @@
     "inquiryDoneMsg": "Ответим как можно скорее",
     "adminPage": "Панель администратора",
     "deleteAccount": "Удалить аккаунт",
-    "deleteConfirm": "Вы уверены, что хотите удалить аккаунт?\n\nВсе данные и посты будут удалены навсегда.",
+    "deleteConfirmTitle": "Вы уверены, что хотите уйти?",
+    "deleteConfirmDesc": "Все посты, сохранённые места и подписчики будут удалены навсегда и не подлежат восстановлению.",
+    "deleteConfirmPlaceholder": "хочу удалить аккаунт",
+    "deleteConfirmHint": "Введите «хочу удалить аккаунт» для подтверждения",
+    "deleteConfirmKeyword": "хочу удалить аккаунт",
+    "deleteConfirmButton": "Удалить аккаунт",
     "deleteError": "Не удалось удалить аккаунт. Попробуйте ещё раз.",
+    "dormantAccount": "Спящий режим",
+    "dormantDesc": "Скройте аккаунт и отдохните. Вы сможете восстановить его в любой момент, войдя снова.",
+    "dormantButton": "Перейти в спящий режим",
+    "dormantSuccess": "Аккаунт переведён в спящий режим.",
     "nicknameErrorDuplicate": "Никнейм уже используется",
-    "nicknameErrorInvalid": "Допустимы только буквы, цифры, . _ -",
+    "nicknameErrorTooShort": "Никнейм должен содержать минимум 2 символа",
+    "nicknameErrorTooLong": "Никнейм должен содержать не более 16 символов",
+    "nicknameErrorInvalid": "Допустимы только буквы, цифры, _ -",
+    "nicknameErrorReserved": "Этот никнейм недоступен",
     "nicknameErrorFailed": "Не удалось сохранить"
   },
   "onboarding": {
@@ -269,7 +282,10 @@
     "optional": "необязательно",
     "birthDate": "Дата рождения",
     "errorNicknameDuplicate": "Никнейм уже занят",
-    "errorNicknameInvalid": "Только буквы, цифры, ., _, -",
+    "errorNicknameTooShort": "Никнейм должен содержать минимум 2 символа",
+    "errorNicknameTooLong": "Никнейм должен содержать не более 16 символов",
+    "errorNicknameReserved": "Этот никнейм недоступен",
+    "errorNicknameInvalid": "Только буквы, цифры, _, -",
     "errorGenderRequired": "Пожалуйста, выберите пол",
     "errorBirthDateRequired": "Пожалуйста, введите дату рождения",
     "year": "Год",
@@ -463,6 +479,7 @@
     },
     "applyTitle": "Подать заявку",
     "manage": {
+      "title": "Управление заявками",
       "closed": "Закрыто",
       "pending": "Ожидающие",
       "accepted": "Принятые",
@@ -475,7 +492,7 @@
       "noApplicants": "Заявок ещё нет",
       "accept": "Принять"
     },
-    "threadTitle": "Переписка",
+    "threadTitle": "Чат",
     "createButton": "+ Создать встречу",
     "noMeetups": "Встреч ещё нет",
     "restrictionMsg": "Только публичные профили с уровнем «Без запаха» и выше могут создавать встречи",
@@ -520,6 +537,7 @@
       "submit": "Подать заявку"
     },
     "thread": {
+      "title": "Чат",
       "openOnDay": "Чат откроется в день встречи",
       "daysUntil": "Откроется через ~{days}д {hours}ч",
       "hoursUntil": "Откроется через ~{hours}ч {minutes}м",
@@ -558,6 +576,47 @@
       "male": "Мужчины",
       "mixed": "Смешанно",
       "any": "Любой"
+    },
+    "inbox": {
+      "title": "Встречи",
+      "tabConnected": "Связанные",
+      "tabMy": "Мои встречи",
+      "tabApplied": "Заявки",
+      "participantLabel": "Участник",
+      "organizerLabel": "Организатор",
+      "organizerOpen": "Организатор · Активно",
+      "organizerClosed": "Организатор · Закрыто",
+      "emptyConnected": "Нет связанных встреч",
+      "emptyMy": "Встреч не создано",
+      "emptyApplied": "Заявок не подано",
+      "pendingLabel": "Ожидание"
+    },
+    "chat": {
+      "emptyState": "Отправьте первое сообщение",
+      "read": "Прочитано",
+      "sending": "Отправка",
+      "placeholder": "Введите сообщение...",
+      "profanityError": "Сообщение содержит недопустимый контент",
+      "permissionError": "Вы ещё не можете отправлять сообщения",
+      "sendFailed": "Не удалось отправить сообщение",
+      "blockedMessage": "Нельзя писать заблокированным пользователям",
+      "blockUser": "Заблокировать",
+      "unblockUser": "Разблокировать",
+      "blockConfirm": "Заблокировать этого пользователя? Вы не сможете обмениваться сообщениями.",
+      "headerTitle": "Встреча {name}"
+    }
+  },
+  "login": {
+    "inAppBrowser": {
+      "title": "Вход через Google недоступен в {app}",
+      "subtitle": "Политика безопасности Google блокирует вход во встроенных браузерах",
+      "confirm": "OK",
+      "iosStep1": "Нажмите кнопку «Поделиться» (↑) внизу",
+      "iosStep2": "Выберите «Открыть в Safari»",
+      "iosStep3": "В Safari нажмите «Продолжить с Google» снова",
+      "androidStep1": "Нажмите меню (⋮) вверху справа",
+      "androidStep2": "Выберите «Открыть в браузере» или «Открыть в Chrome»",
+      "androidStep3": "В Chrome нажмите «Продолжить с Google» снова"
     }
   },
   "notifications": {

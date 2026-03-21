@@ -255,7 +255,7 @@ interface Props {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-type View = 'list' | 'create' | 'detail' | 'join' | 'manage' | 'thread';
+type View = 'list' | 'create' | 'detail' | 'join' | 'manage';
 
 export default function MeetupSheet({
   placeId,
@@ -269,6 +269,7 @@ export default function MeetupSheet({
   onClose,
 }: Props) {
   const supabase = createClient();
+  const router = useRouter();
   const t = useTranslations('meetup');
   const [view, setView] = useState<View>('list');
   const [meetups, setMeetups] = useState<Meetup[]>([]);
@@ -390,7 +391,6 @@ export default function MeetupSheet({
             {view === 'detail' && t('detail.openThread')}
             {view === 'join' && t('join.title')}
             {view === 'manage' && t('manage.title')}
-            {view === 'thread' && t('thread.title')}
           </h2>
           <button onClick={onClose} className="p-1 text-gray-400">
             <svg
@@ -443,7 +443,7 @@ export default function MeetupSheet({
               myNationality={userNationality}
               canParticipate={canParticipate}
               onJoin={() => setView('join')}
-              onThread={() => setView('thread')}
+              onThread={() => { onClose(); router.push(`/chat/${selected!.id}`) }}
             />
           )}
           {view === 'join' && selected && (
@@ -464,7 +464,7 @@ export default function MeetupSheet({
               joins={joins}
               userId={userId}
               onUpdateStatus={updateJoinStatus}
-              onThread={() => setView('thread')}
+              onThread={() => { onClose(); router.push(`/chat/${selected!.id}`) }}
               onClose={() =>
                 supabase
                   .from('place_meetups')
@@ -476,9 +476,6 @@ export default function MeetupSheet({
                   })
               }
             />
-          )}
-          {view === 'thread' && selected && (
-            <MeetupThread meetup={selected} userId={userId} />
           )}
         </div>
       </div>

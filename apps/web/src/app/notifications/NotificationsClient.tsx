@@ -15,6 +15,7 @@ type NotifType =
   | 'join_rejected'
   | 'join_unmatched'
   | 'message_new'
+  | 'post_deleted'
 
 interface Notification {
   id: string
@@ -59,6 +60,13 @@ const TYPE_ICON: Record<NotifType, React.ReactNode> = {
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   ),
+  post_deleted: (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <polyline points="3 6 5 6 21 6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
 }
 
 const TYPE_COLOR: Record<NotifType, string> = {
@@ -68,6 +76,7 @@ const TYPE_COLOR: Record<NotifType, string> = {
   join_rejected:  'bg-gray-100 text-gray-500',
   join_unmatched: 'bg-gray-100 text-gray-500',
   message_new:    'bg-purple-100 text-purple-600',
+  post_deleted:   'bg-red-100 text-red-500',
 }
 
 export default function NotificationsClient({ userId }: { userId: string }) {

@@ -167,7 +167,7 @@ export default function PostCard({ post, userId, isSaved: initialSaved = false, 
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {place.category ? tPost('category.' + place.category) : ''}
-                {place.district ? ` · ${place.city ? tDistricts(`${place.city}.${place.district}`) : place.district}` : ''}
+                {place.district && place.district !== 'other' ? ` · ${place.city ? tDistricts(`${place.city}.${place.district}`) : place.district}` : ''}
               </p>
             </div>
           </button>

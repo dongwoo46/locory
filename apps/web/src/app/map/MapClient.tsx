@@ -11,6 +11,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import { useTranslations, useLocale } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
+import ReportSheet from '@/components/ui/ReportSheet';
 import { CITIES, getMainDistricts, getDistricts } from '@/lib/utils/districts';
 import type { City } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
@@ -404,6 +405,7 @@ export default function MapClient({ userId }: Props) {
               'place_id, photos, type, rating, profiles!user_id(nationality, gender), places!place_id(id, name, lat, lng, category, city, district, place_type, avg_rating)',
             )
             .eq('is_public', true)
+            .is('deleted_at', null)
             .order('created_at', { ascending: false })
             .limit(500),
           supabase
@@ -567,6 +569,8 @@ export default function MapClient({ userId }: Props) {
   const [placePosts, setPlacePosts] = useState<any[]>([]);
   const [placePostsLoading, setPlacePostsLoading] = useState(false);
   const [sheetPost, setSheetPost] = useState<any | null>(null);
+  const [showPlaceReport, setShowPlaceReport] = useState(false);
+  const [showPlaceMenu, setShowPlaceMenu] = useState(false);
   const [sheetSort, setSheetSort] = useState<'latest' | 'likes' | 'saves'>(
     'latest',
   );
@@ -584,6 +588,7 @@ export default function MapClient({ userId }: Props) {
       )
       .eq('place_id', selected.id)
       .eq('is_public', true)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(30)
       .then(({ data }) => {
@@ -739,7 +744,8 @@ export default function MapClient({ userId }: Props) {
         'place_id, places!place_id(id, name, lat, lng, category, city, district, place_type, avg_rating)',
       )
       .eq('user_id', userId)
-      .eq('type', 'want');
+      .eq('type', 'want')
+      .is('deleted_at', null);
     const places = (data || [])
       .map((r: any) => r.places)
       .filter(Boolean)
@@ -1335,7 +1341,7 @@ export default function MapClient({ userId }: Props) {
                   <p className="text-xs text-gray-400 mt-0.5">
                     {tPost(`category.${selected.category}`)} ·{' '}
                     {tCities(selected.city)}
-                    {selected.district
+                    {selected.district && selected.district !== 'other'
                       ? ` · ${tDistricts(`${selected.city}.${selected.district}`)}`
                       : ''}
                     {selected.place_type === 'hidden_spot' && (
@@ -1377,14 +1383,44 @@ export default function MapClient({ userId }: Props) {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => router.push(`/place/${selected.id}`)}
-                  className="shrink-0 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-xl font-medium"
-                >
-                  {t('detail')}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="relative">
+                    <button onClick={() => setShowPlaceMenu(v => !v)} className="p-1 text-gray-400">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                      </svg>
+                    </button>
+                    {showPlaceMenu && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowPlaceMenu(false)} />
+                        <div className="absolute right-0 top-8 z-50 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[100px]">
+                          <button
+                            onClick={() => { setShowPlaceMenu(false); setShowPlaceReport(true) }}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-600 hover:bg-gray-50"
+                          >
+                            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"
+                              className="rounded border border-red-200 text-red-400 p-0.5 box-content">
+                              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                              <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                            </svg>
+                            신고
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => router.push(`/place/${selected.id}`)}
+                    className="px-3 py-1.5 bg-gray-900 text-white text-xs rounded-xl font-medium"
+                  >
+                    {t('detail')}
+                  </button>
+                </div>
               </div>
             </div>
+            {showPlaceReport && (
+              <ReportSheet targetType="place" targetId={selected.id} onClose={() => setShowPlaceReport(false)} />
+            )}
 
             {/* 포스트 피드 - 3열 그리드 */}
             <div className="overflow-y-auto flex-1 pb-4">

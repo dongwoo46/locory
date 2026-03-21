@@ -46,6 +46,12 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
   const [visibilitySaving, setVisibilitySaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 회원탈퇴
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteInput, setDeleteInput] = useState('')
+  const [showDormantConfirm, setShowDormantConfirm] = useState(false)
+  const deleteKeyword = t('deleteConfirmKeyword')
+
   // 문의하기
   const [inquiryCategory, setInquiryCategory] = useState('other')
   const [inquiryTitle, setInquiryTitle] = useState('')
@@ -93,8 +99,17 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
 
   async function handleSaveNickname() {
     if (!isAdmin) {
-      const err = validateNickname(nickname)
-      if (err) { setNicknameError(err); return }
+      const errCode = validateNickname(nickname)
+      if (errCode) {
+        const msgMap: Record<string, string> = {
+          tooShort: t('nicknameErrorTooShort'),
+          tooLong: t('nicknameErrorTooLong'),
+          invalidChars: t('nicknameErrorInvalid'),
+          reserved: t('nicknameErrorReserved'),
+        }
+        setNicknameError(msgMap[errCode] ?? t('nicknameErrorInvalid'))
+        return
+      }
     }
     setNicknameSaving(true)
     setNicknameError('')
@@ -133,6 +148,13 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
     } else {
       alert(t('deleteError'))
     }
+  }
+
+  async function handleDormant() {
+    await supabase.from('profiles').update({ is_public: false }).eq('id', profile.id)
+    setIsPublic(false)
+    setShowDormantConfirm(false)
+    alert(t('dormantSuccess'))
   }
 
   return (
@@ -443,26 +465,72 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
           </section>
         )}
 
-        {/* 로그아웃 + 회원탈퇴 */}
+        {/* 로그아웃 + 휴면 + 회원탈퇴 */}
         <section className="mt-3 bg-white rounded-2xl px-4 py-2">
-          <button
-            onClick={handleLogout}
-            className="w-full py-3.5 text-sm text-red-500 font-medium text-left"
-          >
+          <button onClick={handleLogout} className="w-full py-3.5 text-sm text-red-500 font-medium text-left">
             {tCommon('logout')}
           </button>
           <div className="border-t border-gray-50" />
-          <button
-            onClick={() => {
-              if (confirm(t('deleteConfirm'))) {
-                handleDeleteAccount()
-              }
-            }}
-            className="w-full py-3.5 text-sm text-gray-300 font-medium text-left"
-          >
+          <button onClick={() => setShowDormantConfirm(true)} className="w-full py-3.5 text-sm text-gray-400 font-medium text-left">
+            {t('dormantAccount')}
+          </button>
+          <div className="border-t border-gray-50" />
+          <button onClick={() => { setShowDeleteModal(true); setDeleteInput('') }} className="w-full py-3.5 text-sm text-gray-300 font-medium text-left">
             {t('deleteAccount')}
           </button>
         </section>
+
+        {/* 휴면 확인 모달 */}
+        {showDormantConfirm && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4" onClick={() => setShowDormantConfirm(false)}>
+            <div className="bg-white rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4" onClick={e => e.stopPropagation()}>
+              <h3 className="text-base font-bold text-gray-900">{t('dormantAccount')}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{t('dormantDesc')}</p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowDormantConfirm(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500">
+                  {tCommon('cancel')}
+                </button>
+                <button onClick={handleDormant} className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium">
+                  {t('dormantButton')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 회원탈퇴 확인 모달 */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4" onClick={() => setShowDeleteModal(false)}>
+            <div className="bg-white rounded-2xl w-full max-w-sm p-6 flex flex-col gap-4" onClick={e => e.stopPropagation()}>
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-base font-bold text-gray-900">{t('deleteConfirmTitle')}</h3>
+                <p className="text-sm text-red-500 leading-relaxed">{t('deleteConfirmDesc')}</p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs text-gray-400">{t('deleteConfirmHint')}</p>
+                <input
+                  type="text"
+                  value={deleteInput}
+                  onChange={e => setDeleteInput(e.target.value)}
+                  placeholder={t('deleteConfirmPlaceholder')}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-400"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500">
+                  {tCommon('cancel')}
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteInput !== deleteKeyword}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium disabled:opacity-30"
+                >
+                  {t('deleteConfirmButton')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 앱 버전 */}
         <p className="text-center text-xs text-gray-300 mt-8">locory v0.1.0</p>
