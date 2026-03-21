@@ -14,7 +14,7 @@ export async function GET() {
   const admin = await checkAdmin()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const [reportsRes, inquiriesRes] = await Promise.all([
     adminClient

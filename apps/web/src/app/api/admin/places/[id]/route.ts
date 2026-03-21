@@ -16,7 +16,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const { error } = await adminClient.from('places').update({
     deleted_at: new Date().toISOString(),
@@ -33,7 +33,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { id } = await params
   const body = await req.json()
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   // body can contain: { restore: true } or { name, category, city, district }
   const update: Record<string, any> = {}

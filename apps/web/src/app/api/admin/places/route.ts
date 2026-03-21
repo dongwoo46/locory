@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   const search = searchParams.get('search') || ''
   const showDeleted = searchParams.get('deleted') === 'true'
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   let query = adminClient
     .from('places')

@@ -18,7 +18,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { action, admin_note } = await req.json()
   // action: 'resolve' | 'dismiss'
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const { error } = await adminClient.from('reports').update({
     status: action === 'resolve' ? 'resolved' : 'dismissed',

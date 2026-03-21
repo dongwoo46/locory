@@ -16,7 +16,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   // 삭제 전 작성자 조회
   const { data: post } = await adminClient
@@ -52,7 +52,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const { error } = await adminClient.from('posts').update({ deleted_at: null }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

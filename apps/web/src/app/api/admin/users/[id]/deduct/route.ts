@@ -18,7 +18,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { points } = await req.json()
   const deduct = Math.abs(Number(points) || 10)
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   // 현재 점수 조회
   const { data: profile } = await adminClient

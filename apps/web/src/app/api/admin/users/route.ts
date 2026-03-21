@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search') || ''
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   let query = adminClient
     .from('profiles')

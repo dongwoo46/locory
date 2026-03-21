@@ -6,7 +6,7 @@ export async function DELETE() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   // auth.users에서 삭제 → profiles CASCADE로 자동 삭제
   const { error } = await adminClient.auth.admin.deleteUser(user.id)

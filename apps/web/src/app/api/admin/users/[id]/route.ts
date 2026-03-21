@@ -16,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { id } = await params
   const body = await req.json()
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const update: Record<string, any> = {}
   if (body.role !== undefined) update.role = body.role
