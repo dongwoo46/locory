@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
 import NotificationBell from '@/components/ui/NotificationBell'
-import MeetupInboxIcon from '@/components/ui/MeetupInboxIcon'
+import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 import PostGrid from '@/components/feed/PostGrid'
 import { CITIES, getMainDistricts, getExtraDistricts } from '@/lib/utils/districts'
 import type { City } from '@/types/database'
@@ -31,9 +31,10 @@ const RATING_LABEL: Record<string, string> = {
 interface Props {
   userId: string
   followingUserIds: string[]
+  avatarUrl?: string | null
 }
 
-export default function SavedClient({ userId, followingUserIds }: Props) {
+export default function SavedClient({ userId, followingUserIds, avatarUrl = null }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('saved')
@@ -83,6 +84,7 @@ export default function SavedClient({ userId, followingUserIds }: Props) {
   const posts = savedData?.posts ?? []
   const followingPlaces = savedData?.followingPlaces ?? []
   const [showFilters, setShowFilters] = useState(false)
+  const [showPlaceAdd, setShowPlaceAdd] = useState(false)
 
   // 도시/동네 공통 필터 (헤더)
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
@@ -158,17 +160,23 @@ export default function SavedClient({ userId, followingUserIds }: Props) {
       <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-100">
         <div className="max-w-lg mx-auto px-4">
           {/* 상단 바 */}
-          <div className="flex items-center h-14 gap-2">
-            <h1 className="flex-1">
-              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
+          <div className="flex items-center h-12 gap-2">
+            {/* 왼쪽: + 버튼 */}
+            <button onClick={() => setShowPlaceAdd(true)} className="p-2 -ml-1 text-gray-700">
+              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </button>
+            {/* 중앙: 로고 */}
+            <h1 className="flex-1 flex justify-center">
+              <img src="/logo40.png" alt="Locory" className="h-full w-auto max-h-12" />
             </h1>
-            <div className="flex items-center gap-2">
+            {/* 오른쪽: 필터 + 알림 */}
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setShowFilters(v => !v)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-                  activeFilterCount > 0
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-600 border-gray-200'
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                  activeFilterCount > 0 ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
                 }`}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
@@ -181,7 +189,6 @@ export default function SavedClient({ userId, followingUserIds }: Props) {
                   </span>
                 )}
               </button>
-              <MeetupInboxIcon userId={userId} />
               <NotificationBell userId={userId} />
             </div>
           </div>
@@ -436,7 +443,14 @@ export default function SavedClient({ userId, followingUserIds }: Props) {
         )}
       </main>
 
-      <BottomNav />
+      <BottomNav avatarUrl={avatarUrl} />
+      {showPlaceAdd && (
+        <PlaceAddSheet
+          userId={userId}
+          onClose={() => setShowPlaceAdd(false)}
+          onSaved={() => setShowPlaceAdd(false)}
+        />
+      )}
     </div>
   )
 }

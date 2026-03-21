@@ -180,6 +180,7 @@
   },
   "nav": {
     "feed": "发现",
+    "meetup": "闪聚",
     "map": "地图",
     "saved": "收藏",
     "profile": "我"
@@ -214,7 +215,8 @@
     "noPosts": "没有收藏的帖子",
     "noFollowingPlaces": "关注的用户没有收藏的地点"
   },
-  "map": {
+  "meetup": "闪聚",
+    "map": {
     "all": "全部",
     "saved": "收藏",
     "posts": "篇",

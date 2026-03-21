@@ -18,6 +18,7 @@
     "other": "Другое",
     "allTab": "Все",
     "followingTab": "Подписки",
+    "filterViewMode": "Режим просмотра",
     "viewModePost": "Посты",
     "viewModePlace": "Места",
     "filter": "Фильтр",
@@ -294,6 +295,7 @@
   },
   "nav": {
     "feed": "Лента",
+    "meetup": "Встреча",
     "map": "Карта",
     "saved": "Сохранённое",
     "profile": "Профиль",
@@ -342,7 +344,8 @@
     "reset": "Сбросить",
     "noResults": "Результатов нет"
   },
-  "map": {
+  "meetup": "Встреча",
+    "map": {
     "all": "Все",
     "saved": "Мои сохранения",
     "posts": "постов",

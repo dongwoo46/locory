@@ -1,24 +1,32 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 
-export default function BottomNav() {
+export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) {
   const pathname = usePathname()
-  const router = useRouter()
   const t = useTranslations('nav')
+  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(avatarUrl ?? null)
 
-  const [showActionSheet, setShowActionSheet] = useState(false)
-  const [showPlaceAdd, setShowPlaceAdd] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-
+  // avatarUrl이 전달되지 않은 페이지(예: 지도)에서도 프로필 이미지 표시
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
-  }, [])
+    if (avatarUrl !== undefined) {
+      setResolvedAvatar(avatarUrl ?? null)
+      return
+    }
+    createClient().auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      const { data: profile } = await createClient()
+        .from('profiles').select('avatar_url').eq('id', data.user.id).single()
+      setResolvedAvatar(profile?.avatar_url ?? null)
+    })
+  }, [avatarUrl])
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + '/')
 
   const NAV_ITEMS = [
     {
@@ -43,7 +51,15 @@ export default function BottomNav() {
         </svg>
       ),
     },
-    null, // + 버튼 자리
+    {
+      href: '/meetup',
+      label: t('meetup'),
+      icon: (active: boolean) => (
+        <svg width="24" height="24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.5 : 1.8} viewBox="0 0 24 24">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
     {
       href: '/saved',
       label: t('saved'),
@@ -56,109 +72,37 @@ export default function BottomNav() {
     {
       href: '/profile/me',
       label: t('profile'),
-      icon: (active: boolean) => (
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 1.8} viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-        </svg>
-      ),
+      icon: (active: boolean) =>
+        resolvedAvatar ? (
+          <div className={`w-6 h-6 rounded-full overflow-hidden border-2 transition-colors ${active ? 'border-gray-900' : 'border-transparent'}`}>
+            <img src={resolvedAvatar} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 1.8} viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+          </svg>
+        ),
     },
   ]
 
   return (
-    <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
-        <div className="max-w-lg mx-auto flex items-center justify-around px-2 pb-safe">
-          {NAV_ITEMS.map((item, i) => {
-            if (!item) {
-              return (
-                <button
-                  key="plus"
-                  onClick={() => setShowActionSheet(true)}
-                  className="flex flex-col items-center gap-0.5 py-3 px-3"
-                >
-                  <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center -mt-5 shadow-lg">
-                    <svg width="22" height="22" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                </button>
-              )
-            }
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-3 px-3 transition-colors ${
-                  active ? 'text-gray-900' : 'text-gray-400'
-                }`}
-              >
-                {item.icon(active)}
-                {item.label && <span className="text-[10px] font-medium">{item.label}</span>}
-              </Link>
-            )
-          })}
-        </div>
-      </nav>
-
-      {/* 액션 시트 */}
-      {showActionSheet && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-70 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
-            <div className="flex justify-center mb-4">
-              <div className="w-8 h-1 bg-gray-200 rounded-full" />
-            </div>
-
-            <div className="flex flex-col gap-2 px-4">
-              {/* 포스팅 */}
-              <button
-                onClick={() => { setShowActionSheet(false); router.push('/upload') }}
-                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
-              >
-                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{t('addPost')}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('addPostDesc')}</p>
-                </div>
-              </button>
-
-              {/* 장소 저장 */}
-              <button
-                onClick={() => { setShowActionSheet(false); setShowPlaceAdd(true) }}
-                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
-              >
-                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                    <circle cx="12" cy="9" r="2.5" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{t('addPlace')}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('addPlaceDesc')}</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 장소 저장 시트 */}
-      {showPlaceAdd && userId && (
-        <PlaceAddSheet
-          userId={userId}
-          onClose={() => setShowPlaceAdd(false)}
-          onSaved={() => setShowPlaceAdd(false)}
-        />
-      )}
-    </>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
+      <div className="max-w-lg mx-auto flex items-center justify-around px-2 pb-safe">
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center gap-0.5 py-3 px-3 transition-colors ${active ? 'text-gray-900' : 'text-gray-400'}`}
+            >
+              {item.icon(active)}
+              {item.label && <span className="text-[10px] font-medium">{item.label}</span>}
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
   )
 }

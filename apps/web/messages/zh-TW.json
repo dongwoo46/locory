@@ -18,6 +18,7 @@
     "other": "其他",
     "allTab": "全部",
     "followingTab": "追蹤中",
+    "filterViewMode": "顯示模式",
     "viewModePost": "貼文",
     "viewModePlace": "地點",
     "filter": "篩選",
@@ -294,6 +295,7 @@
   },
   "nav": {
     "feed": "探索",
+    "meetup": "閃聚",
     "map": "地圖",
     "saved": "收藏",
     "profile": "我",
@@ -342,7 +344,8 @@
     "reset": "重置",
     "noResults": "沒有結果"
   },
-  "map": {
+  "meetup": "閃聚",
+    "map": {
     "all": "全部",
     "saved": "收藏",
     "posts": "篇",

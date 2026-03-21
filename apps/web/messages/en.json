@@ -18,6 +18,7 @@
     "other": "Other",
     "allTab": "All",
     "followingTab": "Following",
+    "filterViewMode": "View Mode",
     "viewModePost": "Posts",
     "viewModePlace": "Places",
     "filter": "Filter",
@@ -294,6 +295,7 @@
   },
   "nav": {
     "feed": "Feed",
+    "meetup": "Meet",
     "map": "Map",
     "saved": "Saved",
     "profile": "Profile",
@@ -342,7 +344,8 @@
     "reset": "Reset",
     "noResults": "No results found"
   },
-  "map": {
+  "meetup": "Meet",
+    "map": {
     "all": "All",
     "saved": "Saved",
     "posts": "posts",

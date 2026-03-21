@@ -18,6 +18,7 @@
     "other": "기타",
     "allTab": "전체",
     "followingTab": "팔로잉",
+    "filterViewMode": "보기 모드",
     "viewModePost": "포스팅",
     "viewModePlace": "장소",
     "filter": "필터",
@@ -294,6 +295,7 @@
   },
   "nav": {
     "feed": "피드",
+    "meetup": "번개",
     "map": "지도",
     "saved": "저장",
     "profile": "프로필",
@@ -342,7 +344,8 @@
     "reset": "초기화",
     "noResults": "필터 결과가 없어요"
   },
-  "map": {
+  "meetup": "번개",
+    "map": {
     "all": "전체",
     "saved": "내 저장",
     "posts": "개 포스팅",

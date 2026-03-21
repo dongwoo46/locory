@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import NotificationBell from '@/components/ui/NotificationBell'
-import MeetupInboxIcon from '@/components/ui/MeetupInboxIcon'
+import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
@@ -68,6 +68,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   } = useFeedFilterStore()
 
   const [showFilters, setShowFilters] = useState(false)
+  const [showPlaceAdd, setShowPlaceAdd] = useState(false)
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
 
   const categoriesSet = new Set(categories)
@@ -245,37 +246,30 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       <header className="fixed top-0 left-0 right-0 bg-white z-40">
         <div className="max-w-lg mx-auto px-4 pt-3">
 
-          {/* 로고 + 필터 + 프로필 */}
-          <div className="flex items-center justify-between mb-2">
-            <h1>
-              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
+          {/* 헤더: + | Locory (중앙) | 필터 + 알림 */}
+          <div className="flex items-center mb-2 h-14">
+            {/* 왼쪽: + 버튼 */}
+            <button
+              onClick={() => setShowPlaceAdd(true)}
+              className="p-2 -ml-1 text-gray-700 shrink-0"
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </button>
+            {/* 중앙: 로고 */}
+            <h1 className="flex-1 flex justify-center">
+              <img src="/logo40.png" alt="Locory" className="h-full w-auto max-h-14" />
             </h1>
-            <div className="flex items-center gap-2">
-              {/* 포스팅/장소 pill */}
-              <div className="flex items-center bg-gray-100 rounded-full p-0.5">
-                {([
-                  { key: 'posts', label: t('viewModePost') },
-                  { key: 'places', label: t('viewModePlace') },
-                ] as const).map(opt => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setViewMode(opt.key)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      viewMode === opt.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              {/* 필터 버튼 */}
+            {/* 오른쪽: 필터 + 알림 */}
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => setShowFilters(v => !v)}
-                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                   activeFilterCount > 0 ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
                 }`}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
                 {t('filter')}
@@ -285,19 +279,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                   </span>
                 )}
               </button>
-              {/* 번개 모임 */}
-              <MeetupInboxIcon userId={userId} />
-              {/* 알림 */}
               <NotificationBell userId={userId} />
-              {/* 프로필 */}
-              <button onClick={() => router.push('/profile/me')} className="flex items-center gap-1.5">
-                <div className="w-7 h-7 rounded-full bg-gray-100 overflow-hidden">
-                  {profile?.avatar_url
-                    ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{profile?.nickname?.[0]}</div>
-                  }
-                </div>
-              </button>
             </div>
           </div>
 
@@ -406,6 +388,22 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
             {/* 스크롤 가능한 필터 내용 */}
             <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4">
+
+              {/* 보기 모드: 포스팅/장소 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterViewMode')}</p>
+                <div className="flex gap-2">
+                  {([
+                    { key: 'posts', label: t('viewModePost') },
+                    { key: 'places', label: t('viewModePlace') },
+                  ] as const).map(opt => (
+                    <button key={opt.key} onClick={() => setViewMode(opt.key)}
+                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${viewMode === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* 전체/팔로잉 */}
               <div>
@@ -631,7 +629,14 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         )}
       </main>
 
-      <BottomNav />
+      <BottomNav avatarUrl={profile?.avatar_url ?? null} />
+      {showPlaceAdd && (
+        <PlaceAddSheet
+          userId={userId}
+          onClose={() => setShowPlaceAdd(false)}
+          onSaved={() => setShowPlaceAdd(false)}
+        />
+      )}
     </div>
   )
 }

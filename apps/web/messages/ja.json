@@ -18,6 +18,7 @@
     "other": "その他",
     "allTab": "すべて",
     "followingTab": "フォロー中",
+    "filterViewMode": "表示モード",
     "viewModePost": "投稿",
     "viewModePlace": "場所",
     "filter": "フィルター",
@@ -294,6 +295,7 @@
   },
   "nav": {
     "feed": "フィード",
+    "meetup": "出会い",
     "map": "地図",
     "saved": "保存済み",
     "profile": "プロフィール",
@@ -342,7 +344,8 @@
     "reset": "リセット",
     "noResults": "結果がありません"
   },
-  "map": {
+  "meetup": "出会い",
+    "map": {
     "all": "すべて",
     "saved": "保存済み",
     "posts": "件",
