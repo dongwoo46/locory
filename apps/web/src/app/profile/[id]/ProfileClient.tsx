@@ -12,6 +12,7 @@ import ScentBar from '@/components/ui/ScentBar'
 import PostGrid from '@/components/feed/PostGrid'
 import ReportSheet from '@/components/ui/ReportSheet'
 import NotificationBell from '@/components/ui/NotificationBell'
+import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 
 const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
@@ -139,6 +140,8 @@ export default function ProfileClient({
   const [followStatus, setFollowStatus] = useState(initialFollowStatus)
   const [showTaste, setShowTaste] = useState(false)
   const [showReport, setShowReport] = useState(false)
+  const [showActionSheet, setShowActionSheet] = useState(false)
+  const [showPlaceAdd, setShowPlaceAdd] = useState(false)
 
   const visiblePosts = isMe ? posts : (profile.is_public || isFollowing) ? posts : []
 
@@ -180,39 +183,47 @@ export default function ProfileClient({
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="fixed top-0 left-0 right-0 bg-white z-40">
-        <div className="max-w-lg mx-auto flex items-center h-14 px-4 gap-3">
-          {!isMe && (
-            <button onClick={() => router.back()} className="text-gray-500 p-1">
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40">
+        <div className="max-w-lg mx-auto flex items-center h-14 px-4">
+          {/* 왼쪽 */}
+          {isMe ? (
+            <button
+              onClick={() => setShowActionSheet(true)}
+              className="p-2 -ml-1 text-gray-700 shrink-0"
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </button>
+          ) : (
+            <button onClick={() => router.back()} className="text-gray-500 p-1 shrink-0">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
-          {isMe ? (
-            <h1 className="flex-1">
-              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
-            </h1>
-          ) : (
-            <h1 className="text-base font-bold text-gray-900 flex-1">{profile.nickname}</h1>
-          )}
-          {!isMe && (
-            <button onClick={() => setShowReport(true)} className="text-gray-300 p-1">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
-                <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
-              </svg>
-            </button>
-          )}
-          {isMe && <NotificationBell userId={myId} />}
-          {isMe && (
-            <Link href="/settings" className="text-gray-400 p-1">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
-          )}
+          {/* 중앙: 닉네임 */}
+          <h1 className="flex-1 text-center text-base font-bold text-gray-900">{profile.nickname}</h1>
+          {/* 오른쪽 */}
+          <div className="flex items-center gap-1 shrink-0">
+            {!isMe && (
+              <button onClick={() => setShowReport(true)} className="text-gray-300 p-1">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+            {isMe && <NotificationBell userId={myId} />}
+            {isMe && (
+              <Link href="/settings" className="text-gray-400 p-1">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -229,9 +240,8 @@ export default function ProfileClient({
             }
           </div>
 
-          {/* 닉네임 + 국적 + 성별/나이 */}
+          {/* 국적 + 성별/나이 */}
           <div className="flex flex-col items-center gap-1">
-            <h2 className="text-lg font-bold text-gray-900">{profile.nickname}</h2>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <span>{NATIONALITY_FLAGS[profile.nationality]} {t(`nationality.${profile.nationality}`)}</span>
               {(profile.gender || profile.birth_date) && (
@@ -355,7 +365,50 @@ export default function ProfileClient({
       {showReport && (
         <ReportSheet targetType="user" targetId={profile.id} onClose={() => setShowReport(false)} />
       )}
-      <BottomNav />
+
+      {/* + 액션시트 */}
+      {showActionSheet && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowActionSheet(false)} />
+          <div className="relative bg-white rounded-t-2xl max-w-lg mx-auto w-full px-4 pt-4 pb-10">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+            <button
+              onClick={() => { setShowActionSheet(false); router.push('/upload') }}
+              className="w-full flex items-center gap-3 py-3 px-2 rounded-xl active:bg-gray-50"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M12 8v8M8 12h8" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">{tFeed('addFeed')}</p>
+                <p className="text-xs text-gray-400">{tFeed('addFeedDesc')}</p>
+              </div>
+            </button>
+            <button
+              onClick={() => { setShowActionSheet(false); setShowPlaceAdd(true) }}
+              className="w-full flex items-center gap-3 py-3 px-2 rounded-xl active:bg-gray-50"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">{tFeed('addPlace')}</p>
+                <p className="text-xs text-gray-400">{tFeed('addPlaceDesc')}</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPlaceAdd && <PlaceAddSheet onClose={() => setShowPlaceAdd(false)} />}
+
+      <BottomNav avatarUrl={profile.avatar_url} />
     </div>
   )
 }

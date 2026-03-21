@@ -493,6 +493,7 @@
     "explore": {
       "title": "Explore Meetups",
       "myMeetupsBtn": "My Meetups",
+      "all": "All",
       "filterActivity": "Activity",
       "filterVibe": "Vibe",
       "filterWantedGender": "Wanted Partner",

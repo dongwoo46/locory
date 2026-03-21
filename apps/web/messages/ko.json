@@ -493,6 +493,7 @@
     "explore": {
       "title": "번개모임 탐색",
       "myMeetupsBtn": "내 모임",
+      "all": "전체",
       "filterActivity": "활동",
       "filterVibe": "분위기",
       "filterWantedGender": "원하는 상대",

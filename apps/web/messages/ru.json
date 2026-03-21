@@ -493,6 +493,7 @@
     "explore": {
       "title": "Найти встречу",
       "myMeetupsBtn": "Мои встречи",
+      "all": "Все",
       "filterActivity": "Активность",
       "filterVibe": "Атмосфера",
       "filterWantedGender": "Желаемый партнёр",

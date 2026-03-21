@@ -493,6 +493,7 @@
     "explore": {
       "title": "Explorar Encuentros",
       "myMeetupsBtn": "Mis Encuentros",
+      "all": "Todo",
       "filterActivity": "Actividad",
       "filterVibe": "Ambiente",
       "filterWantedGender": "Pareja Deseada",

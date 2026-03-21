@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
+import NotificationBell from '@/components/ui/NotificationBell'
 import { CITIES } from '@/lib/utils/districts'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
@@ -15,6 +16,7 @@ const ACTIVITIES = [
 ]
 const VIBES = [{ value: 'casual' }, { value: 'fun' }, { value: 'serious' }]
 const WANTED_GENDER_OPTS = [{ value: 'female' }, { value: 'male' }, { value: 'any' }]
+const DATE_OPTS = ['today', 'week', 'weekend'] as const
 
 function formatScheduled(iso: string) {
   const d = new Date(iso)
@@ -80,7 +82,7 @@ interface Props {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-export default function MeetupExploreClient({ userId, profile: _profile }: Props) {
+export default function MeetupExploreClient({ userId, profile }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('meetup')
@@ -89,6 +91,7 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
   const [meetups, setMeetups] = useState<MeetupCard[]>([])
   const [myJoins, setMyJoins] = useState<{ meetup_id: string; status: string }[]>([])
   const [loading, setLoading] = useState(true)
+  const [showFilters, setShowFilters] = useState(false)
 
   // 필터 상태
   const [filterCity, setFilterCity] = useState<string | null>(null)
@@ -96,6 +99,8 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
   const [filterVibe, setFilterVibe] = useState<string | null>(null)
   const [filterGender, setFilterGender] = useState<string | null>(null)
   const [filterDate, setFilterDate] = useState<string | null>(null)
+
+  const activeFilterCount = [filterActivity, filterVibe, filterGender, filterDate].filter(Boolean).length
 
   useEffect(() => {
     loadData()
@@ -142,122 +147,85 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
     return true
   })
 
-  function toggleFilter<T extends string>(
-    val: T,
-    current: T | null,
-    set: (v: T | null) => void
-  ) {
+  function toggleFilter<T extends string>(val: T, current: T | null, set: (v: T | null) => void) {
     set(current === val ? null : val)
   }
 
+  function resetFilters() {
+    setFilterActivity(null)
+    setFilterVibe(null)
+    setFilterGender(null)
+    setFilterDate(null)
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 max-w-lg mx-auto">
-        <div className="flex items-center px-4 h-14">
-          <button onClick={() => router.back()} className="p-1 mr-2 text-gray-400">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <h1 className="flex-1 text-base font-bold text-gray-900">{t('explore.title')}</h1>
-          <button
-            onClick={() => router.push('/meetups')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium text-gray-700"
-          >
-            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t('explore.myMeetupsBtn')}
-          </button>
+      <header className="fixed top-0 left-0 right-0 bg-white z-40">
+        <div className="max-w-lg mx-auto px-4">
+          {/* 타이틀 행 */}
+          <div className="flex items-center h-14">
+            <h1 className="flex-1 text-base font-bold text-gray-900">{t('explore.title')}</h1>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => router.push('/meetups')}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium border border-gray-200 text-gray-600 bg-white"
+              >
+                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {t('explore.myMeetupsBtn')}
+              </button>
+              <button
+                onClick={() => setShowFilters(v => !v)}
+                className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                  activeFilterCount > 0 ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
+                }`}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
+                </svg>
+                {t('explore.filterActivity').split('').slice(0, 0).join('') || '필터'}
+                {activeFilterCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[10px] font-bold flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+              <NotificationBell userId={userId} />
+            </div>
+          </div>
+
+          {/* 도시 탭 */}
+          <div className="flex gap-0 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-0.5">
+            <button
+              onClick={() => setFilterCity(null)}
+              className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                filterCity === null ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
+              }`}
+            >
+              {t('explore.all')}
+            </button>
+            {CITIES.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => setFilterCity(c.value === filterCity ? null : c.value)}
+                className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                  filterCity === c.value ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
+                }`}
+              >
+                {tCities(c.value)}
+              </button>
+            ))}
+          </div>
         </div>
+        <div className="border-b border-gray-100" />
       </header>
 
-      <div className="pt-14 pb-20">
-        {/* 도시 탭 */}
-        <div className="bg-white border-b border-gray-100 sticky top-14 z-40">
-          <div className="flex gap-0 overflow-x-auto scrollbar-hide px-4 py-2">
-            {[null, ...CITIES].map((c) => (
-              <button
-                key={c?.value ?? 'all'}
-                onClick={() => setFilterCity(c?.value ?? null)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium mr-1.5 transition-colors ${
-                  filterCity === (c?.value ?? null)
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {c ? tCities(c.value) : '전체'}
-              </button>
-            ))}
-          </div>
-
-          {/* 활동 필터 */}
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2">
-            {ACTIVITIES.map((a) => (
-              <button
-                key={a.value}
-                onClick={() => toggleFilter(a.value, filterActivity, setFilterActivity)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterActivity === a.value
-                    ? 'bg-blue-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`activity.${a.value}`)}
-              </button>
-            ))}
-          </div>
-
-          {/* 분위기/성별/날짜 필터 */}
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2">
-            {VIBES.map((v) => (
-              <button
-                key={v.value}
-                onClick={() => toggleFilter(v.value, filterVibe, setFilterVibe)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterVibe === v.value
-                    ? 'bg-purple-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`vibe.${v.value}`)}
-              </button>
-            ))}
-            <div className="w-px bg-gray-200 mx-1 self-stretch" />
-            {WANTED_GENDER_OPTS.map((g) => (
-              <button
-                key={g.value}
-                onClick={() => toggleFilter(g.value, filterGender, setFilterGender)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterGender === g.value
-                    ? 'bg-pink-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`gender.${g.value}`)}
-              </button>
-            ))}
-            <div className="w-px bg-gray-200 mx-1 self-stretch" />
-            {(['today', 'week', 'weekend'] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => toggleFilter(d, filterDate, setFilterDate)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterDate === d
-                    ? 'bg-orange-500 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {d === 'today' ? t('explore.dateToday') : d === 'week' ? t('explore.dateWeek') : t('explore.dateWeekend')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 목록 */}
+      {/* 컨텐츠 */}
+      <div className="pt-28 pb-20">
         <div className="px-4 py-4 flex flex-col gap-3 max-w-lg mx-auto">
           {loading ? (
             <div className="text-center py-12 text-gray-400 text-sm">Loading...</div>
@@ -266,13 +234,11 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
           ) : (
             filtered.map((m) => {
               const myJoin = myJoins.find((j) => j.meetup_id === m.id)
-              const isOrganizer = false // explore page - no organizer logic needed in card
               return (
                 <MeetupExploreCard
                   key={m.id}
                   meetup={m}
                   myJoin={myJoin ?? null}
-                  isOrganizer={isOrganizer}
                   userId={userId}
                   onClick={() => router.push(`/meetup/${m.id}`)}
                 />
@@ -282,7 +248,115 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
         </div>
       </div>
 
-      <BottomNav />
+      <BottomNav avatarUrl={profile?.avatar_url ?? null} />
+
+      {/* 필터 모달 */}
+      {showFilters && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowFilters(false)} />
+          <div className="relative bg-white rounded-t-2xl max-w-lg mx-auto w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <span className="text-sm font-bold text-gray-900">필터</span>
+              <button
+                onClick={resetFilters}
+                className="text-xs text-gray-400 underline"
+              >
+                초기화
+              </button>
+            </div>
+
+            {/* 활동 */}
+            <div className="px-4 pb-4">
+              <p className="text-xs font-semibold text-gray-500 mb-2">{t('explore.filterActivity')}</p>
+              <div className="flex flex-wrap gap-2">
+                {ACTIVITIES.map((a) => (
+                  <button
+                    key={a.value}
+                    onClick={() => toggleFilter(a.value, filterActivity, setFilterActivity)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      filterActivity === a.value
+                        ? 'bg-blue-600 text-white border-transparent'
+                        : 'border-gray-200 text-gray-600 bg-white'
+                    }`}
+                  >
+                    {t(`activity.${a.value}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 분위기 */}
+            <div className="px-4 pb-4">
+              <p className="text-xs font-semibold text-gray-500 mb-2">{t('explore.filterVibe')}</p>
+              <div className="flex flex-wrap gap-2">
+                {VIBES.map((v) => (
+                  <button
+                    key={v.value}
+                    onClick={() => toggleFilter(v.value, filterVibe, setFilterVibe)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      filterVibe === v.value
+                        ? 'bg-purple-600 text-white border-transparent'
+                        : 'border-gray-200 text-gray-600 bg-white'
+                    }`}
+                  >
+                    {t(`vibe.${v.value}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 원하는 상대 성별 */}
+            <div className="px-4 pb-4">
+              <p className="text-xs font-semibold text-gray-500 mb-2">{t('explore.filterWantedGender')}</p>
+              <div className="flex flex-wrap gap-2">
+                {WANTED_GENDER_OPTS.map((g) => (
+                  <button
+                    key={g.value}
+                    onClick={() => toggleFilter(g.value, filterGender, setFilterGender)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      filterGender === g.value
+                        ? 'bg-pink-600 text-white border-transparent'
+                        : 'border-gray-200 text-gray-600 bg-white'
+                    }`}
+                  >
+                    {t(`gender.${g.value}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 날짜 */}
+            <div className="px-4 pb-6">
+              <p className="text-xs font-semibold text-gray-500 mb-2">{t('explore.filterDate')}</p>
+              <div className="flex flex-wrap gap-2">
+                {DATE_OPTS.map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => toggleFilter(d, filterDate, setFilterDate)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      filterDate === d
+                        ? 'bg-orange-500 text-white border-transparent'
+                        : 'border-gray-200 text-gray-600 bg-white'
+                    }`}
+                  >
+                    {d === 'today' ? t('explore.dateToday') : d === 'week' ? t('explore.dateWeek') : t('explore.dateWeekend')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 적용 버튼 */}
+            <div className="px-4 pb-8">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold"
+              >
+                {filtered.length}개 모임 보기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -292,13 +366,11 @@ export default function MeetupExploreClient({ userId, profile: _profile }: Props
 function MeetupExploreCard({
   meetup: m,
   myJoin,
-  isOrganizer,
   userId,
   onClick,
 }: {
   meetup: MeetupCard
   myJoin: { meetup_id: string; status: string } | null
-  isOrganizer: boolean
   userId: string
   onClick: () => void
 }) {
@@ -386,7 +458,7 @@ function MeetupExploreCard({
       )}
 
       {/* 신청 상태 배지 */}
-      {myJoin && !isOrganizer && (
+      {myJoin && (
         <div className="mt-2">
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-medium ${
