@@ -21,6 +21,7 @@ export interface UploadState {
   memo: string
   recommendedMenu: string
   isPublic: boolean
+  isLocalRecommendation: boolean
 }
 
 export const INITIAL_STATE: UploadState = {
@@ -32,4 +33,5 @@ export const INITIAL_STATE: UploadState = {
   memo: '',
   recommendedMenu: '',
   isPublic: true,
+  isLocalRecommendation: false,
 }

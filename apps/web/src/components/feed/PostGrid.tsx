@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { getScentLevel } from '@/types/database'
 import { useLikeStore } from '@/store/likeStore'
 import ReportSheet from '@/components/ui/ReportSheet'
@@ -19,6 +19,8 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
 }
 
+const RATING_OPTIONS = ['must_go', 'worth_it', 'neutral', 'not_great']
+
 interface Props {
   posts: any[]
   userId: string
@@ -32,22 +34,42 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
   const tPost = useTranslations('post')
   const tFeed = useTranslations('feed')
   const tDistricts = useTranslations('districts')
+
+  const [localPosts, setLocalPosts] = useState<any[]>(posts)
   const [selected, setSelected] = useState<any | null>(null)
+  const [photoIndex, setPhotoIndex] = useState(0)
   const [showReport, setShowReport] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [comments, setComments] = useState<any[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [commentLoading, setCommentLoading] = useState(false)
+
+  // Edit state
+  const [showEdit, setShowEdit] = useState(false)
+  const [editMemo, setEditMemo] = useState('')
+  const [editMenu, setEditMenu] = useState('')
+  const [editRating, setEditRating] = useState<string | null>(null)
+  const [editPublic, setEditPublic] = useState(true)
+  const [editLocalRec, setEditLocalRec] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
 
   const {
     likedPostIds, likeCountMap, savedPostIds,
     mergePostCounts,
   } = useLikeStore()
 
+  useEffect(() => {
+    setLocalPosts(posts)
+  }, [posts])
+
   // 포스트 좋아요 수 store에 병합
   useEffect(() => {
     const counts = Object.fromEntries(
-      posts.map(p => [p.id, parseInt(p.post_likes?.[0]?.count) || 0])
+      localPosts.map(p => [p.id, parseInt(p.post_likes?.[0]?.count) || 0])
     )
     mergePostCounts(counts)
-  }, [posts, mergePostCounts])
+  }, [localPosts, mergePostCounts])
 
   async function handlePostLike(postId: string) {
     const { likedPostIds: cur, togglePostLike: toggle } = useLikeStore.getState()
@@ -71,12 +93,87 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     }
   }
 
+  async function loadComments(postId: string) {
+    const { data } = await supabase
+      .from('post_comments')
+      .select('id, body, created_at, user_id, profiles(nickname, avatar_url)')
+      .eq('post_id', postId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true })
+    setComments(data ?? [])
+  }
+
+  async function submitComment() {
+    if (!selected || !commentText.trim()) return
+    setCommentLoading(true)
+    const body = commentText.trim().slice(0, 200)
+    const { data, error } = await supabase
+      .from('post_comments')
+      .insert({ post_id: selected.id, user_id: userId, body })
+      .select('id, body, created_at, user_id, profiles(nickname, avatar_url)')
+      .single()
+    setCommentLoading(false)
+    if (!error && data) {
+      setComments(prev => [...prev, data])
+      setCommentText('')
+    }
+  }
+
+  async function deleteComment(commentId: string) {
+    await supabase.from('post_comments').update({ deleted_at: new Date().toISOString() }).eq('id', commentId)
+    setComments(prev => prev.filter((c: any) => c.id !== commentId))
+  }
+
   async function handleDeletePost(postId: string) {
     if (!confirm(tPost('deleteConfirm'))) return
     const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' })
     if (!res.ok) return
     setSelected(null)
+    setLocalPosts(prev => prev.filter(p => p.id !== postId))
     onDelete?.(postId)
+  }
+
+  function openEdit(p: any) {
+    setEditMemo(p.memo || '')
+    setEditMenu(p.recommended_menu || '')
+    setEditRating(p.rating || null)
+    setEditPublic(p.is_public ?? true)
+    setEditLocalRec(p.is_local_recommendation ?? false)
+    setShowEdit(true)
+    setShowMenu(false)
+  }
+
+  async function handleEditSubmit() {
+    if (!selected) return
+    setEditLoading(true)
+    const body: Record<string, unknown> = {
+      memo: editMemo,
+      recommended_menu: editMenu,
+      is_public: editPublic,
+      is_local_recommendation: editLocalRec,
+    }
+    if (selected.type === 'visited') {
+      body.rating = editRating
+    }
+    const res = await fetch(`/api/posts/${selected.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    setEditLoading(false)
+    if (!res.ok) return
+    // Update local state
+    const updated = {
+      ...selected,
+      memo: editMemo,
+      recommended_menu: editMenu,
+      rating: selected.type === 'visited' ? editRating : selected.rating,
+      is_public: editPublic,
+      is_local_recommendation: editLocalRec,
+    }
+    setLocalPosts(prev => prev.map(p => p.id === selected.id ? updated : p))
+    setSelected(updated)
+    setShowEdit(false)
   }
 
   const post = selected
@@ -85,14 +182,14 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     <>
       {/* 3열 그리드 */}
       <div className="grid grid-cols-3 gap-px px-4">
-        {posts.map(p => {
+        {localPosts.map(p => {
           const place = p.places
           const likeCount = likeCountMap[p.id] ?? parseInt(p.post_likes?.[0]?.count) ?? 0
           const saveCount = parseInt(p.post_saves?.[0]?.count) || 0
           return (
             <div
               key={p.id}
-              onClick={() => setSelected(p)}
+              onClick={() => { setSelected(p); setPhotoIndex(0); setComments([]); setCommentText(''); loadComments(p.id) }}
               className="bg-white overflow-hidden text-left cursor-pointer"
             >
               <div className="aspect-square bg-gray-100 relative">
@@ -156,7 +253,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
       {post && (
         <div
           className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center px-4"
-          onClick={() => { setSelected(null); setShowReport(false); setShowMenu(false) }}
+          onClick={() => { setSelected(null); setShowReport(false); setShowMenu(false); setShowEdit(false) }}
         >
           <div
             className="relative bg-white w-full max-w-lg rounded-2xl overflow-hidden flex flex-col"
@@ -242,17 +339,28 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                         <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                         <div className="absolute right-0 top-7 z-20 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[100px]">
                           {post.profiles?.id === userId && (
-                            <button
-                              onClick={() => { setShowMenu(false); handleDeletePost(post.id) }}
-                              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-500 hover:bg-red-50"
-                            >
-                              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <polyline points="3 6 5 6 21 6" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                              삭제
-                            </button>
+                            <>
+                              <button
+                                onClick={() => openEdit(post)}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
+                              >
+                                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                {tPost('edit')}
+                              </button>
+                              <button
+                                onClick={() => { setShowMenu(false); handleDeletePost(post.id) }}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-500 hover:bg-red-50"
+                              >
+                                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <polyline points="3 6 5 6 21 6" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                {tPost('delete')}
+                              </button>
+                            </>
                           )}
                           {post.profiles?.id !== userId && (
                             <button
@@ -264,7 +372,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
                                 <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
                               </svg>
-                              신고
+                              {tPost('report')}
                             </button>
                           )}
                         </div>
@@ -275,8 +383,40 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
               </div>
 
               {post.photos?.length > 0 && (
-                <div className="aspect-square bg-gray-100">
-                  <img src={post.photos[0]} alt="" className="w-full h-full object-cover" />
+                <div className="relative aspect-square bg-gray-100 overflow-hidden">
+                  <img src={post.photos[photoIndex]} alt="" className="w-full h-full object-cover" />
+                  {post.photos.length > 1 && (
+                    <>
+                      {photoIndex > 0 && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setPhotoIndex(i => i - 1) }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/40 rounded-full flex items-center justify-center"
+                        >
+                          <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      )}
+                      {photoIndex < post.photos.length - 1 && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setPhotoIndex(i => i + 1) }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/40 rounded-full flex items-center justify-center"
+                        >
+                          <svg width="14" height="14" fill="none" stroke="white" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                      )}
+                      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                        {post.photos.map((_: string, i: number) => (
+                          <span
+                            key={i}
+                            className={`w-1.5 h-1.5 rounded-full transition-colors ${i === photoIndex ? 'bg-white' : 'bg-white/40'}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -310,6 +450,146 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                   <p className="text-sm text-gray-700 leading-relaxed">{post.memo}</p>
                 )}
               </div>
+
+              {/* 댓글 섹션 */}
+              <div className="border-t border-gray-100 shrink-0">
+                {comments.length > 0 && (
+                  <div className="px-4 pt-3 pb-1 flex flex-col gap-2 max-h-40 overflow-y-auto">
+                    {comments.map((c) => {
+                      const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
+                      return (
+                        <div key={c.id} className="flex items-start gap-2">
+                          <div className="w-6 h-6 rounded-full bg-gray-200 shrink-0 overflow-hidden">
+                            {profile?.avatar_url && <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-semibold text-gray-800 mr-1.5">{profile?.nickname}</span>
+                            <span className="text-xs text-gray-700 break-words">{c.body}</span>
+                          </div>
+                          {c.user_id === userId && (
+                            <button onClick={() => deleteComment(c.id)} className="shrink-0 text-gray-300 text-[10px] leading-none mt-0.5">✕</button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                <div className="flex items-center gap-2 px-4 py-2.5">
+                  <input
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value.slice(0, 200))}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment() } }}
+                    placeholder={tPost('commentPlaceholder')}
+                    className="flex-1 text-sm outline-none text-gray-800 placeholder-gray-400 bg-gray-50 rounded-full px-3 py-1.5"
+                  />
+                  <button
+                    onClick={submitComment}
+                    disabled={!commentText.trim() || commentLoading}
+                    className="text-xs font-semibold text-gray-900 disabled:text-gray-300 shrink-0"
+                  >
+                    {tPost('commentPost')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 수정 바텀시트 */}
+      {showEdit && post && (
+        <div className="fixed inset-0 z-[80] flex flex-col justify-end" onClick={() => setShowEdit(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-white rounded-t-2xl flex flex-col max-h-[85vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
+            </div>
+            <div className="flex items-center px-4 py-3 border-b border-gray-100">
+              <h2 className="text-base font-bold text-gray-900 flex-1">{tPost('editTitle')}</h2>
+              <button onClick={() => setShowEdit(false)} className="p-1 text-gray-400">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-5 pb-8">
+              {/* 메모 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">Memo</p>
+                <textarea
+                  value={editMemo}
+                  onChange={e => setEditMemo(e.target.value.slice(0, 500))}
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none resize-none"
+                />
+                <p className="text-right text-xs text-gray-300 mt-0.5">{editMemo.length}/500</p>
+              </div>
+
+              {/* 추천 메뉴 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">{tPost('category.restaurant')}</p>
+                <input
+                  type="text"
+                  value={editMenu}
+                  onChange={e => setEditMenu(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none"
+                />
+              </div>
+
+              {/* 평점 (방문 후기만) */}
+              {post.type === 'visited' && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Rating</p>
+                  <div className="flex flex-wrap gap-2">
+                    {RATING_OPTIONS.map(r => (
+                      <button
+                        key={r}
+                        onClick={() => setEditRating(editRating === r ? null : r)}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
+                        style={editRating === r
+                          ? { backgroundColor: RATING_COLORS[r], color: 'white', borderColor: 'transparent' }
+                          : { borderColor: '#E5E7EB', color: '#4B5563' }
+                        }
+                      >
+                        {tPost('rating.' + r)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 공개 여부 */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">Public</p>
+                <button
+                  onClick={() => setEditPublic(v => !v)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${editPublic ? 'bg-gray-900' : 'bg-gray-200'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editPublic ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+
+              {/* 현지인 추천 */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-700">{tPost('hiddenSpot')}</p>
+                <button
+                  onClick={() => setEditLocalRec(v => !v)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${editLocalRec ? 'bg-purple-600' : 'bg-gray-200'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editLocalRec ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                </button>
+              </div>
+
+              <button
+                onClick={handleEditSubmit}
+                disabled={editLoading}
+                className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+              >
+                {editLoading ? '...' : tPost('editSubmit')}
+              </button>
             </div>
           </div>
         </div>

@@ -487,7 +487,12 @@ export default function MapClient({ userId }: Props) {
   const [district, setDistrict] = useState<string | null>(null);
   const [minRating, setMinRating] = useState<number | null>(null);
   const [selected, setSelected] = useState<Place | null>(null);
+  const [highlighted, setHighlighted] = useState<Place | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  // 장소 검색 상태
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
 
   // 동선 짜기 상태
   const [mapMode, setMapMode] = useState<
@@ -717,6 +722,22 @@ export default function MapClient({ userId }: Props) {
 
   const visibleCategories = [...new Set(places.map((p) => p.category))];
   const districtList = city ? getMainDistricts(city as City) : [];
+
+  // 장소 검색 필터
+  const searchResults = searchQuery.trim().length > 0
+    ? allPlaces.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      ).slice(0, 5)
+    : [];
+
+  function handleSearchSelect(place: Place) {
+    setHighlighted(place);
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    if (place.city) {
+      setCity(place.city);
+    }
+  }
 
   const hasActiveFilters =
     categories.size > 0 ||
@@ -966,7 +987,7 @@ export default function MapClient({ userId }: Props) {
           }}
         >
           <CityNavigator city={city} />
-          <PlacePanner place={selected} />
+          <PlacePanner place={highlighted ?? selected} />
 
           {/* Per-day polylines in course-view mode */}
           {mapMode === 'course-view' &&
@@ -1052,13 +1073,14 @@ export default function MapClient({ userId }: Props) {
                     if (mapMode === 'course-build') {
                       toggleCoursePlace(place);
                     } else {
+                      setHighlighted(null);
                       setSelected(place);
                     }
                   }}
                 >
                   <PinMarker
                     color={CATEGORY_COLOR[place.category] || '#607D8B'}
-                    selected={selected?.id === place.id || isSelected}
+                    selected={selected?.id === place.id || isSelected || highlighted?.id === place.id}
                     order={isSelected ? buildOrder + 1 : undefined}
                     photoUrl={
                       mapMode === 'course-build' && isSelected
@@ -1082,6 +1104,77 @@ export default function MapClient({ userId }: Props) {
       {mapMode !== 'course-view' && (
         <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
           <div className="max-w-lg mx-auto px-3 pt-3 flex flex-col gap-2">
+            {/* 장소 검색바 - normal + course-build 모드 */}
+            {(mapMode === 'normal' || mapMode === 'course-build') && (
+              <div className="relative pointer-events-auto">
+                <div className="flex items-center bg-white rounded-full shadow px-3 py-2 gap-2">
+                  <svg width="14" height="14" fill="none" stroke="#9CA3AF" strokeWidth={2} viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchDropdown(true);
+                    }}
+                    onFocus={() => setShowSearchDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowSearchDropdown(false), 150)}
+                    placeholder={t('searchPlaceholder')}
+                    className="flex-1 text-sm outline-none bg-transparent text-gray-800 placeholder-gray-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => { setSearchQuery(''); setShowSearchDropdown(false); }}
+                      className="text-gray-400"
+                    >
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                {showSearchDropdown && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                    {searchResults.map(place => (
+                      <button
+                        key={place.id}
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => handleSearchSelect(place)}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0"
+                      >
+                        <span className="text-base shrink-0">
+                          {place.category === 'cafe' ? '☕' : place.category === 'restaurant' ? '🍽️' : place.category === 'photospot' ? '📸' : place.category === 'bar' ? '🍻' : place.category === 'culture' ? '🎨' : place.category === 'nature' ? '🌿' : place.category === 'shopping' ? '🛍️' : '🚶'}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{place.name}</p>
+                          {place.city && (
+                            <p className="text-xs text-gray-400 truncate">{tCities(place.city)}{place.district && place.district !== 'other' ? ` · ${place.district}` : ''}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* 필터 버튼 - course-build 모드 전용 (normal은 아래 액션 버튼에 포함) */}
+            {mapMode === 'course-build' && (
+              <div className="flex justify-end pointer-events-auto">
+                <button
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={`bg-white rounded-full shadow p-2 ${hasActiveFilters ? 'ring-2 ring-gray-900' : ''}`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                    <line x1="11" y1="18" x2="13" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            )}
             {/* 액션 버튼 - normal 모드만 */}
             {mapMode === 'normal' && (
               <div className="flex gap-2 pointer-events-auto">
@@ -2752,14 +2845,30 @@ export default function MapClient({ userId }: Props) {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-gray-700">{t('filter')}</p>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="p-1 text-gray-400"
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2">
+                {hasActiveFilters && (
+                  <button
+                    onClick={() => {
+                      setCategories(new Set());
+                      setNationalities(new Set());
+                      setGenderFilter(null);
+                      setHiddenOnly(false);
+                      setViewMode('all');
+                      setMinRating(null);
+                      setSortBy('popular');
+                    }}
+                    className="text-xs text-gray-400 underline"
+                  >
+                    {t('resetFilter')}
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="px-4 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-full"
+                >
+                  {t('applyFilter')}
+                </button>
+              </div>
             </div>
 
             {/* 보기 모드 */}

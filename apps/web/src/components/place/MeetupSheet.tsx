@@ -573,6 +573,7 @@ function MeetupCreateForm({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
   };
 
+  const [title, setTitle] = useState('');
   const [scheduledAt, setScheduledAt] = useState(defaultScheduledAt());
   const [hostCount, setHostCount] = useState(1);
   const [hostGender, setHostGender] = useState<string>(
@@ -592,7 +593,7 @@ function MeetupCreateForm({
   const [error, setError] = useState('');
 
   const canSubmit =
-    scheduledAt && hostAgeGroups.length > 0 && activities.length > 0;
+    title.trim().length > 0 && scheduledAt && hostAgeGroups.length > 0 && activities.length > 0;
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -601,6 +602,7 @@ function MeetupCreateForm({
     const { error: err } = await supabase.from('place_meetups').insert({
       place_id: placeId,
       organizer_id: userId,
+      title: title.trim(),
       scheduled_at: new Date(scheduledAt).toISOString(),
       host_count: hostCount,
       host_gender: hostGender,
@@ -619,11 +621,26 @@ function MeetupCreateForm({
       setLoading(false);
       return;
     }
+    // 번개 생성 trust 포인트
+    await supabase.rpc('apply_trust_points', { p_user_id: userId, p_action: 'meetup_created' })
     onDone();
   }
 
   return (
     <div className="px-4 py-4 flex flex-col gap-5">
+      {/* 제목 */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.title')}</p>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value.slice(0, 40))}
+          placeholder={t('form.titlePlaceholder')}
+          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white"
+        />
+        <p className="text-right text-xs text-gray-300 mt-0.5">{title.length}/40</p>
+      </div>
+
       {/* 날짜/시간 */}
       <div>
         <p className="text-xs font-semibold text-gray-500 mb-2">

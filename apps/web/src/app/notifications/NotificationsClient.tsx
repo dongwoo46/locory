@@ -16,13 +16,15 @@ type NotifType =
   | 'join_unmatched'
   | 'message_new'
   | 'post_deleted'
+  | 'post_liked'
+  | 'post_saved'
 
 interface Notification {
   id: string
   type: NotifType
   title: string
   body: string
-  data: { meetup_id?: string; join_id?: string; message_id?: string; place_id?: string } | null
+  data: { meetup_id?: string; join_id?: string; message_id?: string; place_id?: string; post_id?: string; actor_id?: string } | null
   read_at: string | null
   created_at: string
 }
@@ -67,6 +69,16 @@ const TYPE_ICON: Record<NotifType, React.ReactNode> = {
       <path d="M9 6V4h6v2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
+  post_liked: (
+    <svg width="20" height="20" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  ),
+  post_saved: (
+    <svg width="20" height="20" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
 }
 
 const TYPE_COLOR: Record<NotifType, string> = {
@@ -77,6 +89,8 @@ const TYPE_COLOR: Record<NotifType, string> = {
   join_unmatched: 'bg-gray-100 text-gray-500',
   message_new:    'bg-purple-100 text-purple-600',
   post_deleted:   'bg-red-100 text-red-500',
+  post_liked:     'bg-pink-100 text-pink-500',
+  post_saved:     'bg-indigo-100 text-indigo-500',
 }
 
 export default function NotificationsClient({ userId }: { userId: string }) {

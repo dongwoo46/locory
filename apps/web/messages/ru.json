@@ -75,7 +75,8 @@
       "apgujeong": "Апкучон",
       "konkuk": "Конде",
       "jamsil": "Чамсиль",
-      "dongdaemun": "Тондэмун"
+      "dongdaemun": "Тондэмун",
+      "other": "Другое"
     },
     "busan": {
       "haeundae": "Хэундэ",
@@ -91,7 +92,8 @@
       "mangmi": "Мангми",
       "millak": "Миллак",
       "dadaepo": "Тадэпхо",
-      "busanstation": "Станция Пусан"
+      "busanstation": "Станция Пусан",
+      "other": "Другое"
     },
     "jeju": {
       "jejusi": "Чеджу-си",
@@ -100,42 +102,49 @@
       "seongsan": "Сонсан",
       "udo": "Удо",
       "hyeopjae": "Хёпчэ",
-      "hamdeok": "Хамдок"
+      "hamdeok": "Хамдок",
+      "other": "Другое"
     },
     "gyeongju": {
       "hwangridangil": "Хванниданниль",
       "downtown": "Центр Кёнджу",
       "bomun": "Бомун",
-      "bulguksa": "Пульгукса"
+      "bulguksa": "Пульгукса",
+      "other": "Другое"
     },
     "jeonju": {
       "hanok": "Деревня Ханок",
       "downtown": "Центр Чонджу",
-      "nambu": "Намбу-сичжан"
+      "nambu": "Намбу-сичжан",
+      "other": "Другое"
     },
     "gangneung": {
       "downtown": "Центр Канныня",
       "gyeongpo": "Кёнпхо",
       "anmok": "Анмок",
-      "jumunjin": "Чумунджин"
+      "jumunjin": "Чумунджин",
+      "other": "Другое"
     },
     "sokcho": {
       "downtown": "Центр Сокчхо",
       "seoraksan": "Сораксан",
       "beach": "Пляж Сокчхо",
-      "abai": "Деревня Абай"
+      "abai": "Деревня Абай",
+      "other": "Другое"
     },
     "yeosu": {
       "downtown": "Центр Ёсу",
       "dolsando": "Тольсандо",
       "odongdo": "Одондо",
-      "hyangiram": "Хянгирам"
+      "hyangiram": "Хянгирам",
+      "other": "Другое"
     },
     "incheon": {
       "chinatown": "Чайнатаун",
       "gaehang": "Кэхан",
       "songdo": "Сондо",
-      "wolmi": "Вольмидо"
+      "wolmi": "Вольмидо",
+      "other": "Другое"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "Местная рекомендация",
     "hiddenSpotOnly": "Только местные рекомендации",
-    "deleteConfirm": "Удалить эту запись?"
+    "deleteConfirm": "Удалить эту запись?",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "report": "Пожаловаться",
+    "editTitle": "Редактировать пост",
+    "editSubmit": "Сохранить",
+    "editSuccess": "Обновлено",
+    "commentPlaceholder": "Добавить комментарий...",
+    "commentPost": "Отправить"
   },
   "place": {
     "visitorStats": "Статистика посетителей",
@@ -374,6 +391,9 @@
       "unmatch": "Размэтчить",
       "openThread": "Открыть чат",
       "closeBtn": "Закрыть встречу",
+      "closeConfirm": "Все ожидающие заявки будут отклонены. Закрыть встречу?",
+      "deleteBtn": "Удалить встречу",
+      "deleteConfirm": "Удалить эту встречу? Отменить нельзя.",
       "noApplicants": "Заявок ещё нет",
       "accept": "Принять"
     },
@@ -406,6 +426,8 @@
       "countOptional": "Участников (любое, если не выбрано)",
       "nationalityOptional": "Гражданство (любое, если не выбрано)",
       "saving": "Сохранение...",
+      "title": "Название",
+      "titlePlaceholder": "Введите название встречи (обязательно)",
       "submit": "Создать встречу",
       "saveFailed": "Ошибка сохранения"
     },
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "Встречи",
       "empty": "Встреч пока нет",
-      "createBtn": "Создать встречу"
+      "createBtn": "Создать встречу",
+      "filter": "Фильтр",
+      "filterReset": "Сбросить",
+      "filterApply": "Применить",
+      "closeMeetup": "Завершить встречу",
+      "closeConfirm": "Завершить эту встречу?"
     }
   },
   "map": {
+    "searchPlaceholder": "Поиск мест...",
     "all": "Все",
     "saved": "Мои сохранения",
     "posts": "постов",
@@ -524,6 +552,8 @@
     "category": "Категория",
     "placeCount": "мест",
     "filter": "Фильтр",
+    "applyFilter": "Применить",
+    "resetFilter": "Сбросить",
     "filterView": "Вид",
     "viewAll": "Все",
     "viewFeed": "🗺 Посещённые",
@@ -728,6 +758,9 @@
       "private": "Приватно",
       "publicDesc": "Видно в ленте",
       "privateDesc": "Видно только вам",
+      "localRec": "Рекомендация местного",
+      "localRecDesc": "Рекомендую это место как кореец",
+      "localRecLocked": "Только пользователи с корейским гражданством могут оставлять рекомендации местных",
       "submit": "Опубликовать",
       "submitting": "Публикация..."
     }

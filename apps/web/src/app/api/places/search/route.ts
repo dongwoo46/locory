@@ -16,11 +16,12 @@ export async function GET(request: Request) {
       'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount',
     },
     body: JSON.stringify({
-      textQuery: query + ' 한국',
+      textQuery: query,
       languageCode: 'ko',
-      maxResultCount: 5,
+      regionCode: 'KR',
+      pageSize: 10,
     }),
-    next: { revalidate: 3600 }, // 1시간 캐싱
+    cache: 'no-store',
   })
 
   const data = await res.json()
@@ -36,7 +37,5 @@ export async function GET(request: Request) {
     googleReviewCount: p.userRatingCount || null,
   }))
 
-  return NextResponse.json({ places }, {
-    headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
-  })
+  return NextResponse.json({ places })
 }

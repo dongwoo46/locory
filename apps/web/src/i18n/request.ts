@@ -9,6 +9,7 @@ async function loadMessages(locale: Locale) {
     case 'zh-CN': return (await import('../../messages/zh-CN.json')).default
     case 'zh-TW': return (await import('../../messages/zh-TW.json')).default
     case 'es':    return (await import('../../messages/es.json')).default
+    case 'ru':    return (await import('../../messages/ru.json')).default
     default:      return (await import('../../messages/ko.json')).default
   }
 }

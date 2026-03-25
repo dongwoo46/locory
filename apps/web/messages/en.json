@@ -75,7 +75,8 @@
       "apgujeong": "Apgujeong",
       "konkuk": "Konkuk",
       "jamsil": "Jamsil",
-      "dongdaemun": "Dongdaemun"
+      "dongdaemun": "Dongdaemun",
+      "other": "Other"
     },
     "busan": {
       "haeundae": "Haeundae",
@@ -91,7 +92,8 @@
       "mangmi": "Mangmi",
       "millak": "Millak",
       "dadaepo": "Dadaepo",
-      "busanstation": "Busan Station"
+      "busanstation": "Busan Station",
+      "other": "Other"
     },
     "jeju": {
       "jejusi": "Jeju City",
@@ -100,42 +102,49 @@
       "seongsan": "Seongsan",
       "udo": "Udo Island",
       "hyeopjae": "Hyeopjae",
-      "hamdeok": "Hamdeok"
+      "hamdeok": "Hamdeok",
+      "other": "Other"
     },
     "gyeongju": {
       "hwangridangil": "Hwangridangil",
       "downtown": "Downtown",
       "bomun": "Bomun Lake",
-      "bulguksa": "Bulguksa"
+      "bulguksa": "Bulguksa",
+      "other": "Other"
     },
     "jeonju": {
       "hanok": "Hanok Village",
       "downtown": "Downtown",
-      "nambu": "Nambu Market"
+      "nambu": "Nambu Market",
+      "other": "Other"
     },
     "gangneung": {
       "downtown": "Downtown",
       "gyeongpo": "Gyeongpo",
       "anmok": "Anmok Beach",
-      "jumunjin": "Jumunjin"
+      "jumunjin": "Jumunjin",
+      "other": "Other"
     },
     "sokcho": {
       "downtown": "Downtown",
       "seoraksan": "Seoraksan",
       "beach": "Sokcho Beach",
-      "abai": "Abai Village"
+      "abai": "Abai Village",
+      "other": "Other"
     },
     "yeosu": {
       "downtown": "Downtown",
       "dolsando": "Dolsando",
       "odongdo": "Odongdo",
-      "hyangiram": "Hyangiram"
+      "hyangiram": "Hyangiram",
+      "other": "Other"
     },
     "incheon": {
       "chinatown": "Chinatown",
       "gaehang": "Open Port Area",
       "songdo": "Songdo",
-      "wolmi": "Wolmido"
+      "wolmi": "Wolmido",
+      "other": "Other"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "Local's pick",
     "hiddenSpotOnly": "Local's pick only",
-    "deleteConfirm": "Delete this post?"
+    "deleteConfirm": "Delete this post?",
+    "edit": "Edit",
+    "delete": "Delete",
+    "report": "Report",
+    "editTitle": "Edit post",
+    "editSubmit": "Save changes",
+    "editSuccess": "Post updated",
+    "commentPlaceholder": "Add a comment...",
+    "commentPost": "Post"
   },
   "place": {
     "visitorStats": "Visitor stats",
@@ -374,6 +391,9 @@
       "unmatch": "Unmatch",
       "openThread": "Open Chat",
       "closeBtn": "Close Meetup",
+      "closeConfirm": "Pending applications will be rejected. Close the meetup?",
+      "deleteBtn": "Delete Meetup",
+      "deleteConfirm": "Delete this meetup? This cannot be undone.",
       "noApplicants": "No applicants yet",
       "accept": "Accept"
     },
@@ -406,6 +426,8 @@
       "countOptional": "Members (any if empty)",
       "nationalityOptional": "Nationality (any if empty)",
       "saving": "Saving...",
+      "title": "Title",
+      "titlePlaceholder": "Enter meetup title (required)",
       "submit": "Create Meetup",
       "saveFailed": "Failed to save"
     },
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "Meetups",
       "empty": "No meetups yet",
-      "createBtn": "Create Meetup"
+      "createBtn": "Create Meetup",
+      "filter": "Filter",
+      "filterReset": "Reset",
+      "filterApply": "Apply",
+      "closeMeetup": "Close meetup",
+      "closeConfirm": "Close this meetup?"
     }
   },
   "map": {
+    "searchPlaceholder": "Search places...",
     "all": "All",
     "saved": "Saved",
     "posts": "posts",
@@ -524,6 +552,8 @@
     "category": "Category",
     "placeCount": " places",
     "filter": "Filter",
+    "applyFilter": "Apply",
+    "resetFilter": "Reset",
     "filterView": "View",
     "viewAll": "All",
     "viewFeed": "🗺 Visited",
@@ -728,6 +758,9 @@
       "private": "Private",
       "publicDesc": "Visible in feed",
       "privateDesc": "Only you can see",
+      "localRec": "Local Recommendation",
+      "localRecDesc": "Recommend this place as a Korean local",
+      "localRecLocked": "Only Korean nationals can leave a local recommendation",
       "submit": "Post",
       "submitting": "Posting..."
     }

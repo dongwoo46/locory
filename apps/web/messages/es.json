@@ -75,7 +75,8 @@
       "apgujeong": "Apgujeong",
       "konkuk": "Konkuk",
       "jamsil": "Jamsil",
-      "dongdaemun": "Dongdaemun"
+      "dongdaemun": "Dongdaemun",
+      "other": "Otro"
     },
     "busan": {
       "haeundae": "Haeundae",
@@ -91,7 +92,8 @@
       "mangmi": "Mangmi",
       "millak": "Millak",
       "dadaepo": "Dadaepo",
-      "busanstation": "Estación Busan"
+      "busanstation": "Estación Busan",
+      "other": "Otro"
     },
     "jeju": {
       "jejusi": "Ciudad Jeju",
@@ -100,42 +102,49 @@
       "seongsan": "Seongsan",
       "udo": "Isla Udo",
       "hyeopjae": "Hyeopjae",
-      "hamdeok": "Hamdeok"
+      "hamdeok": "Hamdeok",
+      "other": "Otro"
     },
     "gyeongju": {
       "hwangridangil": "Hwangridangil",
       "downtown": "Centro",
       "bomun": "Lago Bomun",
-      "bulguksa": "Bulguksa"
+      "bulguksa": "Bulguksa",
+      "other": "Otro"
     },
     "jeonju": {
       "hanok": "Pueblo Hanok",
       "downtown": "Centro",
-      "nambu": "Mercado Nambu"
+      "nambu": "Mercado Nambu",
+      "other": "Otro"
     },
     "gangneung": {
       "downtown": "Centro",
       "gyeongpo": "Gyeongpo",
       "anmok": "Playa Anmok",
-      "jumunjin": "Jumunjin"
+      "jumunjin": "Jumunjin",
+      "other": "Otro"
     },
     "sokcho": {
       "downtown": "Centro",
       "seoraksan": "Seoraksan",
       "beach": "Playa Sokcho",
-      "abai": "Pueblo Abai"
+      "abai": "Pueblo Abai",
+      "other": "Otro"
     },
     "yeosu": {
       "downtown": "Centro",
       "dolsando": "Dolsando",
       "odongdo": "Odongdo",
-      "hyangiram": "Hyangiram"
+      "hyangiram": "Hyangiram",
+      "other": "Otro"
     },
     "incheon": {
       "chinatown": "Barrio Chino",
       "gaehang": "Puerto Histórico",
       "songdo": "Songdo",
-      "wolmi": "Wolmido"
+      "wolmi": "Wolmido",
+      "other": "Otro"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "Recomendación local",
     "hiddenSpotOnly": "Solo recomendación local",
-    "deleteConfirm": "¿Eliminar esta publicación?"
+    "deleteConfirm": "¿Eliminar esta publicación?",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "report": "Denunciar",
+    "editTitle": "Editar publicación",
+    "editSubmit": "Guardar cambios",
+    "editSuccess": "Publicación actualizada",
+    "commentPlaceholder": "Añadir un comentario...",
+    "commentPost": "Publicar"
   },
   "place": {
     "visitorStats": "Estadísticas de visitas",
@@ -374,6 +391,9 @@
       "unmatch": "Sin match",
       "openThread": "Abrir chat",
       "closeBtn": "Cerrar encuentro",
+      "closeConfirm": "Las solicitudes pendientes serán rechazadas. ¿Cerrar el encuentro?",
+      "deleteBtn": "Eliminar encuentro",
+      "deleteConfirm": "¿Eliminar este encuentro? No se puede deshacer.",
       "noApplicants": "Sin solicitantes aún",
       "accept": "Aceptar"
     },
@@ -406,6 +426,8 @@
       "countOptional": "Miembros (cualquiera si vacío)",
       "nationalityOptional": "Nacionalidad (cualquiera si vacío)",
       "saving": "Guardando...",
+      "title": "Título",
+      "titlePlaceholder": "Introduce el título del encuentro (obligatorio)",
       "submit": "Crear encuentro",
       "saveFailed": "Error al guardar"
     },
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "Encuentros",
       "empty": "No hay encuentros aún",
-      "createBtn": "Crear encuentro"
+      "createBtn": "Crear encuentro",
+      "filter": "Filtrar",
+      "filterReset": "Restablecer",
+      "filterApply": "Aplicar",
+      "closeMeetup": "Cerrar encuentro",
+      "closeConfirm": "¿Cerrar este encuentro?"
     }
   },
   "map": {
+    "searchPlaceholder": "Buscar lugares...",
     "all": "Todo",
     "saved": "Guardado",
     "posts": "posts",
@@ -524,6 +552,8 @@
     "category": "Categoría",
     "placeCount": " lugares",
     "filter": "Filtro",
+    "applyFilter": "Aplicar",
+    "resetFilter": "Restablecer",
     "filterView": "Ver",
     "viewAll": "Todos",
     "viewFeed": "🗺 Visitados",
@@ -728,6 +758,9 @@
       "private": "Privado",
       "publicDesc": "Visible en el feed",
       "privateDesc": "Solo tú puedes ver",
+      "localRec": "Recomendación local",
+      "localRecDesc": "Recomienda este lugar como coreano local",
+      "localRecLocked": "Solo usuarios con nacionalidad coreana pueden dejar una recomendación local",
       "submit": "Publicar",
       "submitting": "Publicando..."
     }

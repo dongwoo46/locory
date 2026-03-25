@@ -10,7 +10,6 @@ import StepRating from './StepRating'
 import StepMemo from './StepMemo'
 import { useTranslations } from 'next-intl'
 import { INITIAL_STATE, type UploadState } from './types'
-import type { Rating } from '@/types/database'
 
 export default function UploadFlow() {
   const router = useRouter()
@@ -22,15 +21,19 @@ export default function UploadFlow() {
 
   // 계정 공개 여부 + 국적 가져오기
   useEffect(() => {
-    supabase.from('profiles')
-      .select('is_public, nationality')
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setState(prev => ({ ...prev, isPublic: data.is_public }))
-          setUserNationality(data.nationality)
-        }
-      })
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('profiles')
+        .select('is_public, nationality')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setState(prev => ({ ...prev, isPublic: data.is_public }))
+            setUserNationality(data.nationality)
+          }
+        })
+    })
   }, [])
 
   function update(patch: Partial<UploadState>) {
@@ -107,6 +110,7 @@ export default function UploadFlow() {
         recommended_menu: state.recommendedMenu || null,
         photos: photoUrls,
         is_public: state.isPublic,
+        is_local_recommendation: state.isLocalRecommendation,
       })
 
       if (postError) throw postError
@@ -123,11 +127,11 @@ export default function UploadFlow() {
         p_ref_id: placeId,
       })
 
-      // 히든스팟이면 추가 포인트
-      if (state.place.place_type === 'hidden_spot') {
+      // 현지인 추천이면 추가 포인트
+      if (state.isLocalRecommendation) {
         await supabase.rpc('apply_trust_points', {
           p_user_id: user.id,
-          p_action: 'hidden_spot_registered',
+          p_action: 'local_recommendation_post',
           p_ref_id: placeId,
         })
       }
@@ -140,6 +144,9 @@ export default function UploadFlow() {
       setLoading(false)
     }
   }
+
+  // 현지인 추천 가능 여부: 한국 장소 = KR 국적만 (추후 다국가 확장 시 place.country 비교)
+  const canLocalRecommend = userNationality === 'KR'
 
   // visited면 5단계, want면 4단계 (평점 없음)
   const totalSteps = state.postType === 'want' ? 4 : 5
@@ -175,7 +182,6 @@ export default function UploadFlow() {
       <main className="flex-1 max-w-lg w-full mx-auto px-4 py-6 overflow-y-auto">
         {state.step === 1 && (
           <StepPlace
-            userNationality={userNationality}
             onSelect={place => {
               update({ place })
               goNext()
@@ -211,10 +217,13 @@ export default function UploadFlow() {
             memo={state.memo}
             recommendedMenu={state.recommendedMenu}
             isPublic={state.isPublic}
+            isLocalRecommendation={state.isLocalRecommendation}
+            canLocalRecommend={canLocalRecommend}
             placeCategory={state.place?.category}
             onMemoChange={memo => update({ memo })}
             onMenuChange={recommendedMenu => update({ recommendedMenu })}
             onPublicChange={isPublic => update({ isPublic })}
+            onLocalRecChange={isLocalRecommendation => update({ isLocalRecommendation })}
             onSubmit={handleSubmit}
             loading={loading}
           />

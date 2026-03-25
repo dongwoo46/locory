@@ -172,11 +172,21 @@ export default function PlaceMeetupsClient({ placeId, place, userId, profile }: 
   const [meetups, setMeetups] = useState<MeetupItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false)
 
+  // Pending filter state (inside modal)
+  const [pendingActivity, setPendingActivity] = useState<string | null>(null)
+  const [pendingVibe, setPendingVibe] = useState<string | null>(null)
+  const [pendingGender, setPendingGender] = useState<string | null>(null)
+  const [pendingDate, setPendingDate] = useState<string | null>(null)
+
+  // Applied filter state
   const [filterActivity, setFilterActivity] = useState<string | null>(null)
   const [filterVibe, setFilterVibe] = useState<string | null>(null)
   const [filterGender, setFilterGender] = useState<string | null>(null)
   const [filterDate, setFilterDate] = useState<string | null>(null)
+
+  const activeFilterCount = [filterActivity, filterVibe, filterGender, filterDate].filter(Boolean).length
 
   const canParticipate = profile?.is_public && (profile?.trust_score ?? 0) >= 3
   const myAgeGroup = getAgeGroup(profile?.birth_date ?? null)
@@ -216,9 +226,33 @@ export default function PlaceMeetupsClient({ placeId, place, userId, profile }: 
     return true
   })
 
-  function toggleFilter<T extends string>(val: T, current: T | null, set: (v: T | null) => void) {
+  function openFilterModal() {
+    setPendingActivity(filterActivity)
+    setPendingVibe(filterVibe)
+    setPendingGender(filterGender)
+    setPendingDate(filterDate)
+    setShowFilterModal(true)
+  }
+
+  function applyFilters() {
+    setFilterActivity(pendingActivity)
+    setFilterVibe(pendingVibe)
+    setFilterGender(pendingGender)
+    setFilterDate(pendingDate)
+    setShowFilterModal(false)
+  }
+
+  function resetFilters() {
+    setPendingActivity(null)
+    setPendingVibe(null)
+    setPendingGender(null)
+    setPendingDate(null)
+  }
+
+  function togglePending<T extends string>(val: T, current: T | null, set: (v: T | null) => void) {
     set(current === val ? null : val)
   }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -231,83 +265,37 @@ export default function PlaceMeetupsClient({ placeId, place, userId, profile }: 
             </svg>
           </button>
           <h1 className="flex-1 text-base font-bold text-gray-900 truncate">{place.name}</h1>
-          {canParticipate && (
+          <div className="flex items-center gap-2">
+            {/* 필터 버튼 */}
             <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-gray-900 text-white rounded-full text-xs font-medium"
+              onClick={openFilterModal}
+              className={`relative p-2 rounded-full transition-colors ${activeFilterCount > 0 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}
             >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {t('placeMeetups.createBtn')}
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
-          )}
+            {canParticipate && (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-900 text-white rounded-full text-xs font-medium"
+              >
+                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                </svg>
+                {t('placeMeetups.createBtn')}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="pt-14 pb-6">
-        {/* 필터 */}
-        <div className="bg-white border-b border-gray-100 sticky top-14 z-40">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 py-2">
-            {ACTIVITIES.map((a) => (
-              <button
-                key={a.value}
-                onClick={() => toggleFilter(a.value, filterActivity, setFilterActivity)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterActivity === a.value
-                    ? 'bg-blue-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`activity.${a.value}`)}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-4 pb-2">
-            {VIBES.map((v) => (
-              <button
-                key={v.value}
-                onClick={() => toggleFilter(v.value, filterVibe, setFilterVibe)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterVibe === v.value
-                    ? 'bg-purple-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`vibe.${v.value}`)}
-              </button>
-            ))}
-            <div className="w-px bg-gray-200 mx-1 self-stretch" />
-            {WANTED_GENDER_OPTS.map((g) => (
-              <button
-                key={g.value}
-                onClick={() => toggleFilter(g.value, filterGender, setFilterGender)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterGender === g.value
-                    ? 'bg-pink-600 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {t(`gender.${g.value}`)}
-              </button>
-            ))}
-            <div className="w-px bg-gray-200 mx-1 self-stretch" />
-            {(['today', 'week', 'weekend'] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => toggleFilter(d, filterDate, setFilterDate)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  filterDate === d
-                    ? 'bg-orange-500 text-white border-transparent'
-                    : 'border-gray-200 text-gray-600 bg-white'
-                }`}
-              >
-                {d === 'today' ? t('explore.dateToday') : d === 'week' ? t('explore.dateWeek') : t('explore.dateWeekend')}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* 목록 */}
         <div className="px-4 py-4 flex flex-col gap-3 max-w-lg mx-auto">
           {loading ? (
@@ -321,86 +309,177 @@ export default function PlaceMeetupsClient({ placeId, place, userId, profile }: 
               return (
                 <div
                   key={m.id}
+                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm cursor-pointer active:bg-gray-50"
                   onClick={() => router.push(`/meetup/${m.id}`)}
-                  className="bg-white border border-gray-100 rounded-2xl p-4 cursor-pointer active:bg-gray-50 shadow-sm"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-900">
-                      {formatScheduled(m.scheduled_at)}
-                    </span>
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex gap-3">
+                    {/* 아바타 */}
+                    <div className="shrink-0">
                       {m.profiles?.avatar_url ? (
-                        <img src={m.profiles.avatar_url} className="w-5 h-5 rounded-full object-cover" alt="" />
+                        <img src={m.profiles.avatar_url} className="w-11 h-11 rounded-full object-cover" alt="" />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
-                          {m.profiles?.nickname?.[0] ?? '?'}
+                        <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-base font-semibold text-gray-400">
+                          {m.profiles?.nickname?.[0]?.toUpperCase() ?? '?'}
                         </div>
                       )}
-                      <span className="text-xs text-gray-500">{m.profiles?.nickname ?? '-'}</span>
-                      {isOrganizer && (
-                        <span className="text-xs text-blue-500 font-medium">{t('myMeetup')}</span>
+                    </div>
+                    {/* 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-gray-900">{m.profiles?.nickname ?? '-'}</span>
+                          {isOrganizer && (
+                            <span className="text-xs text-blue-500 font-medium">{t('myMeetup')}</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400 whitespace-nowrap ml-2">{formatScheduled(m.scheduled_at)}</span>
+                      </div>
+                      {/* 내 정보 칩 */}
+                      <div className="flex flex-wrap gap-1 mb-1.5">
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">{m.host_count}명</span>
+                        {m.host_gender && (
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                            {t(`gender.${m.host_gender}`)}
+                          </span>
+                        )}
+                        {m.host_age_groups.map((a: string) => (
+                          <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                            {t(`ageGroup.${a}`)}
+                          </span>
+                        ))}
+                        {m.activities.slice(0, 2).map((a: string) => (
+                          <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
+                            {t(`activity.${a}`)}
+                          </span>
+                        ))}
+                        {m.vibe && (
+                          <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">
+                            {t(`vibe.${m.vibe}`)}
+                          </span>
+                        )}
+                      </div>
+                      {/* 원하는 상대 */}
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-xs text-gray-400">{t('wantedLabel')}</span>
+                        <span className="text-xs text-gray-600">{t(`gender.${m.wanted_gender}`)}</span>
+                        {m.wanted_age_groups?.map((a: string) => (
+                          <span key={a} className="text-xs text-gray-600">{t(`ageGroup.${a}`)}</span>
+                        ))}
+                        {m.wanted_count && <span className="text-xs text-gray-600">{m.wanted_count}명</span>}
+                      </div>
+                      {m.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{m.description}</p>
+                      )}
+                      {myJoin && !isOrganizer && (
+                        <div className="mt-1.5">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            myJoin.status === 'accepted' ? 'bg-green-100 text-green-700'
+                            : myJoin.status === 'rejected' ? 'bg-red-50 text-red-500'
+                            : myJoin.status === 'unmatched' ? 'bg-gray-100 text-gray-400'
+                            : 'bg-yellow-50 text-yellow-600'
+                          }`}>
+                            {myJoin.status === 'accepted' ? t('status.accepted')
+                              : myJoin.status === 'rejected' ? t('status.rejected')
+                              : myJoin.status === 'unmatched' ? t('status.unmatched')
+                              : t('status.pending')}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">{m.host_count}명</span>
-                    {m.host_gender && (
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-                        {t(`gender.${m.host_gender}`)}
-                      </span>
-                    )}
-                    {m.host_age_groups.map((a: string) => (
-                      <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-                        {t(`ageGroup.${a}`)}
-                      </span>
-                    ))}
-                    {m.activities.slice(0, 2).map((a: string) => (
-                      <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
-                        {t(`activity.${a}`)}
-                      </span>
-                    ))}
-                    {m.vibe && (
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">
-                        {t(`vibe.${m.vibe}`)}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 flex-wrap">
-                    <span className="text-xs text-gray-400">{t('wantedLabel')}</span>
-                    <span className="text-xs text-gray-600">{t(`gender.${m.wanted_gender}`)}</span>
-                    {m.wanted_age_groups?.map((a: string) => (
-                      <span key={a} className="text-xs text-gray-600">{t(`ageGroup.${a}`)}</span>
-                    ))}
-                    {m.wanted_count && <span className="text-xs text-gray-600">{m.wanted_count}명</span>}
-                  </div>
-
-                  {m.description && (
-                    <p className="text-xs text-gray-500 mt-2 line-clamp-1">{m.description}</p>
-                  )}
-
-                  {myJoin && !isOrganizer && (
-                    <div className="mt-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        myJoin.status === 'accepted' ? 'bg-green-100 text-green-700'
-                        : myJoin.status === 'rejected' ? 'bg-red-50 text-red-500'
-                        : myJoin.status === 'unmatched' ? 'bg-gray-100 text-gray-400'
-                        : 'bg-yellow-50 text-yellow-600'
-                      }`}>
-                        {myJoin.status === 'accepted' ? t('status.accepted')
-                          : myJoin.status === 'rejected' ? t('status.rejected')
-                          : myJoin.status === 'unmatched' ? t('status.unmatched')
-                          : t('status.pending')}
-                      </span>
-                    </div>
-                  )}
                 </div>
               )
             })
           )}
         </div>
       </div>
+
+      {/* 필터 바텀시트 모달 */}
+      {showFilterModal && (
+        <div className="fixed inset-0 z-[70] flex flex-col justify-end" onClick={() => setShowFilterModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-white rounded-t-2xl flex flex-col max-h-[80vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
+            </div>
+            <div className="flex items-center px-4 py-3 border-b border-gray-100">
+              <h2 className="text-base font-bold text-gray-900 flex-1">{t('placeMeetups.filter')}</h2>
+              <button
+                onClick={resetFilters}
+                className="text-xs text-gray-400 mr-3"
+              >
+                {t('placeMeetups.filterReset')}
+              </button>
+              <button onClick={() => setShowFilterModal(false)} className="p-1 text-gray-400">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-5 pb-4">
+              {/* 활동 필터 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.whatToDo')}</p>
+                <ChipSelect
+                  options={ACTIVITIES}
+                  value={pendingActivity}
+                  onChange={(v) => setPendingActivity(pendingActivity === v ? null : v)}
+                  labelKey={(v) => t(`activity.${v}`)}
+                />
+              </div>
+              {/* 분위기 필터 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.vibe')}</p>
+                <ChipSelect
+                  options={VIBES}
+                  value={pendingVibe}
+                  onChange={(v) => setPendingVibe(pendingVibe === v ? null : v)}
+                  labelKey={(v) => t(`vibe.${v}`)}
+                />
+              </div>
+              {/* 원하는 성별 필터 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.gender')}</p>
+                <ChipSelect
+                  options={WANTED_GENDER_OPTS}
+                  value={pendingGender}
+                  onChange={(v) => setPendingGender(pendingGender === v ? null : v)}
+                  labelKey={(v) => t(`gender.${v}`)}
+                />
+              </div>
+              {/* 날짜 필터 */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.dateTime')}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {(['today', 'week', 'weekend'] as const).map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => togglePending(d, pendingDate, setPendingDate)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        pendingDate === d
+                          ? 'bg-orange-500 text-white border-transparent'
+                          : 'border-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {d === 'today' ? t('explore.dateToday') : d === 'week' ? t('explore.dateWeek') : t('explore.dateWeekend')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={applyFilters}
+                className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-medium"
+              >
+                {t('placeMeetups.filterApply')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 만들기 모달 */}
       {showCreate && (
@@ -490,6 +569,8 @@ function CreateModal({
       setLoading(false)
       return
     }
+    // 번개 생성 trust 포인트
+    await supabase.rpc('apply_trust_points', { p_user_id: userId, p_action: 'meetup_created' })
     onDone()
   }
 

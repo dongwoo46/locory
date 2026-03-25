@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
@@ -9,6 +9,8 @@ import NotificationBell from '@/components/ui/NotificationBell'
 import { CITIES } from '@/lib/utils/districts'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 10
 
 const ACTIVITIES = [
   { value: 'chat' }, { value: 'food' }, { value: 'photo' },
@@ -57,6 +59,7 @@ interface MeetupCard {
   host_age_groups: string[]
   activities: string[]
   vibe: string
+  title: string | null
   description: string | null
   wanted_gender: string
   wanted_age_groups: string[] | null
@@ -87,11 +90,16 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
   const supabase = createClient()
   const t = useTranslations('meetup')
   const tCities = useTranslations('cities')
+  const tDistricts = useTranslations('districts')
 
   const [meetups, setMeetups] = useState<MeetupCard[]>([])
   const [myJoins, setMyJoins] = useState<{ meetup_id: string; status: string }[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   // 필터 상태
   const [filterCity, setFilterCity] = useState<string | null>(null)
@@ -102,42 +110,75 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
 
   const activeFilterCount = [filterActivity, filterVibe, filterGender, filterDate].filter(Boolean).length
 
-  useEffect(() => {
-    loadData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  async function loadData() {
-    setLoading(true)
+  async function fetchMeetups(pageNum: number, city: string | null) {
     const now = new Date().toISOString()
+    let query = supabase
+      .from('place_meetups')
+      .select(`
+        id, title, scheduled_at, status, host_count, host_gender, host_age_groups,
+        activities, vibe, description, wanted_gender, wanted_age_groups, wanted_count,
+        organizer_id,
+        places!place_id (id, name, city, district, category),
+        profiles!organizer_id (id, nickname, avatar_url, gender, birth_date)
+      `)
+      .eq('status', 'open')
+      .is('deleted_at', null)
+      .gt('scheduled_at', now)
+      .order('scheduled_at', { ascending: true })
+      .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1)
+
+    if (city) query = query.eq('places.city', city)
+    return query
+  }
+
+  async function loadInitial(city: string | null) {
+    setLoading(true)
+    setPage(0)
+    setHasMore(true)
     const [meetupsRes, joinsRes] = await Promise.all([
-      supabase
-        .from('place_meetups')
-        .select(`
-          id, scheduled_at, status, host_count, host_gender, host_age_groups,
-          activities, vibe, description, wanted_gender, wanted_age_groups, wanted_count,
-          places!place_id (id, name, city, district, category),
-          profiles!organizer_id (id, nickname, avatar_url, gender, birth_date)
-        `)
-        .eq('status', 'open')
-        .is('deleted_at', null)
-        .gt('scheduled_at', now)
-        .order('scheduled_at', { ascending: true })
-        .limit(50),
-      supabase
-        .from('meetup_joins')
-        .select('meetup_id, status')
-        .eq('applicant_id', userId),
+      fetchMeetups(0, city),
+      supabase.from('meetup_joins').select('meetup_id, status').eq('applicant_id', userId),
     ])
-    setMeetups((meetupsRes.data as MeetupCard[]) ?? [])
+    const items = (meetupsRes.data as MeetupCard[]) ?? []
+    setMeetups(items)
     setMyJoins((joinsRes.data as { meetup_id: string; status: string }[]) ?? [])
+    if (items.length < PAGE_SIZE) setHasMore(false)
     setLoading(false)
   }
 
-  // ── 클라이언트 사이드 필터 ────────────────────────────────────────────────
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    const nextPage = page + 1
+    const res = await fetchMeetups(nextPage, filterCity)
+    const items = (res.data as MeetupCard[]) ?? []
+    setMeetups(prev => [...prev, ...items])
+    setPage(nextPage)
+    if (items.length < PAGE_SIZE) setHasMore(false)
+    setLoadingMore(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, hasMore, page, filterCity])
 
+  // 초기 로드 + 도시 필터 변경 시 재로드
+  useEffect(() => {
+    loadInitial(filterCity)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterCity])
+
+  // IntersectionObserver로 무한스크롤
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore() },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [loadMore])
+
+  // 클라이언트 사이드 필터 (activity/vibe/gender/date)
   const filtered = meetups.filter((m) => {
-    if (filterCity && m.places?.city !== filterCity) return false
     if (filterActivity && !m.activities.includes(filterActivity)) return false
     if (filterVibe && m.vibe !== filterVibe) return false
     if (filterGender && m.wanted_gender !== filterGender) return false
@@ -146,6 +187,11 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
     if (filterDate === 'weekend' && !isWeekend(m.scheduled_at)) return false
     return true
   })
+
+  function getDistrictLabel(city: string, district: string): string {
+    try { return tDistricts(`${city}.${district}` as Parameters<typeof tDistricts>[0]) }
+    catch { return district }
+  }
 
   function toggleFilter<T extends string>(val: T, current: T | null, set: (v: T | null) => void) {
     set(current === val ? null : val)
@@ -228,22 +274,43 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
       <div className="pt-28 pb-20">
         <div className="px-4 py-4 flex flex-col gap-3 max-w-lg mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-gray-400 text-sm">Loading...</div>
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm animate-pulse">
+                <div className="flex gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-100 rounded w-1/3" />
+                    <div className="h-3 bg-gray-100 rounded w-2/3" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+            ))
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-gray-400 text-sm">{t('explore.empty')}</div>
           ) : (
-            filtered.map((m) => {
-              const myJoin = myJoins.find((j) => j.meetup_id === m.id)
-              return (
-                <MeetupExploreCard
-                  key={m.id}
-                  meetup={m}
-                  myJoin={myJoin ?? null}
-                  userId={userId}
-                  onClick={() => router.push(`/meetup/${m.id}`)}
-                />
-              )
-            })
+            <>
+              {filtered.map((m) => {
+                const myJoin = myJoins.find((j) => j.meetup_id === m.id)
+                return (
+                  <MeetupExploreCard
+                    key={m.id}
+                    meetup={m}
+                    myJoin={myJoin ?? null}
+                    userId={userId}
+                    getDistrictLabel={getDistrictLabel}
+                    onClick={() => router.push(`/meetup/${m.id}`)}
+                  />
+                )
+              })}
+              {/* 무한스크롤 sentinel */}
+              <div ref={sentinelRef} className="h-4" />
+              {loadingMore && (
+                <div className="text-center py-4 text-gray-400 text-xs">
+                  {t('explore.loading') || '...'}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -367,120 +434,123 @@ function MeetupExploreCard({
   meetup: m,
   myJoin,
   userId,
+  getDistrictLabel,
   onClick,
 }: {
   meetup: MeetupCard
   myJoin: { meetup_id: string; status: string } | null
   userId: string
+  getDistrictLabel: (city: string, district: string) => string
   onClick: () => void
 }) {
   const t = useTranslations('meetup')
+  const tCities = useTranslations('cities')
   const isMyMeetup = m.profiles?.id === userId
+
+  const cityLabel = m.places?.city ? tCities(m.places.city as Parameters<typeof tCities>[0]) : null
+  const districtLabel = m.places?.city && m.places?.district
+    ? getDistrictLabel(m.places.city, m.places.district)
+    : null
 
   return (
     <div
       onClick={onClick}
       className="bg-white border border-gray-100 rounded-2xl p-4 cursor-pointer active:bg-gray-50 shadow-sm"
     >
-      {/* 상단: 장소 + 시간 */}
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-base font-bold text-gray-900">{m.places?.name ?? '-'}</span>
-            {isMyMeetup && (
-              <span className="text-xs text-blue-500 font-medium">{t('myMeetup')}</span>
-            )}
-          </div>
-          <p className="text-xs text-gray-400">
-            {m.places?.city ? <span>{m.places.city}</span> : null}
-            {m.places?.district ? <span> · {m.places.district}</span> : null}
-          </p>
+      {/* 장소명 + 날짜 */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          {m.title && <p className="text-sm font-bold text-gray-900 truncate mb-0.5">{m.title}</p>}
+          <p className={`truncate ${m.title ? 'text-xs text-gray-500' : 'text-sm font-bold text-gray-900'}`}>{m.places?.name ?? '-'}</p>
+          {(cityLabel || districtLabel) && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              {[cityLabel, districtLabel].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
-        <span className="text-xs font-semibold text-gray-700 whitespace-nowrap ml-2">
+        <span className="text-xs text-gray-400 whitespace-nowrap ml-3 mt-0.5">
           {formatScheduled(m.scheduled_at)}
         </span>
       </div>
 
-      {/* 주최자 */}
-      <div className="flex items-center gap-1.5 mb-2">
-        {m.profiles?.avatar_url ? (
-          <img src={m.profiles.avatar_url} className="w-5 h-5 rounded-full object-cover" alt="" />
-        ) : (
-          <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
-            {m.profiles?.nickname?.[0] ?? '?'}
-          </div>
-        )}
-        <span className="text-xs text-gray-500">{m.profiles?.nickname ?? '-'}</span>
-      </div>
-
-      {/* 우리 측 + 활동 */}
-      <div className="flex flex-wrap gap-1 mb-2">
-        <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-          {m.host_count}명
-        </span>
-        {m.host_gender && (
-          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-            {t(`gender.${m.host_gender}`)}
-          </span>
-        )}
-        {m.host_age_groups.map((a: string) => (
-          <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
-            {t(`ageGroup.${a}`)}
-          </span>
-        ))}
-        {m.activities.slice(0, 2).map((a: string) => (
-          <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
-            {t(`activity.${a}`)}
-          </span>
-        ))}
-        {m.vibe && (
-          <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">
-            {t(`vibe.${m.vibe}`)}
-          </span>
-        )}
-      </div>
-
-      {/* 원하는 상대 */}
-      <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-xs text-gray-400">{t('wantedLabel')}</span>
-        <span className="text-xs text-gray-600">{t(`gender.${m.wanted_gender}`)}</span>
-        {m.wanted_age_groups?.map((a: string) => (
-          <span key={a} className="text-xs text-gray-600">{t(`ageGroup.${a}`)}</span>
-        ))}
-        {m.wanted_count && (
-          <span className="text-xs text-gray-600">{m.wanted_count}명</span>
-        )}
-      </div>
-
-      {/* 한마디 */}
-      {m.description && (
-        <p className="text-xs text-gray-500 mt-2 line-clamp-1">{m.description}</p>
-      )}
-
-      {/* 신청 상태 배지 */}
-      {myJoin && (
-        <div className="mt-2">
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              myJoin.status === 'accepted'
-                ? 'bg-green-100 text-green-700'
-                : myJoin.status === 'rejected'
-                  ? 'bg-red-50 text-red-500'
-                  : myJoin.status === 'unmatched'
-                    ? 'bg-gray-100 text-gray-400'
-                    : 'bg-yellow-50 text-yellow-600'
-            }`}
-          >
-            {myJoin.status === 'accepted'
-              ? t('status.accepted')
-              : myJoin.status === 'rejected'
-                ? t('status.rejected')
-                : myJoin.status === 'unmatched'
-                  ? t('status.unmatched')
-                  : t('status.pending')}
-          </span>
+      {/* 주최자 정보 — 아바타 왼쪽 크게 */}
+      <div className="flex gap-3">
+        <div className="shrink-0">
+          {m.profiles?.avatar_url ? (
+            <img src={m.profiles.avatar_url} className="w-11 h-11 rounded-full object-cover" alt="" />
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-base font-semibold text-gray-400">
+              {m.profiles?.nickname?.[0]?.toUpperCase() ?? '?'}
+            </div>
+          )}
         </div>
-      )}
+        <div className="flex-1 min-w-0">
+          {/* 닉네임 */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-sm font-bold text-gray-900">{m.profiles?.nickname ?? '-'}</span>
+            {isMyMeetup && (
+              <span className="text-xs text-blue-500 font-medium">{t('myMeetup')}</span>
+            )}
+          </div>
+          {/* 내 정보 칩 */}
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">{m.host_count}명</span>
+            {m.host_gender && (
+              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                {t(`gender.${m.host_gender}` as Parameters<typeof t>[0])}
+              </span>
+            )}
+            {m.host_age_groups.map((a: string) => (
+              <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                {t(`ageGroup.${a}` as Parameters<typeof t>[0])}
+              </span>
+            ))}
+            {m.activities.slice(0, 2).map((a: string) => (
+              <span key={a} className="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
+                {t(`activity.${a}` as Parameters<typeof t>[0])}
+              </span>
+            ))}
+            {m.vibe && (
+              <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-600">
+                {t(`vibe.${m.vibe}` as Parameters<typeof t>[0])}
+              </span>
+            )}
+          </div>
+          {/* 원하는 상대 */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-xs text-gray-400">{t('wantedLabel')}</span>
+            <span className="text-xs text-gray-600">
+              {t(`gender.${m.wanted_gender}` as Parameters<typeof t>[0])}
+            </span>
+            {m.wanted_age_groups?.map((a: string) => (
+              <span key={a} className="text-xs text-gray-600">
+                {t(`ageGroup.${a}` as Parameters<typeof t>[0])}
+              </span>
+            ))}
+            {m.wanted_count && <span className="text-xs text-gray-600">{m.wanted_count}명</span>}
+          </div>
+          {/* 한마디 */}
+          {m.description && (
+            <p className="text-xs text-gray-500 mt-1 line-clamp-1">{m.description}</p>
+          )}
+          {/* 신청 상태 배지 */}
+          {myJoin && (
+            <div className="mt-1.5">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                myJoin.status === 'accepted' ? 'bg-green-100 text-green-700'
+                : myJoin.status === 'rejected' ? 'bg-red-50 text-red-500'
+                : myJoin.status === 'unmatched' ? 'bg-gray-100 text-gray-400'
+                : 'bg-yellow-50 text-yellow-600'
+              }`}>
+                {myJoin.status === 'accepted' ? t('status.accepted')
+                  : myJoin.status === 'rejected' ? t('status.rejected')
+                  : myJoin.status === 'unmatched' ? t('status.unmatched')
+                  : t('status.pending')}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

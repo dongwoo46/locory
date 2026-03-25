@@ -25,7 +25,7 @@ export default function StepPhotos({ postType, photos, onChange, onNext }: Props
     onChange(photos.filter((_, i) => i !== index))
   }
 
-  const canSkip = postType === 'want'
+  const canSkip = false
 
   return (
     <div className="flex flex-col gap-5">

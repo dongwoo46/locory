@@ -10,15 +10,18 @@ interface Props {
   memo: string
   recommendedMenu: string
   isPublic: boolean
+  isLocalRecommendation: boolean
+  canLocalRecommend: boolean   // 국적이 장소 국가와 일치할 때만 true
   placeCategory?: string
   onMemoChange: (memo: string) => void
   onMenuChange: (menu: string) => void
   onPublicChange: (isPublic: boolean) => void
+  onLocalRecChange: (v: boolean) => void
   onSubmit: () => void
   loading: boolean
 }
 
-export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategory, onMemoChange, onMenuChange, onPublicChange, onSubmit, loading }: Props) {
+export default function StepMemo({ memo, recommendedMenu, isPublic, isLocalRecommendation, canLocalRecommend, placeCategory, onMemoChange, onMenuChange, onPublicChange, onLocalRecChange, onSubmit, loading }: Props) {
   const t = useTranslations('upload')
   const tCommon = useTranslations('common')
   const [error, setError] = useState('')
@@ -65,6 +68,36 @@ export default function StepMemo({ memo, recommendedMenu, isPublic, placeCategor
           />
         </div>
       )}
+
+      {/* 현지인 추천 — KR 국적만 활성화, 아니면 잠금 표시 */}
+      <button
+        onClick={() => canLocalRecommend && onLocalRecChange(!isLocalRecommendation)}
+        disabled={!canLocalRecommend}
+        className={`flex items-center justify-between px-4 py-3.5 rounded-xl border-2 transition-colors ${
+          !canLocalRecommend
+            ? 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'
+            : isLocalRecommendation
+              ? 'border-emerald-500 bg-emerald-50'
+              : 'border-gray-200'
+        }`}
+      >
+        <div className="flex flex-col items-start gap-0.5">
+          <span className="text-sm font-semibold text-gray-900">
+            🏠 {t('memo.localRec')}
+            {!canLocalRecommend && <span className="ml-1 text-xs text-gray-400">🔒</span>}
+          </span>
+          <span className="text-xs text-gray-400">
+            {canLocalRecommend ? t('memo.localRecDesc') : t('memo.localRecLocked')}
+          </span>
+        </div>
+        <div className={`w-11 h-6 rounded-full transition-colors ${
+          !canLocalRecommend ? 'bg-gray-200' : isLocalRecommendation ? 'bg-emerald-500' : 'bg-gray-200'
+        }`}>
+          <div className={`w-5 h-5 bg-white rounded-full mt-0.5 transition-transform shadow-sm ${
+            isLocalRecommendation && canLocalRecommend ? 'translate-x-5.5' : 'translate-x-0.5'
+          }`} />
+        </div>
+      </button>
 
       {/* 공개/비공개 */}
       <button

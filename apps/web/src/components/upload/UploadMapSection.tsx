@@ -3,7 +3,14 @@
 import { useState, useEffect } from 'react'
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
 
-function MapPicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
+interface PickResult {
+  lat: number
+  lng: number
+  name?: string
+  address?: string
+}
+
+function MapPicker({ onPick }: { onPick: (result: PickResult) => void }) {
   const map = useMap()
   const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(null)
 
@@ -14,7 +21,25 @@ function MapPicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
       const lat = e.latLng.lat()
       const lng = e.latLng.lng()
       setMarkerPos({ lat, lng })
-      onPick(lat, lng)
+
+      const iconEvent = e as google.maps.IconMouseEvent
+      if (iconEvent.placeId) {
+        // POI 클릭 — 기본 infowindow 막고 Places API로 이름/주소 가져오기
+        e.stop()
+        const service = new google.maps.places.PlacesService(map as unknown as HTMLDivElement)
+        service.getDetails(
+          { placeId: iconEvent.placeId, fields: ['name', 'formatted_address'] },
+          (place, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+              onPick({ lat, lng, name: place.name ?? undefined, address: place.formatted_address ?? undefined })
+            } else {
+              onPick({ lat, lng })
+            }
+          }
+        )
+      } else {
+        onPick({ lat, lng })
+      }
     })
     return () => google.maps.event.removeListener(listener)
   }, [map, onPick])
@@ -24,13 +49,13 @@ function MapPicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
 
 interface Props {
   center: { lat: number; lng: number }
-  onPick: (lat: number, lng: number) => void
+  onPick: (result: PickResult) => void
 }
 
 export default function UploadMapSection({ center, onPick }: Props) {
   return (
     <div className="rounded-xl overflow-hidden h-52">
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!} libraries={['places']}>
         <Map
           defaultCenter={center}
           defaultZoom={15}

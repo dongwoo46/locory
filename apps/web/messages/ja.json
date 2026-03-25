@@ -75,7 +75,8 @@
       "apgujeong": "狎鴎亭",
       "konkuk": "建大",
       "jamsil": "蚕室",
-      "dongdaemun": "東大門"
+      "dongdaemun": "東大門",
+      "other": "その他"
     },
     "busan": {
       "haeundae": "海雲台",
@@ -91,7 +92,8 @@
       "mangmi": "マンミ",
       "millak": "ミラク",
       "dadaepo": "タデポ",
-      "busanstation": "釜山駅前"
+      "busanstation": "釜山駅前",
+      "other": "その他"
     },
     "jeju": {
       "jejusi": "済州市",
@@ -100,42 +102,49 @@
       "seongsan": "城山",
       "udo": "牛島",
       "hyeopjae": "挟才",
-      "hamdeok": "咸徳"
+      "hamdeok": "咸徳",
+      "other": "その他"
     },
     "gyeongju": {
       "hwangridangil": "ファンリダンギル",
       "downtown": "市内",
       "bomun": "普門湖畔",
-      "bulguksa": "仏国寺"
+      "bulguksa": "仏国寺",
+      "other": "その他"
     },
     "jeonju": {
       "hanok": "韓屋村",
       "downtown": "市内",
-      "nambu": "南部市場"
+      "nambu": "南部市場",
+      "other": "その他"
     },
     "gangneung": {
       "downtown": "市内",
       "gyeongpo": "鏡浦台",
       "anmok": "安木海辺",
-      "jumunjin": "注文津"
+      "jumunjin": "注文津",
+      "other": "その他"
     },
     "sokcho": {
       "downtown": "市内",
       "seoraksan": "雪岳山",
       "beach": "束草海水浴場",
-      "abai": "アバイ村"
+      "abai": "アバイ村",
+      "other": "その他"
     },
     "yeosu": {
       "downtown": "市内",
       "dolsando": "突山島",
       "odongdo": "梧桐島",
-      "hyangiram": "向日庵"
+      "hyangiram": "向日庵",
+      "other": "その他"
     },
     "incheon": {
       "chinatown": "チャイナタウン",
       "gaehang": "開港場",
       "songdo": "松島",
-      "wolmi": "月尾島"
+      "wolmi": "月尾島",
+      "other": "その他"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "地元のおすすめ",
     "hiddenSpotOnly": "地元のおすすめのみ",
-    "deleteConfirm": "この投稿を削除しますか？"
+    "deleteConfirm": "この投稿を削除しますか？",
+    "edit": "編集",
+    "delete": "削除",
+    "report": "通報",
+    "editTitle": "投稿を編集",
+    "editSubmit": "保存する",
+    "editSuccess": "更新しました",
+    "commentPlaceholder": "コメントを追加...",
+    "commentPost": "投稿"
   },
   "place": {
     "visitorStats": "訪問者統計",
@@ -374,6 +391,9 @@
       "unmatch": "アンマッチ",
       "openThread": "チャットを開く",
       "closeBtn": "ミートアップを終了",
+      "closeConfirm": "保留中の申請が全て拒否されます。終了しますか？",
+      "deleteBtn": "ミートアップを削除",
+      "deleteConfirm": "このミートアップを削除しますか？元に戻せません。",
       "noApplicants": "まだ申請者がいません",
       "accept": "承認"
     },
@@ -406,6 +426,8 @@
       "countOptional": "人数（未選択 = 不問）",
       "nationalityOptional": "国籍（未選択 = 不問）",
       "saving": "登録中...",
+      "title": "タイトル",
+      "titlePlaceholder": "タイトルを入力してください（必須）",
       "submit": "ミートアップを登録",
       "saveFailed": "保存に失敗しました"
     },
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "번개모임",
       "empty": "まだ번개모임がありません",
-      "createBtn": "번개모임を作る"
+      "createBtn": "번개모임を作る",
+      "filter": "フィルター",
+      "filterReset": "リセット",
+      "filterApply": "適用",
+      "closeMeetup": "모임 마감",
+      "closeConfirm": "この모임を終了しますか？"
     }
   },
   "map": {
+    "searchPlaceholder": "場所を検索...",
     "all": "すべて",
     "saved": "保存済み",
     "posts": "件",
@@ -524,6 +552,8 @@
     "category": "カテゴリ",
     "placeCount": "件",
     "filter": "フィルター",
+    "applyFilter": "適用",
+    "resetFilter": "リセット",
     "filterView": "表示",
     "viewAll": "すべて",
     "viewFeed": "🗺 訪問済み",
@@ -728,6 +758,9 @@
       "private": "非公開",
       "publicDesc": "フィードに公開されます",
       "privateDesc": "自分だけ見られます",
+      "localRec": "現地人のおすすめ",
+      "localRecDesc": "韓国人として直接おすすめするスポット",
+      "localRecLocked": "韓国国籍のユーザーのみ現地人おすすめを追加できます",
       "submit": "投稿する",
       "submitting": "投稿中..."
     }

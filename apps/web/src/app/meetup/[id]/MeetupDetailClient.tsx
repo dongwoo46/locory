@@ -114,17 +114,33 @@ export default function MeetupDetailClient({ meetup: initialMeetup, userId, prof
     await supabase.from('meetup_joins').update({ status }).eq('id', joinId)
     setJoins((j) => j.map((x) => (x.id === joinId ? { ...x, status } : x)))
     if (status === 'accepted') {
-      const acceptedCount = joins.filter((x) => x.status === 'accepted' || x.id === joinId).length + 1
-      if (meetup.wanted_count && acceptedCount >= meetup.wanted_count) {
-        await supabase.from('place_meetups').update({ status: 'closed' }).eq('id', meetup.id)
-        setMeetup((m: typeof initialMeetup) => ({ ...m, status: 'closed' }))
-      }
+      // 매칭 성사 trust 포인트: 주최자 + 신청자 모두 적립
+      const join = joins.find((x) => x.id === joinId)
+      await Promise.all([
+        supabase.rpc('apply_trust_points', { p_user_id: meetup.organizer_id, p_action: 'meetup_matched', p_ref_id: meetup.id }),
+        join?.applicant_id && supabase.rpc('apply_trust_points', { p_user_id: join.applicant_id, p_action: 'meetup_matched', p_ref_id: meetup.id }),
+      ])
     }
   }
 
   async function handleCloseMeetup() {
+    if (!confirm(t('manage.closeConfirm'))) return
+    // pending 신청 전부 거절
+    const pendingIds = joins.filter((j) => j.status === 'pending').map((j) => j.id)
+    if (pendingIds.length > 0) {
+      await supabase.from('meetup_joins').update({ status: 'rejected' }).in('id', pendingIds)
+      setJoins((prev) => prev.map((j) => j.status === 'pending' ? { ...j, status: 'rejected' } : j))
+    }
     await supabase.from('place_meetups').update({ status: 'closed' }).eq('id', meetup.id)
     setMeetup((m: typeof initialMeetup) => ({ ...m, status: 'closed' }))
+  }
+
+  async function handleDeleteMeetup() {
+    if (!confirm(t('manage.deleteConfirm'))) return
+    await supabase.from('place_meetups')
+      .update({ status: 'closed', deleted_at: new Date().toISOString() })
+      .eq('id', meetup.id)
+    router.back()
   }
 
   // 주최자는 첫 렌더에 joins를 로드
@@ -142,9 +158,12 @@ export default function MeetupDetailClient({ meetup: initialMeetup, userId, prof
               <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <h1 className="flex-1 text-base font-bold text-gray-900 truncate">
-            {meetup.places?.name ?? '-'}
-          </h1>
+          <div className="flex-1 min-w-0">
+            {meetup.title && <p className="text-base font-bold text-gray-900 truncate">{meetup.title}</p>}
+            <p className={`truncate ${meetup.title ? 'text-xs text-gray-400' : 'text-base font-bold text-gray-900'}`}>
+              {meetup.places?.name ?? '-'}
+            </p>
+          </div>
         </div>
       </header>
 
@@ -268,21 +287,29 @@ export default function MeetupDetailClient({ meetup: initialMeetup, userId, prof
       {/* 하단 액션 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-4 max-w-lg mx-auto">
         {isOrganizer ? (
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.push(`/chat/${meetup.id}`)}
-              className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium"
-            >
-              {t('manage.openThread')}
-            </button>
-            {meetup.status === 'open' && (
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
               <button
-                onClick={handleCloseMeetup}
-                className="flex-1 py-3 border border-gray-200 text-gray-500 rounded-xl text-sm"
+                onClick={() => router.push(`/chat/${meetup.id}`)}
+                className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium"
               >
-                {t('manage.closeBtn')}
+                {t('manage.openThread')}
               </button>
-            )}
+              {meetup.status === 'open' && (
+                <button
+                  onClick={handleCloseMeetup}
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm"
+                >
+                  {t('manage.closeBtn')}
+                </button>
+              )}
+            </div>
+            <button
+              onClick={handleDeleteMeetup}
+              className="w-full py-2.5 text-red-400 text-xs"
+            >
+              {t('manage.deleteBtn')}
+            </button>
           </div>
         ) : isAccepted ? (
           <button

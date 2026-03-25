@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { localeNames, displayLocales, type Locale } from '@/i18n/config'
 import { setLocale } from '@/i18n/client'
 import { validateNickname } from '@/lib/utils/nickname'
+import BottomNav from '@/components/ui/BottomNav'
 
 interface Profile {
   id: string
@@ -533,8 +534,9 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
         )}
 
         {/* 앱 버전 */}
-        <p className="text-center text-xs text-gray-300 mt-8">locory v0.1.0</p>
+        <p className="text-center text-xs text-gray-300 mt-8 mb-20">locory v0.1.0</p>
       </main>
+      <BottomNav avatarUrl={profile.avatar_url} />
     </div>
   )
 }

@@ -49,7 +49,8 @@
       "apgujeong": "狎鸥亭",
       "konkuk": "建大",
       "jamsil": "蚕室",
-      "dongdaemun": "东大门"
+      "dongdaemun": "东大门",
+      "other": "其他"
     },
     "busan": {
       "haeundae": "海云台",
@@ -65,7 +66,8 @@
       "mangmi": "望美",
       "millak": "密乐",
       "dadaepo": "多大浦",
-      "busanstation": "釜山站"
+      "busanstation": "釜山站",
+      "other": "其他"
     },
     "jeju": {
       "jejusi": "济州市",
@@ -74,42 +76,49 @@
       "seongsan": "城山",
       "udo": "牛岛",
       "hyeopjae": "协才",
-      "hamdeok": "咸德"
+      "hamdeok": "咸德",
+      "other": "其他"
     },
     "gyeongju": {
       "hwangridangil": "皇理团街",
       "downtown": "市区",
       "bomun": "普门湖",
-      "bulguksa": "佛国寺"
+      "bulguksa": "佛国寺",
+      "other": "其他"
     },
     "jeonju": {
       "hanok": "韩屋村",
       "downtown": "市区",
-      "nambu": "南部市场"
+      "nambu": "南部市场",
+      "other": "其他"
     },
     "gangneung": {
       "downtown": "市区",
       "gyeongpo": "镜浦台",
       "anmok": "安木海滩",
-      "jumunjin": "注文津"
+      "jumunjin": "注文津",
+      "other": "其他"
     },
     "sokcho": {
       "downtown": "市区",
       "seoraksan": "雪岳山",
       "beach": "束草海水浴场",
-      "abai": "阿拜村"
+      "abai": "阿拜村",
+      "other": "其他"
     },
     "yeosu": {
       "downtown": "市区",
       "dolsando": "突山岛",
       "odongdo": "梧桐岛",
-      "hyangiram": "向日庵"
+      "hyangiram": "向日庵",
+      "other": "其他"
     },
     "incheon": {
       "chinatown": "唐人街",
       "gaehang": "开港场",
       "songdo": "松岛",
-      "wolmi": "月尾岛"
+      "wolmi": "月尾岛",
+      "other": "其他"
     }
   },
   "post": {
@@ -130,7 +139,15 @@
       "shopping": "购物"
     },
     "hiddenSpot": "隐藏景点",
-    "deleteConfirm": "确定删除这篇帖子？"
+    "deleteConfirm": "确定删除这篇帖子？",
+    "edit": "编辑",
+    "delete": "删除",
+    "report": "举报",
+    "editTitle": "编辑帖子",
+    "editSubmit": "保存",
+    "editSuccess": "已更新",
+    "commentPlaceholder": "添加评论...",
+    "commentPost": "发布"
   },
   "place": {
     "visitorStats": "访客统计",
@@ -268,7 +285,12 @@
     "placeMeetups": {
       "title": "闪聚",
       "empty": "暂无闪聚",
-      "createBtn": "创建闪聚"
+      "createBtn": "创建闪聚",
+      "filter": "筛选",
+      "filterReset": "重置",
+      "filterApply": "应用",
+      "closeMeetup": "结束聚会",
+      "closeConfirm": "确定结束这个聚会？"
     },
     "status": {
       "accepted": "已接受",
@@ -278,6 +300,7 @@
     }
   },
   "map": {
+    "searchPlaceholder": "搜索地点...",
     "all": "全部",
     "saved": "收藏",
     "posts": "篇",

@@ -75,7 +75,8 @@
       "apgujeong": "狎鷗亭",
       "konkuk": "建大",
       "jamsil": "蠶室",
-      "dongdaemun": "東大門"
+      "dongdaemun": "東大門",
+      "other": "其他"
     },
     "busan": {
       "haeundae": "海雲台",
@@ -91,7 +92,8 @@
       "mangmi": "望美",
       "millak": "密樂",
       "dadaepo": "多大浦",
-      "busanstation": "釜山站"
+      "busanstation": "釜山站",
+      "other": "其他"
     },
     "jeju": {
       "jejusi": "濟州市",
@@ -100,42 +102,49 @@
       "seongsan": "城山",
       "udo": "牛島",
       "hyeopjae": "協才",
-      "hamdeok": "咸德"
+      "hamdeok": "咸德",
+      "other": "其他"
     },
     "gyeongju": {
       "hwangridangil": "黃理團街",
       "downtown": "市區",
       "bomun": "普門湖",
-      "bulguksa": "佛國寺"
+      "bulguksa": "佛國寺",
+      "other": "其他"
     },
     "jeonju": {
       "hanok": "韓屋村",
       "downtown": "市區",
-      "nambu": "南部市場"
+      "nambu": "南部市場",
+      "other": "其他"
     },
     "gangneung": {
       "downtown": "市區",
       "gyeongpo": "鏡浦台",
       "anmok": "安木海灘",
-      "jumunjin": "注文津"
+      "jumunjin": "注文津",
+      "other": "其他"
     },
     "sokcho": {
       "downtown": "市區",
       "seoraksan": "雪嶽山",
       "beach": "束草海水浴場",
-      "abai": "阿拜村"
+      "abai": "阿拜村",
+      "other": "其他"
     },
     "yeosu": {
       "downtown": "市區",
       "dolsando": "突山島",
       "odongdo": "梧桐島",
-      "hyangiram": "向日庵"
+      "hyangiram": "向日庵",
+      "other": "其他"
     },
     "incheon": {
       "chinatown": "唐人街",
       "gaehang": "開港場",
       "songdo": "松島",
-      "wolmi": "月尾島"
+      "wolmi": "月尾島",
+      "other": "其他"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "在地推薦",
     "hiddenSpotOnly": "只看在地推薦",
-    "deleteConfirm": "確定刪除這篇貼文？"
+    "deleteConfirm": "確定刪除這篇貼文？",
+    "edit": "編輯",
+    "delete": "刪除",
+    "report": "檢舉",
+    "editTitle": "編輯貼文",
+    "editSubmit": "儲存",
+    "editSuccess": "已更新",
+    "commentPlaceholder": "新增留言...",
+    "commentPost": "發佈"
   },
   "place": {
     "visitorStats": "訪客統計",
@@ -374,6 +391,9 @@
       "unmatch": "取消配對",
       "openThread": "開啟聊天",
       "closeBtn": "結束閃聚",
+      "closeConfirm": "待審申請將全部被拒絕，確定結束嗎？",
+      "deleteBtn": "刪除閃聚",
+      "deleteConfirm": "確定刪除此閃聚嗎？無法復原。",
       "noApplicants": "還沒有申請者",
       "accept": "接受"
     },
@@ -406,6 +426,8 @@
       "countOptional": "人數（不選 = 不限）",
       "nationalityOptional": "國籍（不選 = 不限）",
       "saving": "登錄中...",
+      "title": "標題",
+      "titlePlaceholder": "請輸入聚會標題（必填）",
       "submit": "登錄活動",
       "saveFailed": "儲存失敗"
     },
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "閃聚",
       "empty": "目前沒有閃聚",
-      "createBtn": "建立閃聚"
+      "createBtn": "建立閃聚",
+      "filter": "篩選",
+      "filterReset": "重設",
+      "filterApply": "套用",
+      "closeMeetup": "結束聚會",
+      "closeConfirm": "確定結束這個聚會？"
     }
   },
   "map": {
+    "searchPlaceholder": "搜尋地點...",
     "all": "全部",
     "saved": "收藏",
     "posts": "篇",
@@ -524,6 +552,8 @@
     "category": "分類",
     "placeCount": "個地點",
     "filter": "篩選",
+    "applyFilter": "套用",
+    "resetFilter": "重置",
     "filterView": "檢視",
     "viewAll": "全部",
     "viewFeed": "🗺 造訪過",
@@ -728,6 +758,9 @@
       "private": "私密",
       "publicDesc": "顯示在動態",
       "privateDesc": "只有你看得到",
+      "localRec": "在地人推薦",
+      "localRecDesc": "以韓國在地人身份親自推薦此地點",
+      "localRecLocked": "僅限韓國國籍用戶可以留下在地人推薦",
       "submit": "發文",
       "submitting": "發文中..."
     }

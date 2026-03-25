@@ -75,7 +75,8 @@
       "apgujeong": "압구정",
       "konkuk": "건대",
       "jamsil": "잠실",
-      "dongdaemun": "동대문"
+      "dongdaemun": "동대문",
+      "other": "기타"
     },
     "busan": {
       "haeundae": "해운대",
@@ -91,7 +92,8 @@
       "mangmi": "망미단길",
       "millak": "밀락더마켓",
       "dadaepo": "다대포",
-      "busanstation": "부산역"
+      "busanstation": "부산역",
+      "other": "기타"
     },
     "jeju": {
       "jejusi": "제주시",
@@ -100,42 +102,49 @@
       "seongsan": "성산",
       "udo": "우도",
       "hyeopjae": "협재",
-      "hamdeok": "함덕"
+      "hamdeok": "함덕",
+      "other": "기타"
     },
     "gyeongju": {
       "hwangridangil": "황리단길",
       "downtown": "경주 시내",
       "bomun": "보문단지",
-      "bulguksa": "불국사"
+      "bulguksa": "불국사",
+      "other": "기타"
     },
     "jeonju": {
       "hanok": "한옥마을",
       "downtown": "전주 시내",
-      "nambu": "남부시장"
+      "nambu": "남부시장",
+      "other": "기타"
     },
     "gangneung": {
       "downtown": "강릉 시내",
       "gyeongpo": "경포대",
       "anmok": "안목해변",
-      "jumunjin": "주문진"
+      "jumunjin": "주문진",
+      "other": "기타"
     },
     "sokcho": {
       "downtown": "속초 시내",
       "seoraksan": "설악산",
       "beach": "속초해수욕장",
-      "abai": "아바이마을"
+      "abai": "아바이마을",
+      "other": "기타"
     },
     "yeosu": {
       "downtown": "여수 시내",
       "dolsando": "돌산도",
       "odongdo": "오동도",
-      "hyangiram": "향일암"
+      "hyangiram": "향일암",
+      "other": "기타"
     },
     "incheon": {
       "chinatown": "차이나타운",
       "gaehang": "개항장",
       "songdo": "송도",
-      "wolmi": "월미도"
+      "wolmi": "월미도",
+      "other": "기타"
     }
   },
   "post": {
@@ -157,7 +166,15 @@
     },
     "hiddenSpot": "현지인 추천",
     "hiddenSpotOnly": "현지인 추천만",
-    "deleteConfirm": "이 포스팅을 삭제할까요?"
+    "deleteConfirm": "이 포스팅을 삭제할까요?",
+    "edit": "수정",
+    "delete": "삭제",
+    "report": "신고",
+    "editTitle": "피드 수정",
+    "editSubmit": "수정하기",
+    "editSuccess": "수정되었어요",
+    "commentPlaceholder": "댓글 달기...",
+    "commentPost": "게시"
   },
   "place": {
     "visitorStats": "방문자 통계",
@@ -374,6 +391,9 @@
       "unmatch": "언매치",
       "openThread": "채팅 열기",
       "closeBtn": "번개모임 마감",
+      "closeConfirm": "마감하면 대기 중인 신청이 모두 거절돼요. 마감할까요?",
+      "deleteBtn": "번개모임 삭제",
+      "deleteConfirm": "번개모임을 삭제할까요? 복구할 수 없어요.",
       "noApplicants": "아직 신청자가 없어요",
       "accept": "수락"
     },
@@ -405,6 +425,8 @@
       "ageGroupsOptional": "나이대 (미선택 = 무관)",
       "countOptional": "인원 수 (미선택 = 무관)",
       "nationalityOptional": "국적 (미선택 = 무관)",
+      "title": "제목",
+      "titlePlaceholder": "모임 제목을 입력해주세요 (필수)",
       "saving": "등록 중...",
       "submit": "만남 등록하기",
       "saveFailed": "저장에 실패했어요"
@@ -510,10 +532,16 @@
     "placeMeetups": {
       "title": "번개모임",
       "empty": "아직 번개모임이 없어요",
-      "createBtn": "번개모임 만들기"
+      "createBtn": "번개모임 만들기",
+      "filter": "필터",
+      "filterReset": "초기화",
+      "filterApply": "적용",
+      "closeMeetup": "모임 마감",
+      "closeConfirm": "모임을 마감할까요?"
     }
   },
   "map": {
+    "searchPlaceholder": "장소 검색...",
     "all": "전체",
     "saved": "내 저장",
     "posts": "개 포스팅",
@@ -524,6 +552,8 @@
     "category": "카테고리",
     "placeCount": "개 장소",
     "filter": "필터",
+    "applyFilter": "적용",
+    "resetFilter": "초기화",
     "filterView": "보기",
     "viewAll": "전부",
     "viewFeed": "🗺 방문 후기",
@@ -728,6 +758,9 @@
       "private": "비공개",
       "publicDesc": "피드에 공개돼요",
       "privateDesc": "나만 볼 수 있어요",
+      "localRec": "현지인 추천",
+      "localRecDesc": "한국인으로서 이 장소를 직접 추천해요",
+      "localRecLocked": "한국 국적 사용자만 현지인 추천을 남길 수 있어요",
       "submit": "포스팅 올리기",
       "submitting": "올리는 중..."
     }
