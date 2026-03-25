@@ -104,6 +104,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   // 통계 계산
   const visitedPosts = posts.filter(p => p.type === 'visited' && p.rating)
   const ratingCounts = visitedPosts.reduce<Record<string, number>>((acc, p) => {
+    if (!p.rating) return acc
     acc[p.rating] = (acc[p.rating] || 0) + 1
     return acc
   }, {})
