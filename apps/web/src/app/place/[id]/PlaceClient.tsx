@@ -42,9 +42,20 @@ interface PlacePostItem {
   id: string
   type: string
   rating: string | null
-  profiles?: {
-    nationality?: string | null
-  } | null
+  profiles?:
+    | {
+        id?: string | null
+        nickname?: string | null
+        nationality?: string | null
+        avatar_url?: string | null
+      }
+    | {
+        id?: string | null
+        nickname?: string | null
+        nationality?: string | null
+        avatar_url?: string | null
+      }[]
+    | null
 }
 
 interface Props {
@@ -98,7 +109,8 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   }, {})
 
   const nationalityCounts = posts.reduce<Record<string, number>>((acc, p) => {
-    const nat = p.profiles?.nationality || 'OTHER'
+    const profile = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles
+    const nat = profile?.nationality || 'OTHER'
     acc[nat] = (acc[nat] || 0) + 1
     return acc
   }, {})

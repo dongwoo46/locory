@@ -1047,6 +1047,7 @@ export default function MapClient({ userId }: Props) {
         accomQuery={accomQuery}
         setAccomQuery={setAccomQuery}
         accomResults={accomResults}
+        setAccomResults={setAccomResults}
         accomSearching={accomSearching}
         searchAccomPlaces={searchAccomPlaces}
         saveAccommodation={saveAccommodation}

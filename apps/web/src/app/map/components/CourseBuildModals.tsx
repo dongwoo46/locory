@@ -27,6 +27,7 @@ interface CourseBuildModalsProps {
   accomQuery: string;
   setAccomQuery: (value: string) => void;
   accomResults: SearchPlaceOption[];
+  setAccomResults: Dispatch<SetStateAction<SearchPlaceOption[]>>;
   accomSearching: boolean;
   searchAccomPlaces: (q: string) => void;
   saveAccommodation: (name: string, address: string) => void;
@@ -65,6 +66,7 @@ export default function CourseBuildModals({
   accomQuery,
   setAccomQuery,
   accomResults,
+  setAccomResults,
   accomSearching,
   searchAccomPlaces,
   saveAccommodation,
