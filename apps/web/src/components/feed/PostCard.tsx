@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import ReportSheet from '@/components/ui/ReportSheet'
+import { getPostImageUrl } from '@/lib/utils/postImage'
 
 const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4',
@@ -141,7 +142,7 @@ export default function PostCard({ post, userId, isSaved: initialSaved = false, 
       {post.photos?.length > 0 && (
         <div className="relative aspect-square bg-gray-100">
           <Image
-            src={post.photos[imgIndex]}
+            src={getPostImageUrl(post, imgIndex, 'thumbnail')}
             alt={post.places?.name ? `${post.places.name} photo` : ''}
             className="object-cover"
             fill

@@ -94,7 +94,7 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
 
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, optimized, { upsert: true, contentType: optimized.type })
+      .upload(path, optimized, { upsert: true, contentType: optimized.type, cacheControl: '31536000' })
 
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)

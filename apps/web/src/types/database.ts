@@ -63,6 +63,11 @@ export interface Post {
   rating: Rating | null
   memo: string | null
   photos: string[]
+  photo_variants: Array<{
+    thumbnailUrl: string
+    mediumUrl: string
+    originalUrl: string
+  }>
   is_public: boolean
   created_at: string
 }

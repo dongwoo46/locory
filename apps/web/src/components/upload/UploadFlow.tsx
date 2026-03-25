@@ -85,26 +85,58 @@ export default function UploadFlow() {
       }
 
       // 2. 사진 업로드
-      const photoUrls: string[] = []
+      const mediumPhotoUrls: string[] = []
+      const photoVariants: Array<{
+        thumbnailUrl: string
+        mediumUrl: string
+        originalUrl: string
+      }> = []
       for (const photo of state.photos) {
-        const optimized = await optimizeImageFile(photo, {
-          maxWidth: 1600,
-          maxHeight: 1600,
+        const thumbnail = await optimizeImageFile(photo, {
+          maxWidth: 480,
+          maxHeight: 480,
+          quality: 0.72,
+          mimeType: 'image/webp',
+        })
+        const medium = await optimizeImageFile(photo, {
+          maxWidth: 1280,
+          maxHeight: 1280,
           quality: 0.8,
           mimeType: 'image/webp',
         })
-        const ext = optimized.name.split('.').pop()
-        const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('posts')
-          .upload(path, optimized, { contentType: optimized.type })
+        const optimizedOriginal = await optimizeImageFile(photo, {
+          maxWidth: 2048,
+          maxHeight: 2048,
+          quality: 0.88,
+          mimeType: 'image/webp',
+        })
 
-        if (uploadError) throw uploadError
+        const basePath = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}`
+        const thumbnailPath = `${basePath}_thumb.webp`
+        const mediumPath = `${basePath}_medium.webp`
+        const originalPath = `${basePath}_original.webp`
 
-        const { data: { publicUrl } } = supabase.storage
+        const { error: thumbnailUploadError } = await supabase.storage
           .from('posts')
-          .getPublicUrl(path)
-        photoUrls.push(publicUrl)
+          .upload(thumbnailPath, thumbnail, { contentType: thumbnail.type, cacheControl: '31536000' })
+        if (thumbnailUploadError) throw thumbnailUploadError
+
+        const { error: mediumUploadError } = await supabase.storage
+          .from('posts')
+          .upload(mediumPath, medium, { contentType: medium.type, cacheControl: '31536000' })
+        if (mediumUploadError) throw mediumUploadError
+
+        const { error: originalUploadError } = await supabase.storage
+          .from('posts')
+          .upload(originalPath, optimizedOriginal, { contentType: optimizedOriginal.type, cacheControl: '31536000' })
+        if (originalUploadError) throw originalUploadError
+
+        const { data: { publicUrl: thumbnailUrl } } = supabase.storage.from('posts').getPublicUrl(thumbnailPath)
+        const { data: { publicUrl: mediumUrl } } = supabase.storage.from('posts').getPublicUrl(mediumPath)
+        const { data: { publicUrl: originalUrl } } = supabase.storage.from('posts').getPublicUrl(originalPath)
+
+        mediumPhotoUrls.push(mediumUrl)
+        photoVariants.push({ thumbnailUrl, mediumUrl, originalUrl })
       }
 
       // 3. 포스팅 생성
@@ -115,7 +147,8 @@ export default function UploadFlow() {
         rating: state.rating,
         memo: state.memo || null,
         recommended_menu: state.recommendedMenu || null,
-        photos: photoUrls,
+        photos: mediumPhotoUrls,
+        photo_variants: photoVariants,
         is_public: state.isPublic,
         is_local_recommendation: state.isLocalRecommendation,
       })

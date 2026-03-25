@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { getScentLevel } from '@/types/database'
 import { useLikeStore } from '@/store/likeStore'
+import { getPostImageUrl } from '@/lib/utils/postImage'
 const ReportSheet = dynamic(() => import('@/components/ui/ReportSheet'), { ssr: false })
 
 const RATING_COLORS: Record<string, string> = {
@@ -197,7 +198,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
               <div className="aspect-square bg-gray-100 relative">
                 {p.photos?.[0] ? (
                   <Image
-                    src={p.photos[0]}
+                    src={getPostImageUrl(p, 0, 'thumbnail')}
                     alt={place?.name ? `${place.name} thumbnail` : ''}
                     className="object-cover"
                     fill
@@ -404,7 +405,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
               {post.photos?.length > 0 && (
                 <div className="relative aspect-square bg-gray-100 overflow-hidden">
                   <Image
-                    src={post.photos[photoIndex]}
+                    src={getPostImageUrl(post, photoIndex, 'medium')}
                     alt={post.places?.name ? `${post.places.name} photo` : ''}
                     className="object-cover"
                     fill
