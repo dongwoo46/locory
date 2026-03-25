@@ -1,37 +1,43 @@
-'use client'
+﻿'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
-import { useUserInteractions } from '@/hooks/useUserInteractions'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import NotificationBell from '@/components/ui/NotificationBell'
-import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
 const OTHER_DISTRICT = '__other__'
 import type { City } from '@/types/database'
 
+const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'))
 
 const NATIONALITY_CHIPS = [
-  { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },
-  { code: 'US', flag: '🇺🇸' }, { code: 'CN', flag: '🇨🇳' },
-  { code: 'TW', flag: '🇹🇼' }, { code: 'GB', flag: '🇬🇧' },
-  { code: 'FR', flag: '🇫🇷' }, { code: 'DE', flag: '🇩🇪' },
-  { code: 'IT', flag: '🇮🇹' }, { code: 'ES', flag: '🇪🇸' },
-  { code: 'AU', flag: '🇦🇺' }, { code: 'RU', flag: '🇷🇺' },
-  { code: 'OTHER', flag: '🌍' },
+  { code: 'KR', flag: '?눖?눟' }, { code: 'JP', flag: '?눓?눝' },
+  { code: 'US', flag: '?눣?눡' }, { code: 'CN', flag: '?눊?눛' },
+  { code: 'TW', flag: '?눢?눥' }, { code: 'GB', flag: '?눐?눉' },
+  { code: 'FR', flag: '?눏?눟' }, { code: 'DE', flag: '?눍?눎' },
+  { code: 'IT', flag: '?눒?눢' }, { code: 'ES', flag: '?눎?눡' },
+  { code: 'AU', flag: '?눇?눣' }, { code: 'RU', flag: '?눟?눣' },
+  { code: 'OTHER', flag: '?뙇' },
 ]
 
 const CATEGORY_EMOJIS: Record<string, string> = {
-  cafe: '☕', restaurant: '🍽️', photospot: '📸', street: '🚶',
-  bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
+  cafe: 'C',
+  restaurant: 'R',
+  photospot: 'P',
+  street: 'S',
+  bar: 'B',
+  culture: 'U',
+  nature: 'N',
+  shopping: 'H',
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -49,6 +55,18 @@ interface Props {
   profile: { nickname: string; nationality: string; avatar_url: string | null; id: string } | null
   userId: string
   followingUserIds: string[]
+}
+
+interface InteractionPayload {
+  savedPostIds: string[]
+  savedPlaceIds: string[]
+  likedPostIds: string[]
+  likedPlaceIds: string[]
+}
+
+interface FeedPagePayload {
+  posts: any[]
+  interactions: InteractionPayload
 }
 
 export default function FeedClient({ profile, userId, followingUserIds }: Props) {
@@ -72,23 +90,28 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
 
-  const categoriesSet = new Set(categories)
-  const nationalitiesSet = new Set(nationalities)
+  const categoriesSet = useMemo(() => new Set(categories), [categories])
+  const nationalitiesSet = useMemo(() => new Set(nationalities), [nationalities])
 
-  const allDistricts = city ? [...getMainDistricts(city), ...getExtraDistricts(city)] : []
+  const allDistricts = useMemo(
+    () => (city ? [...getMainDistricts(city), ...getExtraDistricts(city)] : []),
+    [city]
+  )
   const cityScroll = useDragScroll()
   const districtScroll = useDragScroll()
 
-  // user interactions — RPC 1번으로 통합 (post_saves + place_saves + post_likes + place_likes)
-  const { data: interactions } = useUserInteractions(userId)
-  const savedPlaceIds = interactions?.savedPlaceIds ?? new Set<string>()
-  const likedPlaceIds = interactions?.likedPlaceIds ?? new Set<string>()
+  const [savedPlaceIds, setSavedPlaceIds] = useState(new Set<string>())
+  const [likedPlaceIds, setLikedPlaceIds] = useState(new Set<string>())
+  const [interactionsInitialized, setInteractionsInitialized] = useState(false)
+  const { init: initLikeStore, togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
 
-  const { togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
-
-  // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
-  // all탭: places!inner embedded join으로 2-step 쿼리를 1개로 통합
-  const FEED_PAGE_SIZE = 20
+  // 피드 목록 + 상호작용 데이터를 RPC 1회로 조회
+  // city/district/feedTab 변경 시 queryKey 기준으로 자동 캐시 분리
+  const FEED_PAGE_SIZE = 15
+  const INITIAL_RENDER_POSTS = 15
+  const RENDER_POST_CHUNK = 15
+  const INITIAL_RENDER_PLACES = 15
+  const RENDER_PLACE_CHUNK = 15
   const feedQueryKey = ['feed-posts', feedTab, city, district, followingUserIds.join(',')] as const
   const {
     data: rawPosts,
@@ -101,76 +124,73 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   } = useInfiniteQuery({
     queryKey: feedQueryKey,
     initialPageParam: null as { createdAt: string; id: string } | null,
-    queryFn: async ({ pageParam }) => {
-      const SELECT = `
-        id, type, rating, memo, photos, recommended_menu, created_at,
-        profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
-        places!place_id!inner (id, name, category, district, city, place_type),
-        post_likes (count),
-        post_saves (count)
-      `
-      const applyCursor = (q: any) => {
-        if (!pageParam) return q
-        return q.or(`created_at.lt.${pageParam.createdAt},and(created_at.eq.${pageParam.createdAt},id.lt.${pageParam.id})`)
+    queryFn: async ({ pageParam }): Promise<FeedPagePayload> => {
+      const knownDistricts =
+        city && district === OTHER_DISTRICT ? getDistricts(city).map(d => d.value) : []
+      const { data, error } = await supabase.rpc('get_feed_with_interactions', {
+        p_user_id: userId,
+        p_feed_tab: feedTab,
+        p_following_ids: followingUserIds,
+        p_city: city,
+        p_district: district,
+        p_known_districts: knownDistricts,
+        p_limit: FEED_PAGE_SIZE,
+        p_cursor_created_at: pageParam?.createdAt ?? null,
+        p_cursor_id: pageParam?.id ?? null,
+      })
+      if (error) throw error
+      const payload = (data ?? {}) as FeedPagePayload
+      return {
+        posts: payload.posts ?? [],
+        interactions: payload.interactions ?? {
+          savedPostIds: [],
+          savedPlaceIds: [],
+          likedPostIds: [],
+          likedPlaceIds: [],
+        },
       }
-      if (feedTab === 'following') {
-        if (followingUserIds.length === 0) return []
-        let q = supabase
-          .from('posts').select(SELECT)
-          .eq('is_public', true)
-          .is('deleted_at', null)
-          .in('user_id', followingUserIds)
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: false })
-          .limit(FEED_PAGE_SIZE)
-        q = applyCursor(q)
-        const { data } = await q
-        return data || []
-      }
-
-      let q = supabase.from('posts').select(SELECT)
-        .eq('is_public', true)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false })
-        .limit(FEED_PAGE_SIZE)
-
-      if (city) {
-        q = (q as any).eq('places.city', city)
-        if (district && district !== OTHER_DISTRICT) {
-          q = (q as any).eq('places.district', district)
-        } else if (district === OTHER_DISTRICT) {
-          const knownDistricts = getDistricts(city).map(d => d.value)
-          q = (q as any).or(
-            `district.is.null,district.not.in.(${knownDistricts.join(',')})`,
-            { referencedTable: 'places' }
-          )
-        }
-      }
-
-      q = applyCursor(q)
-      const { data } = await q
-      return data || []
     },
     getNextPageParam: (lastPage) => {
-      if (!lastPage || lastPage.length < FEED_PAGE_SIZE) return undefined
-      const last = lastPage[lastPage.length - 1]
+      if (!lastPage || lastPage.posts.length < FEED_PAGE_SIZE) return undefined
+      const last = lastPage.posts[lastPage.posts.length - 1]
       if (!last?.created_at || !last?.id) return undefined
       return { createdAt: last.created_at, id: last.id }
     },
     staleTime: 60 * 1000,
   })
-  const posts = ((rawPosts?.pages ?? []).flat() ?? []) as any[]
+  const posts = (((rawPosts?.pages ?? []).flatMap(page => page.posts)) ?? []) as any[]
+  const [renderPostCount, setRenderPostCount] = useState(INITIAL_RENDER_POSTS)
+  const [renderPlaceCount, setRenderPlaceCount] = useState(INITIAL_RENDER_PLACES)
+  const [hasUserScrolled, setHasUserScrolled] = useState(false)
+
+  useEffect(() => {
+    setInteractionsInitialized(false)
+  }, [feedTab, city, district, userId, followingUserIds.join(',')])
+
+  useEffect(() => {
+    if (interactionsInitialized) return
+    const firstPage = rawPosts?.pages?.[0]
+    if (!firstPage?.interactions) return
+    const interactions = firstPage.interactions
+    setSavedPlaceIds(new Set(interactions.savedPlaceIds ?? []))
+    setLikedPlaceIds(new Set(interactions.likedPlaceIds ?? []))
+    initLikeStore({
+      likedPostIds: new Set(interactions.likedPostIds ?? []),
+      likedPlaceIds: new Set(interactions.likedPlaceIds ?? []),
+      savedPostIds: new Set(interactions.savedPostIds ?? []),
+      savedPlaceIds: new Set(interactions.savedPlaceIds ?? []),
+      likeCountMap: {},
+    })
+    setInteractionsInitialized(true)
+  }, [rawPosts?.pages, initLikeStore, interactionsInitialized])
 
   async function togglePlaceSave(placeId: string) {
-    const cur = (queryClient.getQueryData(['user-saved', userId]) as any)?.savedPlaceIds as Set<string> | undefined
-    const saved = cur?.has(placeId) ?? savedPlaceIds.has(placeId)
+    const saved = savedPlaceIds.has(placeId)
     storePlaceSave(placeId)
-    queryClient.setQueryData(['user-saved', userId], (old: any) => {
-      if (!old) return old
-      const newSet = new Set(old.savedPlaceIds)
+    setSavedPlaceIds(prev => {
+      const newSet = new Set(prev)
       saved ? newSet.delete(placeId) : newSet.add(placeId)
-      return { ...old, savedPlaceIds: newSet }
+      return newSet
     })
     if (saved) {
       await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
@@ -180,14 +200,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   }
 
   async function togglePlaceLike(placeId: string) {
-    const cur = (queryClient.getQueryData(['user-saved', userId]) as any)?.likedPlaceIds as Set<string> | undefined
-    const liked = cur?.has(placeId) ?? likedPlaceIds.has(placeId)
+    const liked = likedPlaceIds.has(placeId)
     storePlaceLike(placeId)
-    queryClient.setQueryData(['user-saved', userId], (old: any) => {
-      if (!old) return old
-      const newSet = new Set(old.likedPlaceIds)
+    setLikedPlaceIds(prev => {
+      const newSet = new Set(prev)
       liked ? newSet.delete(placeId) : newSet.add(placeId)
-      return { ...old, likedPlaceIds: newSet }
+      return newSet
     })
     if (liked) {
       await supabase.from('place_likes').delete().eq('user_id', userId).eq('place_id', placeId)
@@ -208,61 +226,52 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     setFilter({ nationalities: Array.from(next) })
   }
 
-  // 클라이언트 필터링
-  const filteredPosts = posts
-    .filter(p => postType === 'all' || p.type === postType)
-    .filter(p => {
-      if (minRating == null) return true
-      if (p.type !== 'visited' || !p.rating) return false
-      const score: Record<string, number> = { must_go: 4, worth_it: 3, neutral: 2, not_great: 1 }
-      return (score[p.rating] || 0) >= minRating
-    })
-    .filter(p => categoriesSet.size === 0 || categoriesSet.has(p.places?.category))
-    .filter(p => !hiddenOnly || p.places?.place_type === 'hidden_spot')
-    .filter(p => nationalitiesSet.size === 0 || nationalitiesSet.has(p.profiles?.nationality))
-    .filter(p => !genderFilter || p.profiles?.gender === genderFilter)
-    .filter(p => {
-      if (!ageRange) return true
-      const bd = p.profiles?.birth_date
-      if (!bd) return false
-      const age = new Date().getFullYear() - new Date(bd).getFullYear()
-      if (ageRange === '10s') return age < 20
-      if (ageRange === '20s') return age >= 20 && age < 30
-      if (ageRange === '30s') return age >= 30 && age < 40
-      if (ageRange === '40s+') return age >= 40
-      return true
-    })
+  const filteredPosts = useMemo(() => {
+    return posts
+      .filter(p => postType === 'all' || p.type === postType)
+      .filter(p => {
+        if (minRating == null) return true
+        if (p.type !== 'visited' || !p.rating) return false
+        const score: Record<string, number> = { must_go: 4, worth_it: 3, neutral: 2, not_great: 1 }
+        return (score[p.rating] || 0) >= minRating
+      })
+      .filter(p => categoriesSet.size === 0 || categoriesSet.has(p.places?.category))
+      .filter(p => !hiddenOnly || p.places?.place_type === 'hidden_spot')
+      .filter(p => nationalitiesSet.size === 0 || nationalitiesSet.has(p.profiles?.nationality))
+      .filter(p => !genderFilter || p.profiles?.gender === genderFilter)
+      .filter(p => {
+        if (!ageRange) return true
+        const bd = p.profiles?.birth_date
+        if (!bd) return false
+        const age = new Date().getFullYear() - new Date(bd).getFullYear()
+        if (ageRange === '10s') return age < 20
+        if (ageRange === '20s') return age >= 20 && age < 30
+        if (ageRange === '30s') return age >= 30 && age < 40
+        if (ageRange === '40s+') return age >= 40
+        return true
+      })
+  }, [posts, postType, minRating, categoriesSet, hiddenOnly, nationalitiesSet, genderFilter, ageRange])
 
-  // 정렬
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (sortBy === 'likes') return (parseInt(b.post_likes?.[0]?.count) || 0) - (parseInt(a.post_likes?.[0]?.count) || 0)
-    if (sortBy === 'saves') return (parseInt(b.post_saves?.[0]?.count) || 0) - (parseInt(a.post_saves?.[0]?.count) || 0)
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  })
+  const sortedPosts = useMemo(() => {
+    return [...filteredPosts].sort((a, b) => {
+      if (sortBy === 'likes') return (parseInt(b.post_likes?.[0]?.count) || 0) - (parseInt(a.post_likes?.[0]?.count) || 0)
+      if (sortBy === 'saves') return (parseInt(b.post_saves?.[0]?.count) || 0) - (parseInt(a.post_saves?.[0]?.count) || 0)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }, [filteredPosts, sortBy])
 
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
-    const el = loadMoreRef.current
-    if (!el) return
-    if (!hasNextPage) return
-    if (isFetchingNextPage) return
-    if (sortedPosts.length === 0) return
+    setRenderPostCount(INITIAL_RENDER_POSTS)
+    setRenderPlaceCount(INITIAL_RENDER_PLACES)
+  }, [feedTab, city, district, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return
-        if (!hasNextPage) return
-        if (isFetchingNextPage) return
-        fetchNextPage()
-      },
-      { rootMargin: '800px 0px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, sortedPosts.length])
+  const visiblePosts = useMemo(
+    () => sortedPosts.slice(0, renderPostCount),
+    [sortedPosts, renderPostCount]
+  )
+  const canRenderMorePosts = renderPostCount < sortedPosts.length
 
-  // 장소 뷰
-  const placesFromPosts = (() => {
+  const placesFromPosts = useMemo(() => {
     const map = new Map<string, { id: string; name: string; category: string; city: string; district: string | null; postCount: number }>()
     for (const p of filteredPosts) {
       const place = p.places
@@ -273,7 +282,75 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       map.get(place.id)!.postCount++
     }
     return Array.from(map.values()).sort((a, b) => b.postCount - a.postCount)
-  })()
+  }, [filteredPosts])
+
+  const visiblePlaces = useMemo(
+    () => placesFromPosts.slice(0, renderPlaceCount),
+    [placesFromPosts, renderPlaceCount]
+  )
+  const canRenderMorePlaces = renderPlaceCount < placesFromPosts.length
+  const canLoadMorePosts = canRenderMorePosts || !!hasNextPage
+  const canLoadMorePlaces = canRenderMorePlaces || !!hasNextPage
+
+  const handleLoadMore = useCallback(() => {
+    if (viewMode === 'places') {
+      if (canRenderMorePlaces) {
+        setRenderPlaceCount(prev => Math.min(prev + RENDER_PLACE_CHUNK, placesFromPosts.length))
+        return
+      }
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      }
+      return
+    }
+    if (canRenderMorePosts) {
+      setRenderPostCount(prev => Math.min(prev + RENDER_POST_CHUNK, sortedPosts.length))
+      return
+    }
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [viewMode, canRenderMorePlaces, placesFromPosts.length, hasNextPage, isFetchingNextPage, fetchNextPage, canRenderMorePosts, sortedPosts.length])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset
+      if (scrollY > 8) setHasUserScrolled(true)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const needsMoreInView = viewMode === 'places' ? canLoadMorePlaces : canLoadMorePosts
+    if (!needsMoreInView) return
+    if (isFetchingNextPage) return
+    if (sortedPosts.length === 0) return
+    if (!hasUserScrolled) return
+
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        ticking = false
+        const scrollY = window.scrollY || window.pageYOffset
+        if (scrollY <= 0) return
+        const viewportBottom = window.innerHeight + scrollY
+        const fullHeight = document.documentElement.scrollHeight
+        const isNearBottom = viewportBottom >= fullHeight - 240
+        if (!isNearBottom) return
+        handleLoadMore()
+      })
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [isFetchingNextPage, sortedPosts.length, viewMode, canLoadMorePosts, canLoadMorePlaces, handleLoadMore, hasUserScrolled])
 
   const activeFilterCount = [
     feedTab !== 'all',
@@ -294,9 +371,9 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
       <header className="fixed top-0 left-0 right-0 bg-white z-40">
         <div className="max-w-lg mx-auto px-4 pt-3">
 
-          {/* 헤더: + | Locory (중앙) | 필터 + 알림 */}
+          {/* 헤더: 추가 버튼 | 로고 | 필터/알림 */}
           <div className="flex items-center mb-2 h-16">
-            {/* 왼쪽: + 버튼 */}
+            {/* 왼쪽: 추가 버튼 */}
             <button
               onClick={() => setShowActionSheet(true)}
               className="p-2 -ml-1 text-gray-700 shrink-0"
@@ -361,7 +438,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
             ))}
           </div>
 
-          {/* 동네 칩 */}
+          {/* 동네(구역) 탭 */}
           {hasDistrict && (
             <div
               ref={districtScroll.ref}
@@ -434,10 +511,10 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
               </div>
             </div>
 
-            {/* 스크롤 가능한 필터 내용 */}
+            {/* 스크롤 가능한 필터 본문 */}
             <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4">
 
-              {/* 보기 모드: 포스팅/장소 */}
+              {/* 보기 모드: 피드/장소 */}
               <div>
                 <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterViewMode')}</p>
                 <div className="flex gap-2">
@@ -506,7 +583,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </div>
               </div>
 
-              {/* 평점 (방문 후기일때) */}
+              {/* 평점(방문일 때만) */}
               {postType !== 'want' && (
                 <div>
                   <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterRatingAbove')}</p>
@@ -548,7 +625,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </div>
               </div>
 
-              {/* 현지인 추천 */}
+              {/* 로컬 추천만 */}
               <div>
                 <button
                   onClick={() => setFilter({ hiddenOnly: !hiddenOnly })}
@@ -584,7 +661,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                 </div>
               </div>
 
-              {/* 나잇대 */}
+              {/* 연령대 */}
               <div>
                 <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterAge')}</p>
                 <div className="flex gap-2 flex-wrap">
@@ -630,9 +707,9 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           <div className="flex flex-col items-center justify-center py-20 gap-2">
             <p className="text-gray-400 text-sm">{t('noPostsTitle')}</p>
             <p className="text-gray-300 text-xs">{t('noPostsSubtitle')}</p>
-            {hasNextPage && (
+            {canLoadMorePosts && (
               <button
-                onClick={() => fetchNextPage()}
+                onClick={handleLoadMore}
                 disabled={isFetchingNextPage}
                 className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
               >
@@ -642,7 +719,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           </div>
         ) : viewMode === 'places' ? (
           <div className="flex flex-col gap-2">
-            {placesFromPosts.map(place => (
+            {visiblePlaces.map(place => (
               <div
                 key={place.id}
                 className="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-3"
@@ -651,15 +728,15 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                   onClick={() => router.push(`/place/${place.id}`)}
                   className="flex items-center gap-3 flex-1 min-w-0 text-left"
                 >
-                  <span className="text-xl shrink-0">{CATEGORY_EMOJIS[place.category] || '📍'}</span>
+                  <span className="text-xl shrink-0">{CATEGORY_EMOJIS[place.category] || '?뱧'}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {tPost(`category.${place.category}`)}
-                      {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {place.district && place.district !== 'other' ? ` 쨌 ${tDistricts(`${place.city}.${place.district}`)}` : ''}
                     </p>
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0">{place.postCount}개</span>
+                  <span className="text-xs text-gray-400 shrink-0">{place.postCount} posts</span>
                 </button>
                 <div className="flex items-center gap-2 shrink-0 pl-2">
                   <button onClick={() => togglePlaceLike(place.id)}>
@@ -684,14 +761,17 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           </div>
         ) : (
           <PostGrid
-            posts={sortedPosts}
+            posts={visiblePosts}
             userId={userId}
             onDelete={(postId) => {
               queryClient.setQueryData(
                 feedQueryKey,
                 (old: any) => {
                   if (!old) return old
-                  const pages = (old.pages ?? []).map((page: any[]) => page.filter(p => p.id !== postId))
+                  const pages = (old.pages ?? []).map((page: any) => ({
+                    ...page,
+                    posts: (page.posts ?? []).filter((p: any) => p.id !== postId),
+                  }))
                   return { ...old, pages }
                 }
               )
@@ -699,10 +779,11 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           />
         )}
 
-        {hasNextPage && sortedPosts.length > 0 && (
+        {((viewMode === 'places' && canLoadMorePlaces && placesFromPosts.length > 0) ||
+          (viewMode === 'posts' && canLoadMorePosts && sortedPosts.length > 0)) && (
           <div className="flex flex-col items-center justify-center py-6 gap-3">
             <button
-              onClick={() => fetchNextPage()}
+              onClick={handleLoadMore}
               disabled={isFetchingNextPage}
               className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
             >
@@ -711,12 +792,11 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
             <p className="text-xs text-gray-400">{t('loadMoreHint')}</p>
           </div>
         )}
-        <div ref={loadMoreRef} className="h-px" />
       </main>
 
       <BottomNav avatarUrl={profile?.avatar_url ?? null} />
 
-      {/* + 액션시트 */}
+      {/* 추가 액션 시트 */}
       {showActionSheet && (
         <>
           <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
@@ -768,3 +848,4 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     </div>
   )
 }
+
