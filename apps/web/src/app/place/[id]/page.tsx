@@ -30,12 +30,20 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
 
   if (!place) redirect('/feed')
 
-  const [{ data: savedPosts }, { data: likedPosts }, { data: placeSave }, { data: placeLikeRow }, { count: placeLikeCount }] = await Promise.all([
+  const [
+    { data: savedPosts },
+    { data: likedPosts },
+    { data: placeSave },
+    { data: placeLikeRow },
+    { count: placeLikeCount },
+    { count: placeSaveCount },
+  ] = await Promise.all([
     supabase.from('post_saves').select('post_id').eq('user_id', user.id),
     supabase.from('post_likes').select('post_id').eq('user_id', user.id),
     supabase.from('place_saves').select('id').eq('user_id', user.id).eq('place_id', id).maybeSingle(),
     supabase.from('place_likes').select('id').eq('user_id', user.id).eq('place_id', id).maybeSingle(),
     supabase.from('place_likes').select('*', { count: 'exact', head: true }).eq('place_id', id),
+    supabase.from('place_saves').select('*', { count: 'exact', head: true }).eq('place_id', id),
   ])
 
   const savedPostIds = new Set((savedPosts || []).map(s => s.post_id))
@@ -51,6 +59,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
       isPlaceSaved={!!placeSave}
       isPlaceLiked={!!placeLikeRow}
       placeLikeCount={placeLikeCount ?? 0}
+      placeSaveCount={placeSaveCount ?? 0}
       userGender={myProfile?.gender ?? null}
       userBirthDate={myProfile?.birth_date ?? null}
       userNationality={myProfile?.nationality ?? null}

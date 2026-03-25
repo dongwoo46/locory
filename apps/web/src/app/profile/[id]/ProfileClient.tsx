@@ -1,18 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
-import { getScentLevel } from '@/types/database'
 import ScentBar from '@/components/ui/ScentBar'
 import PostGrid from '@/components/feed/PostGrid'
 import ReportSheet from '@/components/ui/ReportSheet'
 import NotificationBell from '@/components/ui/NotificationBell'
-import PlaceAddSheet from '@/components/place/PlaceAddSheet'
+const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
 
 const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
@@ -39,22 +40,30 @@ function DonutChart({ data, getCategoryLabel }: { data: { category: string; coun
   const total = data.reduce((s, d) => s + d.count, 0)
   if (total === 0) return null
   const r = 36; const cx = 44; const cy = 44
-  let angle = -Math.PI / 2
-  const slices = data.map(d => {
-    const sweep = (d.count / total) * Math.PI * 2
-    const x1 = cx + r * Math.cos(angle)
-    const y1 = cy + r * Math.sin(angle)
-    angle += sweep
-    const x2 = cx + r * Math.cos(angle)
-    const y2 = cy + r * Math.sin(angle)
-    const large = sweep > Math.PI ? 1 : 0
-    return {
-      path: `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`,
-      color: CATEGORY_COLOR[d.category] || '#9CA3AF',
-      category: d.category,
-      pct: Math.round((d.count / total) * 100),
-    }
-  })
+  const slices = data.reduce<{ angle: number; slices: { path: string; color: string; category: string; pct: number }[] }>(
+    (acc, d) => {
+      const sweep = (d.count / total) * Math.PI * 2
+      const x1 = cx + r * Math.cos(acc.angle)
+      const y1 = cy + r * Math.sin(acc.angle)
+      const nextAngle = acc.angle + sweep
+      const x2 = cx + r * Math.cos(nextAngle)
+      const y2 = cy + r * Math.sin(nextAngle)
+      const large = sweep > Math.PI ? 1 : 0
+      return {
+        angle: nextAngle,
+        slices: [
+          ...acc.slices,
+          {
+            path: `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`,
+            color: CATEGORY_COLOR[d.category] || '#9CA3AF',
+            category: d.category,
+            pct: Math.round((d.count / total) * 100),
+          },
+        ],
+      }
+    },
+    { angle: -Math.PI / 2, slices: [] }
+  ).slices
   return (
     <div className="flex items-center gap-5">
       <svg width="88" height="88" viewBox="0 0 88 88">
@@ -97,6 +106,12 @@ interface Props {
   followStatus: 'none' | 'pending' | 'accepted'
 }
 
+type ProfilePost = {
+  id: string
+  places?: { category?: string | null; place_type?: string | null } | null
+  [key: string]: unknown
+}
+
 export default function ProfileClient({
   profile: initialProfile,
   followersCount: initialFollowers,
@@ -113,37 +128,68 @@ export default function ProfileClient({
   const tFeed = useTranslations('feed')
   const tPost = useTranslations('post')
 
-  const [profile, setProfile] = useState(initialProfile)
+  const [profile] = useState(initialProfile)
   const [followersCount, setFollowersCount] = useState(initialFollowers)
+  const [isFollowing, setIsFollowing] = useState(initialFollowing)
+  const [followStatus, setFollowStatus] = useState(initialFollowStatus)
 
-  // 포스팅 — 2분 캐싱
-  const { data: rawPosts } = useQuery({
+  // 포스팅 — 2분 캐싱 + 무한 스크롤
+  const PAGE_SIZE = 15
+  const canReadPosts = isMe || profile.is_public || isFollowing
+  const { data: rawPosts, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['profile-posts', profile.id],
-    queryFn: async () => {
+    enabled: canReadPosts,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }: { pageParam: number }) => {
+      const from = pageParam * PAGE_SIZE
+      const to = from + PAGE_SIZE - 1
       const { data } = await supabase
         .from('posts')
         .select(`
-          id, type, rating, memo, photos, created_at, is_public,
+          id, type, rating, memo, photos, photo_variants, created_at, is_public,
           places!place_id (id, name, category, district, city, place_type),
           profiles!user_id (id, nickname, nationality, avatar_url, trust_score),
-          post_likes (count)
+          post_likes (count), post_saves (count)
         `)
         .eq('user_id', profile.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
+        .range(from, to)
       return data || []
+    },
+    getNextPageParam: (lastPage, pages) => {
+      if (!lastPage || lastPage.length < PAGE_SIZE) return undefined
+      return pages.length
     },
     staleTime: 2 * 60 * 1000,
   })
-  const posts = (rawPosts ?? []) as any[]
-  const [isFollowing, setIsFollowing] = useState(initialFollowing)
-  const [followStatus, setFollowStatus] = useState(initialFollowStatus)
+  const posts = ((rawPosts?.pages ?? []).flatMap(page => page) ?? []) as ProfilePost[]
   const [showTaste, setShowTaste] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
+  const [hasUserScrolled, setHasUserScrolled] = useState(false)
 
   const visiblePosts = isMe ? posts : (profile.is_public || isFollowing) ? posts : []
+
+  useEffect(() => {
+    if (!canReadPosts) return
+    const onScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset
+      if (scrollY > 8) setHasUserScrolled(true)
+      if (!hasNextPage || isFetchingNextPage) return
+      if (!hasUserScrolled) return
+      const viewportBottom = window.innerHeight + scrollY
+      const fullHeight = document.documentElement.scrollHeight
+      if (viewportBottom >= fullHeight - 220) fetchNextPage()
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [canReadPosts, hasNextPage, isFetchingNextPage, fetchNextPage, hasUserScrolled])
 
   // 카테고리 분포 계산
   const categoryCounts: Record<string, number> = {}
@@ -233,7 +279,16 @@ export default function ProfileClient({
           {/* 아바타 */}
           <div className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden">
             {profile.avatar_url
-              ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ? (
+                <Image
+                  src={profile.avatar_url}
+                  alt={profile.nickname ? `${profile.nickname} avatar` : ''}
+                  className="w-full h-full object-cover"
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                />
+              )
               : <div className="w-full h-full flex items-center justify-center text-2xl text-gray-400">
                   {profile.nickname?.[0]}
                 </div>
@@ -358,6 +413,11 @@ export default function ProfileClient({
               posts={visiblePosts}
               userId={myId}
             />
+            {hasNextPage && (
+              <div className="px-4 py-4 text-center text-xs text-gray-400">
+                {isFetchingNextPage ? tCommon('loading') : 'Scroll for more'}
+              </div>
+            )}
           </div>
         )}
       </main>

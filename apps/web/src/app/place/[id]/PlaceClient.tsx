@@ -38,15 +38,25 @@ interface Place {
   avg_rating: number | null
 }
 
+interface PlacePostItem {
+  id: string
+  type: string
+  rating: string | null
+  profiles?: {
+    nationality?: string | null
+  } | null
+}
+
 interface Props {
   place: Place
-  posts: any[]
+  posts: PlacePostItem[]
   userId: string
   savedPostIds: Set<string>
   likedPostIds: Set<string>
   isPlaceSaved: boolean
   isPlaceLiked: boolean
   placeLikeCount: number
+  placeSaveCount: number
   userGender: string | null
   userBirthDate: string | null
   userNationality: string | null
@@ -54,7 +64,7 @@ interface Props {
   userTrustScore: number
 }
 
-export default function PlaceClient({ place, posts, userId, savedPostIds, likedPostIds, isPlaceSaved: initialSaved, isPlaceLiked: initialLiked, placeLikeCount: initialLikeCount, userGender, userBirthDate, userNationality, userIsPublic, userTrustScore }: Props) {
+export default function PlaceClient({ place, posts, userId, savedPostIds, likedPostIds, isPlaceSaved: initialSaved, isPlaceLiked: initialLiked, placeLikeCount: initialLikeCount, placeSaveCount: initialSaveCount, userGender, userBirthDate, userNationality, userIsPublic, userTrustScore }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const tPost = useTranslations('post')
@@ -64,6 +74,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   const [isPlaceSaved, setIsPlaceSaved] = useState(initialSaved)
   const [isPlaceLiked, setIsPlaceLiked] = useState(initialLiked)
   const [placeLikeCount, setPlaceLikeCount] = useState(initialLikeCount)
+  const [placeSaveCount, setPlaceSaveCount] = useState(initialSaveCount)
 
   // Zustand store 초기화
   const { init: initLikeStore } = useLikeStore()
@@ -96,9 +107,11 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   async function togglePlaceSave() {
     if (isPlaceSaved) {
       setIsPlaceSaved(false)
+      setPlaceSaveCount(c => Math.max(0, c - 1))
       await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', place.id)
     } else {
       setIsPlaceSaved(true)
+      setPlaceSaveCount(c => c + 1)
       await supabase.from('place_saves').insert({ user_id: userId, place_id: place.id })
     }
   }
@@ -159,7 +172,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
             </svg>
             {placeLikeCount > 0 && <span className="text-xs text-gray-400">{placeLikeCount}</span>}
           </button>
-          <button onClick={togglePlaceSave} className="p-1">
+          <button onClick={togglePlaceSave} className="flex items-center gap-1 p-1">
             <svg
               width="22" height="22" viewBox="0 0 24 24"
               fill={isPlaceSaved ? '#111' : 'none'}
@@ -168,6 +181,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
             >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
+            {placeSaveCount > 0 && <span className="text-xs text-gray-400">{placeSaveCount}</span>}
           </button>
         </div>
       </header>
