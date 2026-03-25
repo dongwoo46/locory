@@ -1,57 +1,76 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useTranslations } from 'next-intl';
 
 // ─── 브라우저 언어 → 인트로 언어 감지 ─────────────────────────────────────────
 function detectBrowserLang(): Lang {
-  if (typeof navigator === 'undefined') return 'en'
-  const lang = navigator.language.toLowerCase()
-  if (lang.startsWith('ko')) return 'ko'
-  if (lang.startsWith('ja')) return 'ja'
-  if (lang.startsWith('ru')) return 'ru'
-  return 'en' // 기본값 영어
+  if (typeof navigator === 'undefined') return 'en';
+  const lang = navigator.language.toLowerCase();
+  if (lang.startsWith('ko')) return 'ko';
+  if (lang.startsWith('ja')) return 'ja';
+  if (lang.startsWith('ru')) return 'ru';
+  return 'en'; // 기본값 영어
 }
 
 // locale 쿠키 설정 (next-intl이 읽는 쿠키와 동일)
 function setLocaleCookie(locale: string) {
-  document.cookie = `locale=${locale}; path=/; max-age=31536000; SameSite=Lax`
+  document.cookie = `locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
 // 인트로 언어 → next-intl locale 매핑
 const LANG_TO_LOCALE: Record<Lang, string> = {
-  ko: 'ko', en: 'en', ja: 'ja', ru: 'ru',
-}
+  ko: 'ko',
+  en: 'en',
+  ja: 'ja',
+  ru: 'ru',
+};
 
 // ─── 인앱 브라우저 감지 ───────────────────────────────────────────────────────
-function detectInAppBrowser(): { isInApp: boolean; isAndroid: boolean; isIOS: boolean; appName: string } {
-  if (typeof navigator === 'undefined') return { isInApp: false, isAndroid: false, isIOS: false, appName: '' }
-  const ua = navigator.userAgent
-  const isAndroid = /Android/i.test(ua)
-  const isIOS = /iPhone|iPad|iPod/i.test(ua)
+function detectInAppBrowser(): {
+  isInApp: boolean;
+  isAndroid: boolean;
+  isIOS: boolean;
+  appName: string;
+} {
+  if (typeof navigator === 'undefined')
+    return { isInApp: false, isAndroid: false, isIOS: false, appName: '' };
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
   const inAppPatterns: Record<string, RegExp> = {
-    '카카오톡': /KAKAOTALK/i, '인스타그램': /Instagram/i, '네이버': /NAVER/i,
-    '페이스북': /FBAN|FBAV|FB_IAB/i, '라인': /Line\//i, '다음': /Daum/i,
-    '트위터': /Twitter/i, '웨이보': /Weibo/i, '위챗': /MicroMessenger/i, '에브리타임': /everytime/i,
-  }
+    카카오톡: /KAKAOTALK/i,
+    인스타그램: /Instagram/i,
+    네이버: /NAVER/i,
+    페이스북: /FBAN|FBAV|FB_IAB/i,
+    라인: /Line\//i,
+    다음: /Daum/i,
+    트위터: /Twitter/i,
+    웨이보: /Weibo/i,
+    위챗: /MicroMessenger/i,
+    에브리타임: /everytime/i,
+  };
   for (const [name, pattern] of Object.entries(inAppPatterns)) {
-    if (pattern.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: name }
+    if (pattern.test(ua))
+      return { isInApp: true, isAndroid, isIOS, appName: name };
   }
-  if (isAndroid && /wv/.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: '앱' }
-  if (isIOS && /AppleWebKit/i.test(ua) && !/Safari/i.test(ua)) return { isInApp: true, isAndroid, isIOS, appName: '앱' }
-  return { isInApp: false, isAndroid, isIOS, appName: '' }
+  if (isAndroid && /wv/.test(ua))
+    return { isInApp: true, isAndroid, isIOS, appName: '앱' };
+  if (isIOS && /AppleWebKit/i.test(ua) && !/Safari/i.test(ua))
+    return { isInApp: true, isAndroid, isIOS, appName: '앱' };
+  return { isInApp: false, isAndroid, isIOS, appName: '' };
 }
 
 // ─── 인트로 콘텐츠 (4개 언어) ────────────────────────────────────────────────
-type Lang = 'ko' | 'en' | 'ja' | 'ru'
+type Lang = 'ko' | 'en' | 'ja' | 'ru';
 
 const LANGUAGES: { code: Lang; label: string }[] = [
   { code: 'ko', label: '한국어' },
   { code: 'en', label: 'English' },
   { code: 'ja', label: '日本語' },
   { code: 'ru', label: 'Русский' },
-]
+];
 
 const SLIDES: Record<Lang, { icon: string; title: string; desc: string }[]> = {
   ko: [
@@ -122,9 +141,12 @@ const SLIDES: Record<Lang, { icon: string; title: string; desc: string }[]> = {
       desc: 'Организуйте спонтанную встречу\nс путешественниками в вашем районе.\nИли пусть AI составит идеальный\nмаршрут дня из ваших мест.',
     },
   ],
-}
+};
 
-const LOGIN_TEXT: Record<Lang, { tagline: string; loginBtn: string; terms: string }> = {
+const LOGIN_TEXT: Record<
+  Lang,
+  { tagline: string; loginBtn: string; terms: string }
+> = {
   ko: {
     tagline: '한국의 숨겨진 장소를\n발견하고 공유하세요',
     loginBtn: 'Google로 시작하기',
@@ -133,92 +155,99 @@ const LOGIN_TEXT: Record<Lang, { tagline: string; loginBtn: string; terms: strin
   en: {
     tagline: 'Discover & share\nhidden spots in Korea',
     loginBtn: 'Continue with Google',
-    terms: 'By continuing, you agree to our Terms of Service and Privacy Policy',
+    terms:
+      'By continuing, you agree to our Terms of Service and Privacy Policy',
   },
   ja: {
     tagline: '韓国の隠れた場所を\n発見してシェアしよう',
     loginBtn: 'Googleで始める',
-    terms: '続けることで、利用規約とプライバシーポリシーに同意したことになります',
+    terms:
+      '続けることで、利用規約とプライバシーポリシーに同意したことになります',
   },
   ru: {
     tagline: 'Открывайте скрытые\nместа Кореи',
     loginBtn: 'Войти через Google',
-    terms: 'Продолжая, вы соглашаетесь с Условиями и Политикой конфиденциальности',
+    terms:
+      'Продолжая, вы соглашаетесь с Условиями и Политикой конфиденциальности',
   },
-}
-
+};
 
 // ─── 컴포넌트 ──────────────────────────────────────────────────────────────────
 export default function LoginPage() {
-  const supabase = createClient()
-  const t = useTranslations('login.inAppBrowser')
+  const supabase = createClient();
+  const t = useTranslations('login.inAppBrowser');
 
   const [lang, setLang] = useState<Lang>(() => {
-    if (typeof navigator === 'undefined') return 'en'
-    return detectBrowserLang()
-  })
-  const [slide, setSlide] = useState(0)
-  const [showGuide, setShowGuide] = useState(false)
-  const [animating, setAnimating] = useState(false)
+    if (typeof navigator === 'undefined') return 'en';
+    return detectBrowserLang();
+  });
+  const [slide, setSlide] = useState(0);
+  const [showGuide, setShowGuide] = useState(false);
+  const [animating, setAnimating] = useState(false);
 
-  const inAppInfo = typeof navigator !== 'undefined' ? detectInAppBrowser() : null
-  const slides = SLIDES[lang]
-  const loginText = LOGIN_TEXT[lang]
-  const totalSlides = slides.length
+  const inAppInfo =
+    typeof navigator !== 'undefined' ? detectInAppBrowser() : null;
+  const slides = SLIDES[lang];
+  const loginText = LOGIN_TEXT[lang];
+  const totalSlides = slides.length;
+
+  const redirectTo = process.env.NEXT_PUBLIC_SITE_URL
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+    : `${window.location.origin}/auth/callback`;
 
   // 인앱 브라우저 감지
   useEffect(() => {
-    if (!inAppInfo) return
+    if (!inAppInfo) return;
     if (inAppInfo.isInApp && inAppInfo.isAndroid) {
-      const intentUrl = `intent://${window.location.href.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
-      window.location.href = intentUrl
-      setTimeout(() => setShowGuide(true), 1500)
+      const intentUrl = `intent://${window.location.href.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+      window.location.href = intentUrl;
+      setTimeout(() => setShowGuide(true), 1500);
     } else if (inAppInfo.isInApp) {
-      setShowGuide(true)
+      setShowGuide(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 5초마다 자동 슬라이드
   useEffect(() => {
     const timer = setInterval(() => {
-      setAnimating(true)
+      setAnimating(true);
       setTimeout(() => {
-        setSlide(prev => (prev + 1) % totalSlides)
-        setAnimating(false)
-      }, 150)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [totalSlides])
+        setSlide((prev) => (prev + 1) % totalSlides);
+        setAnimating(false);
+      }, 150);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [totalSlides]);
 
   function changeLang(l: Lang) {
-    setLang(l)
-    setLocaleCookie(LANG_TO_LOCALE[l])
+    setLang(l);
+    setLocaleCookie(LANG_TO_LOCALE[l]);
   }
 
   function goToSlide(idx: number) {
-    if (idx === slide) return
-    setAnimating(true)
+    if (idx === slide) return;
+    setAnimating(true);
     setTimeout(() => {
-      setSlide(idx)
-      setAnimating(false)
-    }, 150)
+      setSlide(idx);
+      setAnimating(false);
+    }, 150);
   }
 
   async function handleGoogleLogin() {
     if (inAppInfo?.isInApp) {
-      setShowGuide(true)
-      return
+      setShowGuide(true);
+      return;
     }
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
+      options: { redirectTo },
+    });
   }
 
-  const isIOS = inAppInfo?.isIOS ?? false
-  const appName = inAppInfo?.appName ?? '앱'
-  const currentSlide = slides[slide]
+  const isIOS = inAppInfo?.isIOS ?? false;
+  const appName = inAppInfo?.appName ?? '앱';
+  const currentSlide = slides[slide];
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -301,14 +330,25 @@ export default function LoginPage() {
             <div className="px-6 pt-6 pb-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-                  <svg width="20" height="20" fill="none" stroke="#EF4444" strokeWidth={2} viewBox="0 0 24 24">
+                  <svg
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="#EF4444"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v4M12 16h.01" strokeLinecap="round" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-900">{t('title', { app: appName })}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{t('subtitle')}</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    {t('title', { app: appName })}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {t('subtitle')}
+                  </p>
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 flex flex-col gap-3 text-sm text-gray-700">
@@ -339,18 +379,30 @@ export default function LoginPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18">
-      <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
-      <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/>
-      <path fill="#FBBC05" d="M4.51 10.53c-.16-.48-.25-.98-.25-1.53s.09-1.05.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/>
-      <path fill="#EA4335" d="M8.98 3.58c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 .89 5.4L3.53 7.47c.63-1.89 2.39-3.89 5.45-3.89z"/>
+      <path
+        fill="#4285F4"
+        d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"
+      />
+      <path
+        fill="#34A853"
+        d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M4.51 10.53c-.16-.48-.25-.98-.25-1.53s.09-1.05.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"
+      />
+      <path
+        fill="#EA4335"
+        d="M8.98 3.58c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 .89 5.4L3.53 7.47c.63-1.89 2.39-3.89 5.45-3.89z"
+      />
     </svg>
-  )
+  );
 }
 
 function Step({ n, text }: { n: number; text: string }) {
@@ -361,5 +413,5 @@ function Step({ n, text }: { n: number; text: string }) {
       </span>
       <p className="leading-snug">{text}</p>
     </div>
-  )
+  );
 }
