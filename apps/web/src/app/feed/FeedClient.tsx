@@ -89,6 +89,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
+  const [filtersHydrated, setFiltersHydrated] = useState(useFeedFilterStore.persist.hasHydrated())
 
   const categoriesSet = useMemo(() => new Set(categories), [categories])
   const nationalitiesSet = useMemo(() => new Set(nationalities), [nationalities])
@@ -99,6 +100,14 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   )
   const cityScroll = useDragScroll()
   const districtScroll = useDragScroll()
+
+  useEffect(() => {
+    const unsubscribe = useFeedFilterStore.persist.onFinishHydration(() => {
+      setFiltersHydrated(true)
+    })
+    setFiltersHydrated(useFeedFilterStore.persist.hasHydrated())
+    return () => unsubscribe()
+  }, [])
 
   const [savedPlaceIds, setSavedPlaceIds] = useState(new Set<string>())
   const [likedPlaceIds, setLikedPlaceIds] = useState(new Set<string>())
@@ -123,6 +132,10 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     isError,
   } = useInfiniteQuery({
     queryKey: feedQueryKey,
+    enabled: filtersHydrated,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     initialPageParam: null as { createdAt: string; id: string } | null,
     queryFn: async ({ pageParam }): Promise<FeedPagePayload> => {
       const knownDistricts =
