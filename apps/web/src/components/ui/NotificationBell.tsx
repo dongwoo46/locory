@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -9,11 +9,17 @@ const supabase = createClient()
 export default function NotificationBell({ userId }: { userId: string }) {
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
+  const channelRef = useRef<any>(null)
 
-  useEffect(() => {
-    loadUnread()
+  function removeChannel() {
+    if (!channelRef.current) return
+    supabase.removeChannel(channelRef.current)
+    channelRef.current = null
+  }
 
-    const channel = supabase
+  function subscribeChannel() {
+    removeChannel()
+    channelRef.current = supabase
       .channel(`notif_badge:${userId}`)
       .on('postgres_changes', {
         event: '*',
@@ -22,8 +28,25 @@ export default function NotificationBell({ userId }: { userId: string }) {
         filter: `user_id=eq.${userId}`,
       }, () => loadUnread())
       .subscribe()
+  }
 
-    return () => { supabase.removeChannel(channel) }
+  useEffect(() => {
+    loadUnread()
+    subscribeChannel()
+
+    const onPageHide = () => removeChannel()
+    const onPageShow = () => {
+      loadUnread()
+      subscribeChannel()
+    }
+    window.addEventListener('pagehide', onPageHide)
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      window.removeEventListener('pagehide', onPageHide)
+      window.removeEventListener('pageshow', onPageShow)
+      removeChannel()
+    }
   }, [userId])
 
   async function loadUnread() {

@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -34,19 +34,19 @@ const CATEGORY_COLOR: Record<string, string> = {
 };
 
 const NATIONALITY_FLAGS: Record<string, string> = {
-  KR: '🇰🇷',
-  JP: '🇯🇵',
-  US: '🇺🇸',
-  CN: '🇨🇳',
-  TW: '🇹🇼',
-  ES: '🇪🇸',
-  RU: '🇷🇺',
-  GB: '🇬🇧',
-  FR: '🇫🇷',
-  DE: '🇩🇪',
-  IT: '🇮🇹',
-  AU: '🇦🇺',
-  OTHER: '🌍',
+  KR: '?눖?눟',
+  JP: '?눓?눝',
+  US: '?눣?눡',
+  CN: '?눊?눛',
+  TW: '?눢?눥',
+  ES: '?눎?눡',
+  RU: '?눟?눣',
+  GB: '?눐?눉',
+  FR: '?눏?눟',
+  DE: '?눍?눎',
+  IT: '?눒?눢',
+  AU: '?눇?눣',
+  OTHER: '?뙇',
 };
 
 const RATING_COLORS: Record<string, string> = {
@@ -57,24 +57,30 @@ const RATING_COLORS: Record<string, string> = {
 };
 
 const CATEGORY_EMOJIS: Record<string, string> = {
-  cafe: '☕', restaurant: '🍽️', photospot: '📸', street: '🚶',
-  bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
+  cafe: 'C',
+  restaurant: 'R',
+  photospot: 'P',
+  street: 'S',
+  bar: 'B',
+  culture: 'U',
+  nature: 'N',
+  shopping: 'H',
 };
 
 const NATIONALITY_CHIPS = [
-  { code: 'KR', flag: '🇰🇷' },
-  { code: 'JP', flag: '🇯🇵' },
-  { code: 'US', flag: '🇺🇸' },
-  { code: 'CN', flag: '🇨🇳' },
-  { code: 'TW', flag: '🇹🇼' },
-  { code: 'GB', flag: '🇬🇧' },
-  { code: 'FR', flag: '🇫🇷' },
-  { code: 'DE', flag: '🇩🇪' },
-  { code: 'IT', flag: '🇮🇹' },
-  { code: 'ES', flag: '🇪🇸' },
-  { code: 'AU', flag: '🇦🇺' },
-  { code: 'RU', flag: '🇷🇺' },
-  { code: 'OTHER', flag: '🌍' },
+  { code: 'KR', flag: '?눖?눟' },
+  { code: 'JP', flag: '?눓?눝' },
+  { code: 'US', flag: '?눣?눡' },
+  { code: 'CN', flag: '?눊?눛' },
+  { code: 'TW', flag: '?눢?눥' },
+  { code: 'GB', flag: '?눐?눉' },
+  { code: 'FR', flag: '?눏?눟' },
+  { code: 'DE', flag: '?눍?눎' },
+  { code: 'IT', flag: '?눒?눢' },
+  { code: 'ES', flag: '?눎?눡' },
+  { code: 'AU', flag: '?눇?눣' },
+  { code: 'RU', flag: '?눟?눣' },
+  { code: 'OTHER', flag: '?뙇' },
 ];
 
 const CITY_CENTERS: Record<string, { lat: number; lng: number; zoom: number }> =
@@ -175,7 +181,7 @@ function PinMarker({
   rating?: string | null;
   ratingLabel?: string;
 }) {
-  // 동선 짜기 모드 - 순서 번호 원형
+  // ?숈꽑 吏쒓린 紐⑤뱶 - ?쒖꽌 踰덊샇 ?먰삎
   if (order !== undefined) {
     return (
       <div
@@ -187,7 +193,7 @@ function PinMarker({
     );
   }
 
-  // 사진 있을 때 - 카드 스타일 핀
+  // ?ъ쭊 ?덉쓣 ??- 移대뱶 ?ㅽ????
   if (photoUrl) {
     const width = selected ? 72 : 60;
     return (
@@ -205,7 +211,7 @@ function PinMarker({
             transition: 'all 0.15s',
           }}
         >
-          {/* 사진 (4:3 비율) */}
+          {/* ?ъ쭊 (4:3 鍮꾩쑉) */}
           <div
             style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden' }}
           >
@@ -220,7 +226,7 @@ function PinMarker({
               }}
             />
           </div>
-          {/* 장소명 + 카테고리 + 평점 */}
+          {/* ?μ냼紐?+ 移댄뀒怨좊━ + ?됱젏 */}
           <div style={{ padding: '2px 4px 3px', backgroundColor: 'white' }}>
             <p
               style={{
@@ -279,7 +285,7 @@ function PinMarker({
             )}
           </div>
         </div>
-        {/* 삼각형 포인터 */}
+        {/* ?쇨컖???ъ씤??*/}
         <div
           style={{
             position: 'absolute',
@@ -300,7 +306,7 @@ function PinMarker({
     );
   }
 
-  // 사진 없을 때 - 기본 컬러 핀
+  // ?ъ쭊 ?놁쓣 ??- 湲곕낯 而щ윭 ?
   return (
     <svg
       width={selected ? 22 : 16}
@@ -393,7 +399,8 @@ export default function MapClient({ userId }: Props) {
   const tCities = useTranslations('cities');
   const tDistricts = useTranslations('districts');
 
-  // 지도 데이터 — 3분 캐싱 (재방문 시 즉시 로드)
+  // 吏???곗씠????3遺?罹먯떛 (?щ갑臾???利됱떆 濡쒕뱶)
+  const MAP_POST_FETCH_LIMIT = 300;
   const { data: mapData } = useQuery({
     queryKey: ['map-data', userId],
     queryFn: async () => {
@@ -407,7 +414,7 @@ export default function MapClient({ userId }: Props) {
             .eq('is_public', true)
             .is('deleted_at', null)
             .order('created_at', { ascending: false })
-            .limit(500),
+            .limit(MAP_POST_FETCH_LIMIT),
           supabase
             .from('saved_courses')
             .select('*')
@@ -468,14 +475,18 @@ export default function MapClient({ userId }: Props) {
         savedCourses: courses || [],
       };
     },
-    staleTime: 3 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const allPlaces: Place[] = mapData?.allPlaces ?? [];
   const { data: interactions } = useUserInteractions(userId);
   const savedPlaceIds: Set<string> = interactions?.savedPlaceIds ?? new Set();
 
-  // 기본 상태
+  // 湲곕낯 ?곹깭
   const [mode, setMode] = useState<'all' | 'saved'>('all');
   const [city, setCity] = useState<string | null>(null);
   const [categories, setCategories] = useState<Set<string>>(new Set());
@@ -490,11 +501,11 @@ export default function MapClient({ userId }: Props) {
   const [highlighted, setHighlighted] = useState<Place | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // 장소 검색 상태
+  // ?μ냼 寃???곹깭
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
 
-  // 동선 짜기 상태
+  // ?숈꽑 吏쒓린 ?곹깭
   const [mapMode, setMapMode] = useState<
     'normal' | 'course-build' | 'course-view' | 'recommend-build'
   >('normal');
@@ -530,7 +541,7 @@ export default function MapClient({ userId }: Props) {
   const [endLocResults, setEndLocResults] = useState<any[]>([]);
   const [endLocSearching, setEndLocSearching] = useState(false);
 
-  // Feature 2: 장소 추천받기
+  // Feature 2: ?μ냼 異붿쿇諛쏄린
   const [showCourseTypePicker, setShowCourseTypePicker] = useState(false);
   const [recommendStep, setRecommendStep] = useState<'neighborhoods' | 'settings' | 'generating' | 'result'>('neighborhoods');
   const [recommendDistricts, setRecommendDistricts] = useState<string[]>([]);
@@ -555,7 +566,7 @@ export default function MapClient({ userId }: Props) {
   const [courseLoading, setCourseLoading] = useState(false);
   const [courseTitle, setCourseTitle] = useState('');
   const [saving, setSaving] = useState(false);
-  // savedCourses: null = 아직 로드 전, 배열 = 로드됨 or 로컬 수정됨
+  // savedCourses: null이면 아직 원본 mapData를 사용하고, 배열이면 로컬 수정본을 우선 사용
   const [savedCoursesOverride, setSavedCoursesOverride] = useState<
     any[] | null
   >(null);
@@ -570,7 +581,7 @@ export default function MapClient({ userId }: Props) {
   const [showWantPicker, setShowWantPicker] = useState(false);
   const [wantPlaces, setWantPlaces] = useState<Place[]>([]);
 
-  // 장소 피드 시트
+  // ?μ냼 ?쇰뱶 ?쒗듃
   const [placePosts, setPlacePosts] = useState<any[]>([]);
   const [placePostsLoading, setPlacePostsLoading] = useState(false);
   const [sheetPost, setSheetPost] = useState<any | null>(null);
@@ -661,16 +672,21 @@ export default function MapClient({ userId }: Props) {
     polylineTimerRef.current = setTimeout(() => setPolylineTooltip(null), 3000);
   }
 
-  const sortedPlacePosts = [...placePosts].sort((a, b) => {
-    if (sheetSort === 'likes')
-      return (b.post_likes?.[0]?.count || 0) - (a.post_likes?.[0]?.count || 0);
-    if (sheetSort === 'saves')
-      return (b.post_saves?.[0]?.count || 0) - (a.post_saves?.[0]?.count || 0);
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+  const sortedPlacePosts = useMemo(() => {
+    return [...placePosts].sort((a, b) => {
+      if (sheetSort === 'likes')
+        return (b.post_likes?.[0]?.count || 0) - (a.post_likes?.[0]?.count || 0);
+      if (sheetSort === 'saves')
+        return (b.post_saves?.[0]?.count || 0) - (a.post_saves?.[0]?.count || 0);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [placePosts, sheetSort]);
 
   const cityScroll = useDragScroll();
-  const allCategories = [...new Set(allPlaces.map((p) => p.category))];
+  const allCategories = useMemo(
+    () => [...new Set(allPlaces.map((p) => p.category))],
+    [allPlaces],
+  );
 
   function toggleCategory(cat: string) {
     setCategories((prev) => {
@@ -693,44 +709,65 @@ export default function MapClient({ userId }: Props) {
     });
   }
 
-  const places = allPlaces
-    .filter((p) => mode === 'all' || savedPlaceIds.has(p.id))
-    .filter((p) => !city || p.city === city)
-    .filter((p) => categories.size === 0 || categories.has(p.category))
-    .filter((p) => !hiddenOnly || p.place_type === 'hidden_spot')
-    .filter((p) => {
-      if (viewMode === 'feed') return p.hasVisited === true;
-      if (viewMode === 'places') return p.hasWant === true;
-      return true;
-    })
-    .filter((p) => {
-      if (minRating == null) return true;
-      return p.avg_rating != null && p.avg_rating >= minRating;
-    })
-    .filter((p) => {
-      if (nationalities.size === 0) return true;
-      if (!p.nationalities || p.nationalities.length === 0) return false;
-      return p.nationalities.some((n) => nationalities.has(n));
-    })
-    .filter((p) => {
-      if (!genderFilter) return true;
-      if (!p.genders || p.genders.length === 0) return false;
-      return p.genders.includes(genderFilter);
-    })
-    .filter((p) => !district || p.district === district)
-    .sort((a, b) => (sortBy === 'popular' ? b.postCount - a.postCount : 0));
+  const places = useMemo(() => {
+    return allPlaces
+      .filter((p) => mode === 'all' || savedPlaceIds.has(p.id))
+      .filter((p) => !city || p.city === city)
+      .filter((p) => categories.size === 0 || categories.has(p.category))
+      .filter((p) => !hiddenOnly || p.place_type === 'hidden_spot')
+      .filter((p) => {
+        if (viewMode === 'feed') return p.hasVisited === true;
+        if (viewMode === 'places') return p.hasWant === true;
+        return true;
+      })
+      .filter((p) => {
+        if (minRating == null) return true;
+        return p.avg_rating != null && p.avg_rating >= minRating;
+      })
+      .filter((p) => {
+        if (nationalities.size === 0) return true;
+        if (!p.nationalities || p.nationalities.length === 0) return false;
+        return p.nationalities.some((n) => nationalities.has(n));
+      })
+      .filter((p) => {
+        if (!genderFilter) return true;
+        if (!p.genders || p.genders.length === 0) return false;
+        return p.genders.includes(genderFilter);
+      })
+      .filter((p) => !district || p.district === district)
+      .sort((a, b) => (sortBy === 'popular' ? b.postCount - a.postCount : 0));
+  }, [
+    allPlaces,
+    mode,
+    savedPlaceIds,
+    city,
+    categories,
+    hiddenOnly,
+    viewMode,
+    minRating,
+    nationalities,
+    genderFilter,
+    district,
+    sortBy,
+  ]);
 
-  const visibleCategories = [...new Set(places.map((p) => p.category))];
-  const districtList = city ? getMainDistricts(city as City) : [];
+  const visibleCategories = useMemo(
+    () => [...new Set(places.map((p) => p.category))],
+    [places],
+  );
+  const districtList = useMemo(
+    () => (city ? getMainDistricts(city as City) : []),
+    [city],
+  );
 
-  // 장소 검색 필터
-  const searchResults = searchQuery.trim().length > 0
-    ? allPlaces.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-      ).slice(0, 5)
-    : [];
-
-  function handleSearchSelect(place: Place) {
+  const searchResults = useMemo(() => {
+    if (searchQuery.trim().length === 0) return [];
+    const lower = searchQuery.trim().toLowerCase();
+    return allPlaces
+      .filter((p) => p.name.toLowerCase().includes(lower))
+      .slice(0, 5);
+  }, [searchQuery, allPlaces]);
+function handleSearchSelect(place: Place) {
     setHighlighted(place);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -897,7 +934,7 @@ export default function MapClient({ userId }: Props) {
       setRecommendStep('result');
       setMapMode('course-view');
       setViewingCourseDay(1);
-      // 추천된 장소들을 courseSelection에 세팅 (폴리라인 표시용)
+      // 異붿쿇???μ냼?ㅼ쓣 courseSelection???명똿 (?대━?쇱씤 ?쒖떆??
       if (data.days) {
         const allPlaceIds = data.days.flatMap((d: any) => d.places.map((p: any) => p.place_id));
         const { data: placesData } = await supabase
@@ -1005,7 +1042,7 @@ export default function MapClient({ userId }: Props) {
                   points={dayPlaces.map((p) => ({ lat: p.lat, lng: p.lng }))}
                   color={color}
                   onActivate={() =>
-                    showPolylineTooltip(`Day ${day.day} · ${day.theme}`)
+                    showPolylineTooltip(`Day ${day.day} 쨌 ${day.theme}`)
                   }
                 />
               );
@@ -1100,11 +1137,11 @@ export default function MapClient({ userId }: Props) {
         </GoogleMap>
       </APIProvider>
 
-      {/* 상단 필터 */}
+      {/* ?곷떒 ?꾪꽣 */}
       {mapMode !== 'course-view' && (
         <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
           <div className="max-w-lg mx-auto px-3 pt-3 flex flex-col gap-2">
-            {/* 장소 검색바 - normal + course-build 모드 */}
+            {/* ?μ냼 寃?됰컮 - normal + course-build 紐⑤뱶 */}
             {(mapMode === 'normal' || mapMode === 'course-build') && (
               <div className="relative pointer-events-auto">
                 <div className="flex items-center bg-white rounded-full shadow px-3 py-2 gap-2">
@@ -1146,12 +1183,12 @@ export default function MapClient({ userId }: Props) {
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-gray-50 text-left border-b border-gray-50 last:border-0"
                       >
                         <span className="text-base shrink-0">
-                          {place.category === 'cafe' ? '☕' : place.category === 'restaurant' ? '🍽️' : place.category === 'photospot' ? '📸' : place.category === 'bar' ? '🍻' : place.category === 'culture' ? '🎨' : place.category === 'nature' ? '🌿' : place.category === 'shopping' ? '🛍️' : '🚶'}
+                          {CATEGORY_EMOJIS[place.category] ?? 'S'}
                         </span>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{place.name}</p>
                           {place.city && (
-                            <p className="text-xs text-gray-400 truncate">{tCities(place.city)}{place.district && place.district !== 'other' ? ` · ${place.district}` : ''}</p>
+                            <p className="text-xs text-gray-400 truncate">{tCities(place.city)}{place.district && place.district !== 'other' ? ` 쨌 ${place.district}` : ''}</p>
                           )}
                         </div>
                       </button>
@@ -1160,7 +1197,7 @@ export default function MapClient({ userId }: Props) {
                 )}
               </div>
             )}
-            {/* 필터 버튼 - course-build 모드 전용 (normal은 아래 액션 버튼에 포함) */}
+            {/* ?꾪꽣 踰꾪듉 - course-build 紐⑤뱶 ?꾩슜 (normal? ?꾨옒 ?≪뀡 踰꾪듉???ы븿) */}
             {mapMode === 'course-build' && (
               <div className="flex justify-end pointer-events-auto">
                 <button
@@ -1175,7 +1212,7 @@ export default function MapClient({ userId }: Props) {
                 </button>
               </div>
             )}
-            {/* 액션 버튼 - normal 모드만 */}
+            {/* ?≪뀡 踰꾪듉 - normal 紐⑤뱶留?*/}
             {mapMode === 'normal' && (
               <div className="flex gap-2 pointer-events-auto">
                 <div className="bg-white rounded-full shadow flex p-1 gap-0.5">
@@ -1251,7 +1288,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
               </div>
             )}
-            {/* 도시 칩 */}
+            {/* ?꾩떆 移?*/}
             <div
               ref={cityScroll.ref}
               onMouseDown={cityScroll.onMouseDown}
@@ -1276,7 +1313,7 @@ export default function MapClient({ userId }: Props) {
                 </button>
               ))}
             </div>
-            {/* 동네 칩 */}
+            {/* ?숇꽕 移?*/}
             {city && districtList.length > 0 && (
               <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pointer-events-auto pb-0.5 cursor-grab select-none">
                 {districtList.map((d) => (
@@ -1292,12 +1329,12 @@ export default function MapClient({ userId }: Props) {
                 ))}
               </div>
             )}
-            {/* 필터 패널은 하단 fixed 모달로 이동됨 */}
+            {/* ?꾪꽣 ?⑤꼸? ?섎떒 fixed 紐⑤떖濡??대룞??*/}
           </div>
         </div>
       )}
 
-      {/* 동선 짜기 모드 - 하단 바 */}
+      {/* ?숈꽑 吏쒓린 紐⑤뱶 - ?섎떒 諛?*/}
       {mapMode === 'course-build' && (
         <div className="fixed bottom-[88px] left-0 right-0 z-[60] flex justify-center px-4 pointer-events-none">
           <div className="bg-white w-full max-w-lg px-4 py-3 flex items-center gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-2xl border border-gray-100 pointer-events-auto">
@@ -1383,7 +1420,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 핀 수 */}
+      {/* ? ??*/}
       {mapMode === 'normal' && places.length > 0 && !selected && (
         <div className="absolute top-28 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
           <div className="bg-black/50 text-white text-xs px-3 py-1 rounded-full">
@@ -1393,7 +1430,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 장소 피드 바텀시트 */}
+      {/* ?μ냼 ?쇰뱶 諛뷀??쒗듃 */}
       {selected && mapMode === 'normal' && (
         <div
           className="fixed inset-0 z-60 flex items-end justify-center bg-black/40"
@@ -1404,12 +1441,12 @@ export default function MapClient({ userId }: Props) {
             style={{ maxHeight: 'calc(72vh - 64px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 드래그 핸들 */}
+            {/* ?쒕옒洹??몃뱾 */}
             <div className="flex justify-center pt-2.5 pb-1 shrink-0">
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
 
-            {/* 장소 헤더 */}
+            {/* ?μ냼 ?ㅻ뜑 */}
             <div className="px-4 py-3 border-b border-gray-100 shrink-0">
               <div className="flex items-start gap-3">
                 <div
@@ -1432,10 +1469,10 @@ export default function MapClient({ userId }: Props) {
                     {selected.name}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {tPost(`category.${selected.category}`)} ·{' '}
+                    {tPost(`category.${selected.category}`)} 쨌{' '}
                     {tCities(selected.city)}
                     {selected.district && selected.district !== 'other'
-                      ? ` · ${tDistricts(`${selected.city}.${selected.district}`)}`
+                      ? ` 쨌 ${tDistricts(`${selected.city}.${selected.district}`)}`
                       : ''}
                     {selected.place_type === 'hidden_spot' && (
                       <span className="ml-1 text-purple-400">
@@ -1446,9 +1483,9 @@ export default function MapClient({ userId }: Props) {
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {selected.google_rating != null && (
                       <span className="flex items-center gap-1 text-xs text-gray-600 font-medium">
-                        <span className="text-yellow-400">★</span>
+                        <span className="text-yellow-400">*</span>
                         {selected.google_rating.toFixed(1)}
-                        <span className="text-gray-400 font-normal">구글</span>
+                        <span className="text-gray-400 font-normal">(Google)</span>
                       </span>
                     )}
                     {selected.rating && RATING_COLORS[selected.rating] && (
@@ -1471,7 +1508,7 @@ export default function MapClient({ userId }: Props) {
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full"
                       >
-                        🗺 {t('naverMenu')}
+                        N {t('naverMenu')}
                       </a>
                     )}
                   </div>
@@ -1496,7 +1533,7 @@ export default function MapClient({ userId }: Props) {
                               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" strokeLinecap="round" strokeLinejoin="round" />
                               <line x1="4" y1="22" x2="4" y2="15" strokeLinecap="round" />
                             </svg>
-                            신고
+                            ?좉퀬
                           </button>
                         </div>
                       </>
@@ -1515,9 +1552,9 @@ export default function MapClient({ userId }: Props) {
               <ReportSheet targetType="place" targetId={selected.id} onClose={() => setShowPlaceReport(false)} />
             )}
 
-            {/* 포스트 피드 - 3열 그리드 */}
+            {/* ?ъ뒪???쇰뱶 - 3??洹몃━??*/}
             <div className="overflow-y-auto flex-1 pb-4">
-              {/* 정렬 */}
+              {/* ?뺣젹 */}
               <div className="flex gap-1.5 px-4 py-2 border-b border-gray-100">
                 {(
                   [
@@ -1560,7 +1597,7 @@ export default function MapClient({ userId }: Props) {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                            📷
+                            ?벜
                           </div>
                         )}
                         {post.type === 'visited' && post.rating && (
@@ -1581,7 +1618,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 포스트 상세 모달 */}
+      {/* ?ъ뒪???곸꽭 紐⑤떖 */}
       {sheetPost && (
         <div
           className="fixed inset-0 bg-black/60 z-60 flex items-end justify-center"
@@ -1594,7 +1631,7 @@ export default function MapClient({ userId }: Props) {
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
-            {/* 유저 헤더 */}
+            {/* ?좎? ?ㅻ뜑 */}
             <div className="flex items-center gap-2.5 px-4 py-3">
               <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0">
                 {sheetPost.profiles?.avatar_url ? (
@@ -1626,7 +1663,7 @@ export default function MapClient({ userId }: Props) {
                 </span>
               )}
             </div>
-            {/* 사진 */}
+            {/* ?ъ쭊 */}
             {sheetPost.photos?.[0] && (
               <div className="aspect-square bg-gray-100">
                 <img
@@ -1636,11 +1673,11 @@ export default function MapClient({ userId }: Props) {
                 />
               </div>
             )}
-            {/* 메모 + 추천 메뉴 */}
+            {/* 硫붾え + 異붿쿇 硫붾돱 */}
             <div className="px-4 py-3 pb-8 flex flex-col gap-3">
               {sheetPost.recommended_menu && (
                 <div className="flex items-start gap-2 px-3 py-2.5 bg-orange-50 rounded-xl">
-                  <span className="text-base shrink-0">🍽</span>
+                  <span className="text-base shrink-0">?띂</span>
                   <div>
                     <p className="text-[10px] font-semibold text-orange-500 mb-0.5">
                       {t('menuLabel')}
@@ -1661,7 +1698,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 장소 없을 때 */}
+      {/* ?μ냼 ?놁쓣 ??*/}
       {places.length === 0 && mapMode === 'normal' && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
           <div className="bg-white rounded-2xl shadow px-6 py-4 text-center">
@@ -1670,7 +1707,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 설정 모달 */}
+      {/* ?ㅼ젙 紐⑤떖 */}
       {mapMode === 'course-build' && buildStep === 'settings' && (
         <div
           className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4 lg:p-0"
@@ -1688,7 +1725,7 @@ export default function MapClient({ userId }: Props) {
             </div>
             <div className="px-5 pb-6 pt-5 flex flex-col gap-4 overflow-y-auto">
 
-              {/* 여행 날짜 범위 */}
+              {/* ?ы뻾 ?좎쭨 踰붿쐞 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.startDate')} ~ {t('course.endDate')}</p>
                 <button
@@ -1699,8 +1736,7 @@ export default function MapClient({ userId }: Props) {
                     {courseSettings.startDate} ~ {courseSettings.endDate}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {Math.max(1, Math.round((new Date(courseSettings.endDate).getTime() - new Date(courseSettings.startDate).getTime()) / (1000*60*60*24))+1)}일
-                  </span>
+                    {Math.max(1, Math.round((new Date(courseSettings.endDate).getTime() - new Date(courseSettings.startDate).getTime()) / (1000*60*60*24))+1)}??                  </span>
                 </button>
                 {showCalendar && (
                   <div className="mt-2 flex justify-center border border-gray-100 rounded-xl p-2 bg-white">
@@ -1722,7 +1758,7 @@ export default function MapClient({ userId }: Props) {
                 <p className="text-[10px] text-gray-400 mt-1">{t('course.startDateHint')}</p>
               </div>
 
-              {/* 이동수단 */}
+              {/* ?대룞?섎떒 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   {t('course.transport')}
@@ -1751,7 +1787,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
               </div>
 
-              {/* 여행 분위기 */}
+              {/* ?ы뻾 遺꾩쐞湲?*/}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.vibe')}</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -1774,7 +1810,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
               </div>
 
-              {/* 동반자 */}
+              {/* ?숇컲??*/}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   {t('course.companion')}
@@ -1804,7 +1840,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
               </div>
 
-              {/* 활동 시간 슬라이더 */}
+              {/* ?쒕룞 ?쒓컙 ?щ씪?대뜑 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-1">{t('course.timeRange')}</p>
                 <p className="text-[10px] text-gray-400 mb-3">{t('course.timeRangeHint')}</p>
@@ -1861,7 +1897,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
               </div>
 
-              {/* 내 숙소 */}
+              {/* ???숈냼 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   {t('course.accommodation')}
@@ -1946,7 +1982,7 @@ export default function MapClient({ userId }: Props) {
                 )}
               </div>
 
-              {/* 출발지 */}
+              {/* 異쒕컻吏 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.startLocation')}</p>
                 {savedAccommodation ? (
@@ -2010,7 +2046,7 @@ export default function MapClient({ userId }: Props) {
                 )}
               </div>
 
-              {/* 도착지 */}
+              {/* ?꾩갑吏 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.endLocation')}</p>
                 {savedAccommodation ? (
@@ -2074,7 +2110,7 @@ export default function MapClient({ userId }: Props) {
                 )}
               </div>
 
-              {/* RAG 추가 장소 */}
+              {/* RAG 異붽? ?μ냼 */}
               <div>
                 <button
                   onClick={() => setCourseSettings(s => ({ ...s, ragEnabled: !s.ragEnabled }))}
@@ -2104,7 +2140,7 @@ export default function MapClient({ userId }: Props) {
                 )}
               </div>
 
-              {/* 기타 조건 */}
+              {/* 湲고? 議곌굔 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-1">
                   {t('course.extraConditions')}
@@ -2138,7 +2174,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 생성 중 오버레이 */}
+      {/* ?앹꽦 以??ㅻ쾭?덉씠 */}
       {mapMode === 'course-build' && buildStep === 'generating' && (
         <div className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center">
           <div className="bg-white rounded-2xl px-8 py-8 flex flex-col items-center gap-4 max-w-xs mx-4">
@@ -2170,7 +2206,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 코스 결과 바텀시트 */}
+      {/* 肄붿뒪 寃곌낵 諛뷀??쒗듃 */}
       {mapMode === 'course-view' && courseData && (
         <div className="fixed bottom-0 left-0 right-0 z-[60] flex justify-center mb-16">
           <div
@@ -2181,7 +2217,7 @@ export default function MapClient({ userId }: Props) {
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
 
-            {/* Day 탭 */}
+            {/* Day ??*/}
             <div className="flex gap-0 border-b border-gray-100 shrink-0 px-4">
               {courseData.days.map((day) => (
                 <button
@@ -2198,7 +2234,7 @@ export default function MapClient({ userId }: Props) {
               ))}
             </div>
 
-            {/* 해당 Day 장소 목록 */}
+            {/* ?대떦 Day ?μ냼 紐⑸줉 */}
             <div
               className="overflow-y-auto flex-1 pb-20"
               style={{ maxHeight: 'calc(50vh - 100px)' }}
@@ -2255,7 +2291,7 @@ export default function MapClient({ userId }: Props) {
                                     {p.tip && (
                                       <div className="flex items-start gap-1.5 bg-amber-50 rounded-lg px-2.5 py-1.5">
                                         <span className="text-amber-500 text-xs shrink-0">
-                                          💡
+                                          ?뮕
                                         </span>
                                         <p className="text-xs text-amber-800">
                                           {p.tip}
@@ -2289,7 +2325,7 @@ export default function MapClient({ userId }: Props) {
                 );
               })()}
 
-              {/* 저장 영역 */}
+              {/* ????곸뿭 */}
               {buildStep === 'result' && !saving && (
                 <div className="px-4 py-3 flex flex-col gap-2">
                   <input
@@ -2325,7 +2361,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 가고싶어 목록 피커 */}
+      {/* 媛怨좎떢??紐⑸줉 ?쇱빱 */}
       {showWantPicker && (
         <div
           className="fixed inset-0 bg-black/50 z-[70] flex items-end justify-center"
@@ -2407,7 +2443,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 저장된 코스 목록 */}
+      {/* ??λ맂 肄붿뒪 紐⑸줉 */}
       {showSavedCourses && (
         <div
           className="fixed inset-0 bg-black/50 z-[70] flex items-end justify-center"
@@ -2442,7 +2478,7 @@ export default function MapClient({ userId }: Props) {
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
                           {t('course.dayPlaces', { days: course.days, count: (course.place_ids || []).length })}
-                          ·{' '}
+                          쨌{' '}
                           {course.transport === 'transit'
                             ? t('course.transportTransitShort')
                             : course.transport === 'walking'
@@ -2469,7 +2505,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 동선 툴팁 */}
+      {/* ?숈꽑 ?댄똻 */}
       {polylineTooltip && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[70] pointer-events-none">
           <div className="bg-gray-900/90 text-white text-xs px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
@@ -2478,7 +2514,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 동선 타입 선택 모달 */}
+      {/* ?숈꽑 ????좏깮 紐⑤떖 */}
       {showCourseTypePicker && (
         <div className="fixed inset-0 z-40 flex items-end pointer-events-auto">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowCourseTypePicker(false)} />
@@ -2531,11 +2567,11 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* Feature 2: 장소 추천받기 시트 */}
+      {/* Feature 2: ?μ냼 異붿쿇諛쏄린 ?쒗듃 */}
       {mapMode === 'recommend-build' && recommendStep !== 'generating' && (
         <div className="fixed inset-x-0 bottom-16 z-40 pointer-events-auto">
           <div className="bg-white rounded-t-2xl shadow-xl max-h-[85vh] flex flex-col">
-            {/* 헤더 */}
+            {/* ?ㅻ뜑 */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
                 {recommendStep === 'settings' && (
@@ -2560,12 +2596,12 @@ export default function MapClient({ userId }: Props) {
             </div>
 
             <div className="overflow-y-auto flex-1 px-4 pb-6 pt-3">
-              {/* STEP 1: 동네 선택 */}
+              {/* STEP 1: ?숇꽕 ?좏깮 */}
               {recommendStep === 'neighborhoods' && (
                 <div className="flex flex-col gap-4">
                   <p className="text-xs text-gray-500">{t('recommend.neighborhoodsSubtitle')}</p>
 
-                  {/* 도시 탭 */}
+                  {/* ?꾩떆 ??*/}
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {CITIES.map(city => (
                       <button
@@ -2578,7 +2614,7 @@ export default function MapClient({ userId }: Props) {
                     ))}
                   </div>
 
-                  {/* 선택된 동네 chips */}
+                  {/* ?좏깮???숇꽕 chips */}
                   {recommendDistricts.length > 0 && (
                     <div className="flex gap-1.5 flex-wrap">
                       {recommendDistricts.map(d => (
@@ -2594,7 +2630,7 @@ export default function MapClient({ userId }: Props) {
                     </div>
                   )}
 
-                  {/* 현재 도시의 동네 목록 */}
+                  {/* ?꾩옱 ?꾩떆???숇꽕 紐⑸줉 */}
                   {(() => {
                     const districtList = getDistricts(recommendCityTab)
                     return (
@@ -2617,7 +2653,7 @@ export default function MapClient({ userId }: Props) {
                     )
                   })()}
 
-                  {/* 경고 모달 (장소 부족) */}
+                  {/* 寃쎄퀬 紐⑤떖 (?μ냼 遺議? */}
                   {showFewPlacesWarning && recommendPlaceCount !== null && (
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col gap-3">
                       <p className="text-sm text-amber-800">{t('recommend.fewPlacesWarning', { n: recommendPlaceCount })}</p>
@@ -2648,10 +2684,10 @@ export default function MapClient({ userId }: Props) {
                 </div>
               )}
 
-              {/* STEP 2: 여행 조건 */}
+              {/* STEP 2: ?ы뻾 議곌굔 */}
               {recommendStep === 'settings' && (
                 <div className="flex flex-col gap-4">
-                  {/* 날짜 범위 */}
+                  {/* ?좎쭨 踰붿쐞 */}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.startDate')} ~ {t('course.endDate')}</p>
                     <button
@@ -2662,8 +2698,7 @@ export default function MapClient({ userId }: Props) {
                         {recommendSettings.startDate} ~ {recommendSettings.endDate}
                       </span>
                       <span className="text-xs text-gray-400">
-                        {Math.max(1, Math.round((new Date(recommendSettings.endDate).getTime() - new Date(recommendSettings.startDate).getTime()) / (1000*60*60*24))+1)}일
-                      </span>
+                        {Math.max(1, Math.round((new Date(recommendSettings.endDate).getTime() - new Date(recommendSettings.startDate).getTime()) / (1000*60*60*24))+1)}??                      </span>
                     </button>
                     {showRecommendCalendar && (
                       <div className="mt-2 flex justify-center border border-gray-100 rounded-xl p-2 bg-white">
@@ -2684,7 +2719,7 @@ export default function MapClient({ userId }: Props) {
                     )}
                   </div>
 
-                  {/* 활동 시간 슬라이더 */}
+                  {/* ?쒕룞 ?쒓컙 ?щ씪?대뜑 */}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-1">{t('course.timeRange')}</p>
                     <div className="flex items-center justify-between text-xs font-medium text-gray-900 mb-2">
@@ -2737,7 +2772,7 @@ export default function MapClient({ userId }: Props) {
                     </div>
                   </div>
 
-                  {/* 여행 스타일 (카테고리 멀티셀렉) */}
+                  {/* ?ы뻾 ?ㅽ???(移댄뀒怨좊━ 硫?곗??? */}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t('recommend.styles')}</p>
                     <div className="grid grid-cols-4 gap-2">
@@ -2769,7 +2804,7 @@ export default function MapClient({ userId }: Props) {
                     </div>
                   </div>
 
-                  {/* 동반자 */}
+                  {/* ?숇컲??*/}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t('course.companion')}</p>
                     <div className="flex gap-2 flex-wrap">
@@ -2792,7 +2827,7 @@ export default function MapClient({ userId }: Props) {
                     </div>
                   </div>
 
-                  {/* 기타 조건 */}
+                  {/* 湲고? 議곌굔 */}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-1">{t('course.extraConditions')}</p>
                     <p className="text-[10px] text-gray-400 mb-1">{t('course.extraConditionsHint')}</p>
@@ -2831,7 +2866,7 @@ export default function MapClient({ userId }: Props) {
         </div>
       )}
 
-      {/* 필터 모달 */}
+      {/* ?꾪꽣 紐⑤떖 */}
       {mapMode === 'normal' && showFilters && (
         <div
           className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4 pointer-events-auto"
@@ -2842,7 +2877,7 @@ export default function MapClient({ userId }: Props) {
             style={{ maxHeight: '70vh' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* 헤더 */}
+            {/* ?ㅻ뜑 */}
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-gray-700">{t('filter')}</p>
               <div className="flex items-center gap-2">
@@ -2871,7 +2906,7 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 보기 모드 */}
+            {/* 蹂닿린 紐⑤뱶 */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterView')}</p>
               <div className="flex gap-1.5">
@@ -2887,7 +2922,7 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 정렬 */}
+            {/* ?뺣젹 */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('sort')}</p>
               <div className="flex gap-1.5">
@@ -2903,7 +2938,7 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 평점 */}
+            {/* ?됱젏 */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('avgRating')}</p>
               <div className="flex gap-1.5 flex-wrap">
@@ -2930,7 +2965,7 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 카테고리 */}
+            {/* 移댄뀒怨좊━ */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('category')}</p>
               <div className="flex flex-wrap gap-1.5">
@@ -2948,18 +2983,18 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 히든스팟 */}
+            {/* ?덈뱺?ㅽ뙚 */}
             <div>
               <button
                 onClick={() => setHiddenOnly((v) => !v)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${hiddenOnly ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
               >
-                <span>🔍</span>
+                <span>?뵇</span>
                 {tPost('hiddenSpotOnly')}
               </button>
             </div>
 
-            {/* 국적 */}
+            {/* 援?쟻 */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('nationality')}</p>
               <div className="flex flex-wrap gap-1.5">
@@ -2976,7 +3011,7 @@ export default function MapClient({ userId }: Props) {
               </div>
             </div>
 
-            {/* 성별 */}
+            {/* ?깅퀎 */}
             <div>
               <p className="text-xs font-semibold text-gray-400 mb-2">{t('authorGender')}</p>
               <div className="flex gap-2">
@@ -3003,3 +3038,4 @@ export default function MapClient({ userId }: Props) {
     </div>
   );
 }
+

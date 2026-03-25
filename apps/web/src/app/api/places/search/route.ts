@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       regionCode: 'KR',
       pageSize: 10,
     }),
-    cache: 'no-store',
+    next: { revalidate: 300 },
   })
 
   const data = await res.json()

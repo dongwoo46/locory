@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations, useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
+import dynamic from 'next/dynamic'
 import { getScentLevel } from '@/types/database'
 import { useLikeStore } from '@/store/likeStore'
-import ReportSheet from '@/components/ui/ReportSheet'
+const ReportSheet = dynamic(() => import('@/components/ui/ReportSheet'), { ssr: false })
 
 const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',

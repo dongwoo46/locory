@@ -9,35 +9,35 @@ import dynamic from 'next/dynamic'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
-import PostGrid from '@/components/feed/PostGrid'
-import NotificationBell from '@/components/ui/NotificationBell'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
 const OTHER_DISTRICT = '__other__'
 import type { City } from '@/types/database'
 
-const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'))
+const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
+const PostGrid = dynamic(() => import('@/components/feed/PostGrid'), { ssr: false })
+const NotificationBell = dynamic(() => import('@/components/ui/NotificationBell'), { ssr: false })
 
 const NATIONALITY_CHIPS = [
-  { code: 'KR', flag: '?눖?눟' }, { code: 'JP', flag: '?눓?눝' },
-  { code: 'US', flag: '?눣?눡' }, { code: 'CN', flag: '?눊?눛' },
-  { code: 'TW', flag: '?눢?눥' }, { code: 'GB', flag: '?눐?눉' },
-  { code: 'FR', flag: '?눏?눟' }, { code: 'DE', flag: '?눍?눎' },
-  { code: 'IT', flag: '?눒?눢' }, { code: 'ES', flag: '?눎?눡' },
-  { code: 'AU', flag: '?눇?눣' }, { code: 'RU', flag: '?눟?눣' },
-  { code: 'OTHER', flag: '?뙇' },
+  { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },
+  { code: 'US', flag: '🇺🇸' }, { code: 'CN', flag: '🇨🇳' },
+  { code: 'TW', flag: '🇹🇼' }, { code: 'GB', flag: '🇬🇧' },
+  { code: 'FR', flag: '🇫🇷' }, { code: 'DE', flag: '🇩🇪' },
+  { code: 'IT', flag: '🇮🇹' }, { code: 'ES', flag: '🇪🇸' },
+  { code: 'AU', flag: '🇦🇺' }, { code: 'RU', flag: '🇷🇺' },
+  { code: 'OTHER', flag: '🌍' },
 ]
 
 const CATEGORY_EMOJIS: Record<string, string> = {
-  cafe: 'C',
-  restaurant: 'R',
-  photospot: 'P',
-  street: 'S',
-  bar: 'B',
-  culture: 'U',
-  nature: 'N',
-  shopping: 'H',
+  cafe: '☕',
+  restaurant: '🍽️',
+  photospot: '📸',
+  street: '🚶',
+  bar: '🍻',
+  culture: '🎨',
+  nature: '🌿',
+  shopping: '🛍️',
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -741,12 +741,12 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
                   onClick={() => router.push(`/place/${place.id}`)}
                   className="flex items-center gap-3 flex-1 min-w-0 text-left"
                 >
-                  <span className="text-xl shrink-0">{CATEGORY_EMOJIS[place.category] || '?뱧'}</span>
+                  <span className="text-xl shrink-0">{CATEGORY_EMOJIS[place.category] || '📍'}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {tPost(`category.${place.category}`)}
-                      {place.district && place.district !== 'other' ? ` 쨌 ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 shrink-0">{place.postCount} posts</span>
