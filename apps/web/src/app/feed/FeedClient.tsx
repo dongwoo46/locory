@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
 import { useRouter } from 'next/navigation'
@@ -58,7 +58,6 @@ const RATING_COLORS: Record<string, string> = {
 interface Props {
   profile: { nickname: string; nationality: string; avatar_url: string | null; id: string } | null
   userId: string
-  followingUserIds: string[]
 }
 
 interface InteractionPayload {
@@ -73,7 +72,7 @@ interface FeedPagePayload {
   interactions: InteractionPayload
 }
 
-export default function FeedClient({ profile, userId, followingUserIds }: Props) {
+export default function FeedClient({ profile, userId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const queryClient = useQueryClient()
@@ -117,6 +116,25 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const [likedPlaceIds, setLikedPlaceIds] = useState(new Set<string>())
   const [interactionsInitialized, setInteractionsInitialized] = useState(false)
   const { init: initLikeStore, togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
+  const {
+    data: followingUserIds = [],
+    isLoading: followingIdsLoading,
+  } = useQuery({
+    queryKey: ['following-ids', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId)
+        .eq('status', 'accepted')
+      if (error) throw error
+      return (data ?? []).map((item: { following_id: string }) => item.following_id)
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
 
   // 피드 목록 + 상호작용 데이터를 RPC 1회로 조회
   // city/district/feedTab 변경 시 queryKey 기준으로 자동 캐시 분리
@@ -125,6 +143,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
   const RENDER_POST_CHUNK = 15
   const INITIAL_RENDER_PLACES = 15
   const RENDER_PLACE_CHUNK = 15
+  const followingReady = feedTab !== 'following' || !followingIdsLoading
   const feedQueryKey = ['feed-posts', feedTab, city, district, followingUserIds.join(',')] as const
   const {
     data: rawPosts,
@@ -136,7 +155,7 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     isError,
   } = useInfiniteQuery({
     queryKey: feedQueryKey,
-    enabled: filtersHydrated,
+    enabled: filtersHydrated && followingReady,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

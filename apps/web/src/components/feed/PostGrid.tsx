@@ -136,6 +136,21 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     onDelete?.(postId)
   }
 
+  function openPostDetail(targetPost: any) {
+    setSelected(targetPost)
+    setPhotoIndex(0)
+    setComments([])
+    setCommentText('')
+    const firstMedium = getPostImageUrl(targetPost, 0, 'medium')
+    if (firstMedium) {
+      const preload = new window.Image()
+      preload.src = firstMedium
+    }
+    window.setTimeout(() => {
+      loadComments(targetPost.id)
+    }, 120)
+  }
+
   function openEdit(p: any) {
     setEditMemo(p.memo || '')
     setEditMenu(p.recommended_menu || '')
@@ -192,7 +207,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
           return (
             <div
               key={p.id}
-              onClick={() => { setSelected(p); setPhotoIndex(0); setComments([]); setCommentText(''); loadComments(p.id) }}
+              onClick={() => openPostDetail(p)}
               className="bg-white overflow-hidden text-left cursor-pointer"
             >
               <div className="aspect-square bg-gray-100 relative">
@@ -410,7 +425,9 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                     className="object-cover"
                     fill
                     sizes="(max-width: 768px) 100vw, 640px"
-                    loading="lazy"
+                    loading="eager"
+                    priority={photoIndex === 0}
+                    unoptimized
                   />
                   {post.photos.length > 1 && (
                     <>
