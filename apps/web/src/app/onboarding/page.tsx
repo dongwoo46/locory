@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import type { Nationality } from '@/types/database'
@@ -94,7 +95,15 @@ export default function OnboardingPage() {
 
         <div className="flex flex-col gap-1">
           <h1>
-            <img src="/logo40.png" alt="Locory" className="h-10 w-auto" />
+            <Image
+              src="/logo40.png"
+              alt="Locory"
+              width={74}
+              height={40}
+              className="h-10 w-auto"
+              priority
+              sizes="74px"
+            />
           </h1>
           <p className="text-sm text-gray-500 mt-1">{t('title')}</p>
         </div>

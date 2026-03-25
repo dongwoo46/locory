@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
@@ -170,7 +171,15 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
             </button>
             {/* 중앙: 로고 */}
             <h1 className="flex-1 flex justify-center">
-              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
+              <Image
+                src="/logo40.png"
+                alt="Locory"
+                width={126}
+                height={68}
+                className="h-16 w-auto"
+                priority
+                sizes="126px"
+              />
             </h1>
             {/* 오른쪽: 필터 + 알림 */}
             <div className="flex items-center gap-1.5">

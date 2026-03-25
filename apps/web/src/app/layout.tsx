@@ -21,10 +21,25 @@ export default async function RootLayout({
 }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const supabaseOrigin = (() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!url) return null;
+    try {
+      return new URL(url).origin;
+    } catch {
+      return null;
+    }
+  })();
 
   return (
     <html lang={locale}>
       <head>
+        {supabaseOrigin && (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} crossOrigin="" />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        )}
         <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9095120612475154"
           strategy="lazyOnload"

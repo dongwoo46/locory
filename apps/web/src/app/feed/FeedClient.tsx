@@ -5,12 +5,12 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
-import NotificationBell from '@/components/ui/NotificationBell'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
@@ -18,6 +18,10 @@ const OTHER_DISTRICT = '__other__'
 import type { City } from '@/types/database'
 
 const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
+const NotificationBell = dynamic(() => import('@/components/ui/NotificationBell'), {
+  ssr: false,
+  loading: () => <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />,
+})
 
 const NATIONALITY_CHIPS = [
   { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },
@@ -397,7 +401,15 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
             </button>
             {/* 중앙: 로고 */}
             <h1 className="flex-1 flex justify-center">
-              <img src="/logo40.png" alt="Locory" className="h-16 w-auto" />
+              <Image
+                src="/logo40.png"
+                alt="Locory"
+                width={126}
+                height={68}
+                className="h-16 w-auto"
+                priority
+                sizes="126px"
+              />
             </h1>
             {/* 오른쪽: 필터 + 알림 */}
             <div className="flex items-center gap-1.5 shrink-0">
