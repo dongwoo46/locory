@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { Analytics } from '@vercel/analytics/next';
@@ -24,17 +25,15 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <head>
-        {/* 수정된 부분: strategy를 제거하거나 일반 script 태그 권장 */}
-        <script
-          async
+        <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9095120612475154"
+          strategy="lazyOnload"
           crossOrigin="anonymous"
         />
       </head>
       <body className={`${geist.variable} antialiased`}>
         <QueryProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
-            {/* locale도 명시적으로 전달하는 것이 안전합니다 */}
             {children}
             <Analytics />
           </NextIntlClientProvider>

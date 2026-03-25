@@ -10,6 +10,7 @@ import StepRating from './StepRating'
 import StepMemo from './StepMemo'
 import { useTranslations } from 'next-intl'
 import { INITIAL_STATE, type UploadState } from './types'
+import { optimizeImageFile } from '@/lib/utils/image'
 
 export default function UploadFlow() {
   const router = useRouter()
@@ -86,11 +87,17 @@ export default function UploadFlow() {
       // 2. 사진 업로드
       const photoUrls: string[] = []
       for (const photo of state.photos) {
-        const ext = photo.name.split('.').pop()
+        const optimized = await optimizeImageFile(photo, {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.8,
+          mimeType: 'image/webp',
+        })
+        const ext = optimized.name.split('.').pop()
         const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('posts')
-          .upload(path, photo, { contentType: photo.type })
+          .upload(path, optimized, { contentType: optimized.type })
 
         if (uploadError) throw uploadError
 

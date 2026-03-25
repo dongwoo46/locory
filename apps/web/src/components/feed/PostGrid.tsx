@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
@@ -183,7 +184,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     <>
       {/* 3열 그리드 */}
       <div className="grid grid-cols-3 gap-px px-4">
-        {localPosts.map(p => {
+        {localPosts.map((p, index) => {
           const place = p.places
           const likeCount = likeCountMap[p.id] ?? parseInt(p.post_likes?.[0]?.count) ?? 0
           const saveCount = parseInt(p.post_saves?.[0]?.count) || 0
@@ -195,7 +196,15 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
             >
               <div className="aspect-square bg-gray-100 relative">
                 {p.photos?.[0] ? (
-                  <img src={p.photos[0]} alt="" className="w-full h-full object-cover" />
+                  <Image
+                    src={p.photos[0]}
+                    alt={place?.name ? `${place.name} thumbnail` : ''}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 33vw, 180px"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    priority={index === 0}
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center p-3">
                     <span className="text-xs text-gray-400 text-center leading-tight">{place?.name}</span>
@@ -284,7 +293,16 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                   className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0"
                 >
                   {post.profiles?.avatar_url
-                    ? <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ? (
+                      <Image
+                        src={post.profiles.avatar_url}
+                        alt={post.profiles?.nickname ? `${post.profiles.nickname} avatar` : ''}
+                        className="w-full h-full object-cover"
+                        width={32}
+                        height={32}
+                        loading="lazy"
+                      />
+                    )
                     : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{post.profiles?.nickname?.[0]}</div>
                   }
                 </button>
@@ -385,7 +403,14 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
 
               {post.photos?.length > 0 && (
                 <div className="relative aspect-square bg-gray-100 overflow-hidden">
-                  <img src={post.photos[photoIndex]} alt="" className="w-full h-full object-cover" />
+                  <Image
+                    src={post.photos[photoIndex]}
+                    alt={post.places?.name ? `${post.places.name} photo` : ''}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 640px"
+                    loading="lazy"
+                  />
                   {post.photos.length > 1 && (
                     <>
                       {photoIndex > 0 && (
@@ -461,7 +486,16 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                       return (
                         <div key={c.id} className="flex items-start gap-2">
                           <div className="w-6 h-6 rounded-full bg-gray-200 shrink-0 overflow-hidden">
-                            {profile?.avatar_url && <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />}
+                            {profile?.avatar_url && (
+                              <Image
+                                src={profile.avatar_url}
+                                className="w-full h-full object-cover"
+                                alt={profile?.nickname ? `${profile.nickname} avatar` : ''}
+                                width={24}
+                                height={24}
+                                loading="lazy"
+                              />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-xs font-semibold text-gray-800 mr-1.5">{profile?.nickname}</span>

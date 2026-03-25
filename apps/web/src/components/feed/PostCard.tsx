@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
 import ReportSheet from '@/components/ui/ReportSheet'
@@ -83,7 +84,16 @@ export default function PostCard({ post, userId, isSaved: initialSaved = false, 
           className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0"
         >
           {profile?.avatar_url
-            ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            ? (
+              <Image
+                src={profile.avatar_url}
+                alt={profile?.nickname ? `${profile.nickname} avatar` : ''}
+                className="w-full h-full object-cover"
+                width={32}
+                height={32}
+                loading="lazy"
+              />
+            )
             : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">{profile?.nickname?.[0]}</div>
           }
         </button>
@@ -130,7 +140,15 @@ export default function PostCard({ post, userId, isSaved: initialSaved = false, 
       {/* 사진 */}
       {post.photos?.length > 0 && (
         <div className="relative aspect-square bg-gray-100">
-          <img src={post.photos[imgIndex]} alt="" className="w-full h-full object-cover" />
+          <Image
+            src={post.photos[imgIndex]}
+            alt={post.places?.name ? `${post.places.name} photo` : ''}
+            className="object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 420px"
+            loading={imgIndex === 0 ? 'eager' : 'lazy'}
+            priority={imgIndex === 0}
+          />
           {post.photos.length > 1 && (
             <div className="absolute bottom-2 right-2 flex gap-1">
               {post.photos.map((_: any, i: number) => (

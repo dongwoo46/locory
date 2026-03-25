@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic'
 import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
+import PostGrid from '@/components/feed/PostGrid'
+import NotificationBell from '@/components/ui/NotificationBell'
 import { useTranslations } from 'next-intl'
 import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
 
@@ -16,8 +18,6 @@ const OTHER_DISTRICT = '__other__'
 import type { City } from '@/types/database'
 
 const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
-const PostGrid = dynamic(() => import('@/components/feed/PostGrid'), { ssr: false })
-const NotificationBell = dynamic(() => import('@/components/ui/NotificationBell'), { ssr: false })
 
 const NATIONALITY_CHIPS = [
   { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },

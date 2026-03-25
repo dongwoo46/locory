@@ -8,6 +8,7 @@ import { localeNames, displayLocales, type Locale } from '@/i18n/config'
 import { setLocale } from '@/i18n/client'
 import { validateNickname } from '@/lib/utils/nickname'
 import BottomNav from '@/components/ui/BottomNav'
+import { optimizeImageFile } from '@/lib/utils/image'
 
 interface Profile {
   id: string
@@ -82,12 +83,18 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
     if (!file) return
     setAvatarUploading(true)
 
-    const ext = file.name.split('.').pop()
+    const optimized = await optimizeImageFile(file, {
+      maxWidth: 512,
+      maxHeight: 512,
+      quality: 0.82,
+      mimeType: 'image/webp',
+    })
+    const ext = optimized.name.split('.').pop()
     const path = `${profile.id}/avatar.${ext}`
 
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, file, { upsert: true })
+      .upload(path, optimized, { upsert: true, contentType: optimized.type })
 
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
