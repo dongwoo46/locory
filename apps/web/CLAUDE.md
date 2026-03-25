@@ -8,8 +8,8 @@
 
 ## 기술 스택
 - Next.js 16 App Router + TypeScript + Tailwind CSS v4
-- Supabase (DB + Auth + Storage), Google Maps API, Gemini 2.5 Flash Lite
-- next-intl (6개 언어: ko/en/ja/zh-TW/es/ru), @tanstack/react-query v5, Zustand
+- Supabase (DB + Auth + Storage), Google Maps API, Gemini 2.5 Flash Lite, Google Translate API v2
+- next-intl (7개 언어: ko/en/ja/zh-TW/zh-CN/es/ru), @tanstack/react-query v5, Zustand
 - 배포: Vercel
 
 ## 협업 방식
@@ -28,6 +28,9 @@
 - `/api/places/geocode` — 역지오코딩 (lat/lng → address)
 - `/api/course` — Gemini 동선 생성
 - `/api/directions` — Google Directions 경로
+- `/api/translate` — Google Translate v2 (POST `{text, target}` → `{translated, remaining}`), 하루 5회 제한
+- `/api/posts/[id]/comments` — GET 댓글 목록 / POST 댓글 작성
+- `/api/comments/[id]` — DELETE 댓글 소프트삭제
 
 ## 어드민 계정
 - `siwol406@gmail.com` → DB 트리거(`handle_new_user`)에서 자동 role='admin', trust_score=8000
@@ -38,7 +41,12 @@ NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_K
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY, GOOGLE_PLACES_API_KEY
 NEXT_PUBLIC_SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT
 GEMINI_API_KEY
+GOOGLE_TRANSLATE_API_KEY
 ```
+
+## DB 마이그레이션 (최신)
+- 030: place_meetups.title 컬럼, post_comments 테이블, notifications 타입 확장(post_liked/post_saved), DB 트리거 4개
+- 031: translate_usage 테이블 + increment_translate_usage() SECURITY DEFINER RPC
 
 ## 세부 규칙 파일
 @.claude/rules/db.md

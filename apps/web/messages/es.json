@@ -179,7 +179,10 @@
     "editSubmit": "Guardar cambios",
     "editSuccess": "Publicación actualizada",
     "commentPlaceholder": "Añadir un comentario...",
-    "commentPost": "Publicar"
+    "commentPost": "Publicar",
+    "translate": "Traducir",
+    "translateRemaining": "{remaining} restantes hoy",
+    "translateError": "Error al traducir"
   },
   "place": {
     "visitorStats": "Estadísticas de visitas",

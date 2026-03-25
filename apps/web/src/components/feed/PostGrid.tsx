@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { getScentLevel } from '@/types/database'
 import { useLikeStore } from '@/store/likeStore'
@@ -57,10 +57,18 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
   const [editLocalRec, setEditLocalRec] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
 
+  const locale = useLocale()
+
   const {
     likedPostIds, likeCountMap, savedPostIds,
     mergePostCounts,
   } = useLikeStore()
+
+  const [commentCountMap, setCommentCountMap] = useState<Record<string, number>>({})
+  const [memoTranslated, setMemoTranslated] = useState<string | null>(null)
+  const [memoTranslating, setMemoTranslating] = useState(false)
+  const [translateRemaining, setTranslateRemaining] = useState<number | null>(null)
+  const [commentTranslations, setCommentTranslations] = useState<Record<string, string>>({})
 
   useEffect(() => {
     setLocalPosts(posts)
@@ -73,6 +81,55 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     )
     mergePostCounts(counts)
   }, [localPosts, mergePostCounts])
+
+  // 댓글 수 batch fetch
+  useEffect(() => {
+    if (localPosts.length === 0) return
+    const ids = localPosts.map(p => p.id)
+    supabase
+      .from('post_comments')
+      .select('post_id')
+      .in('post_id', ids)
+      .is('deleted_at', null)
+      .then(({ data }) => {
+        if (!data) return
+        const counts: Record<string, number> = {}
+        for (const row of data) {
+          counts[row.post_id] = (counts[row.post_id] || 0) + 1
+        }
+        setCommentCountMap(prev => ({ ...prev, ...counts }))
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localPosts])
+
+  async function translateText(text: string): Promise<{ translated: string; remaining: number } | null> {
+    const res = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, target: locale }),
+    })
+    if (!res.ok) return null
+    return res.json()
+  }
+
+  async function translateMemo() {
+    if (!selected?.memo || memoTranslating) return
+    setMemoTranslating(true)
+    const result = await translateText(selected.memo)
+    setMemoTranslating(false)
+    if (result) {
+      setMemoTranslated(result.translated)
+      setTranslateRemaining(result.remaining)
+    }
+  }
+
+  async function translateComment(commentId: string, body: string) {
+    const result = await translateText(body)
+    if (result) {
+      setCommentTranslations(prev => ({ ...prev, [commentId]: result.translated }))
+      setTranslateRemaining(result.remaining)
+    }
+  }
 
   async function handlePostLike(postId: string) {
     const { likedPostIds: cur, togglePostLike: toggle } = useLikeStore.getState()
@@ -141,6 +198,8 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     setPhotoIndex(0)
     setComments([])
     setCommentText('')
+    setMemoTranslated(null)
+    setCommentTranslations({})
     const firstMedium = getPostImageUrl(targetPost, 0, 'medium')
     if (firstMedium) {
       const preload = new window.Image()
@@ -267,6 +326,14 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                       </svg>
                       <span className="text-[9px] text-gray-400">{saveCount}</span>
                     </div>
+                    {(commentCountMap[p.id] ?? 0) > 0 && (
+                      <div className="flex items-center gap-0.5">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="#9CA3AF" stroke="none">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        <span className="text-[9px] text-gray-400">{commentCountMap[p.id]}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -491,7 +558,22 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                   </div>
                 </div>
                 {post.memo && (
-                  <p className="text-sm text-gray-700 leading-relaxed">{post.memo}</p>
+                  <div>
+                    <p className="text-sm text-gray-700 leading-relaxed">{post.memo}</p>
+                    {memoTranslated && (
+                      <p className="text-sm text-gray-500 leading-relaxed mt-1 border-t border-gray-100 pt-1">{memoTranslated}</p>
+                    )}
+                    {!memoTranslated && (
+                      <button
+                        onClick={translateMemo}
+                        disabled={memoTranslating}
+                        className="mt-1.5 text-[11px] text-gray-400 underline disabled:opacity-40"
+                      >
+                        {memoTranslating ? '...' : tPost('translate')}
+                        {translateRemaining !== null && ` · ${tPost('translateRemaining', { remaining: translateRemaining })}`}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -518,6 +600,17 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                           <div className="flex-1 min-w-0">
                             <span className="text-xs font-semibold text-gray-800 mr-1.5">{profile?.nickname}</span>
                             <span className="text-xs text-gray-700 break-words">{c.body}</span>
+                            {commentTranslations[c.id] && (
+                              <p className="text-xs text-gray-400 mt-0.5">{commentTranslations[c.id]}</p>
+                            )}
+                            {!commentTranslations[c.id] && (
+                              <button
+                                onClick={() => translateComment(c.id, c.body)}
+                                className="text-[10px] text-gray-300 underline mt-0.5 block"
+                              >
+                                {tPost('translate')}
+                              </button>
+                            )}
                           </div>
                           {c.user_id === userId && (
                             <button onClick={() => deleteComment(c.id)} className="shrink-0 text-gray-300 text-[10px] leading-none mt-0.5">✕</button>

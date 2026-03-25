@@ -152,7 +152,10 @@
     "editSubmit": "保存",
     "editSuccess": "已更新",
     "commentPlaceholder": "添加评论...",
-    "commentPost": "发布"
+    "commentPost": "发布",
+    "translate": "翻译",
+    "translateRemaining": "今日剩余{remaining}次",
+    "translateError": "翻译失败"
   },
   "place": {
     "visitorStats": "访客统计",

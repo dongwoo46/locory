@@ -179,7 +179,10 @@
     "editSubmit": "Сохранить",
     "editSuccess": "Обновлено",
     "commentPlaceholder": "Добавить комментарий...",
-    "commentPost": "Отправить"
+    "commentPost": "Отправить",
+    "translate": "Перевести",
+    "translateRemaining": "Осталось {remaining} сегодня",
+    "translateError": "Ошибка перевода"
   },
   "place": {
     "visitorStats": "Статистика посетителей",

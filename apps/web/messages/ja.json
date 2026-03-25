@@ -179,7 +179,10 @@
     "editSubmit": "保存する",
     "editSuccess": "更新しました",
     "commentPlaceholder": "コメントを追加...",
-    "commentPost": "投稿"
+    "commentPost": "投稿",
+    "translate": "翻訳",
+    "translateRemaining": "今日あと{remaining}回",
+    "translateError": "翻訳に失敗しました"
   },
   "place": {
     "visitorStats": "訪問者統計",

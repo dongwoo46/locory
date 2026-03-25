@@ -179,7 +179,10 @@
     "editSubmit": "Save changes",
     "editSuccess": "Post updated",
     "commentPlaceholder": "Add a comment...",
-    "commentPost": "Post"
+    "commentPost": "Post",
+    "translate": "Translate",
+    "translateRemaining": "{remaining} left today",
+    "translateError": "Translation failed"
   },
   "place": {
     "visitorStats": "Visitor stats",

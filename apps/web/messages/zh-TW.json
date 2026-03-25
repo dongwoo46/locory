@@ -179,7 +179,10 @@
     "editSubmit": "儲存",
     "editSuccess": "已更新",
     "commentPlaceholder": "新增留言...",
-    "commentPost": "發佈"
+    "commentPost": "發佈",
+    "translate": "翻譯",
+    "translateRemaining": "今日剩餘{remaining}次",
+    "translateError": "翻譯失敗"
   },
   "place": {
     "visitorStats": "訪客統計",

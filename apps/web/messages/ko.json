@@ -179,7 +179,10 @@
     "editSubmit": "수정하기",
     "editSuccess": "수정되었어요",
     "commentPlaceholder": "댓글 달기...",
-    "commentPost": "게시"
+    "commentPost": "게시",
+    "translate": "번역",
+    "translateRemaining": "오늘 {remaining}회 남음",
+    "translateError": "번역 실패"
   },
   "place": {
     "visitorStats": "방문자 통계",
