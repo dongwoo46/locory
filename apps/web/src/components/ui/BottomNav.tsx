@@ -95,6 +95,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={`flex flex-col items-center gap-0.5 py-3 px-3 transition-colors ${active ? 'text-gray-900' : 'text-gray-400'}`}
             >
               {item.icon(active)}
