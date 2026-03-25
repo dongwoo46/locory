@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
 import { useUserInteractions } from '@/hooks/useUserInteractions'
@@ -88,9 +88,20 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
 
   // 피드 포스트 — city/district/feedTab 변경 시 자동 캐싱
   // all탭: places!inner embedded join으로 2-step 쿼리를 1개로 통합
-  const { data: rawPosts, isLoading: loading } = useQuery({
-    queryKey: ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
-    queryFn: async () => {
+  const FEED_PAGE_SIZE = 20
+  const feedQueryKey = ['feed-posts', feedTab, city, district, followingUserIds.join(',')] as const
+  const {
+    data: rawPosts,
+    isLoading: loading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+    isError,
+  } = useInfiniteQuery({
+    queryKey: feedQueryKey,
+    initialPageParam: null as { createdAt: string; id: string } | null,
+    queryFn: async ({ pageParam }) => {
       const SELECT = `
         id, type, rating, memo, photos, recommended_menu, created_at,
         profiles!user_id (id, nickname, nationality, avatar_url, trust_score, gender, birth_date),
@@ -98,15 +109,22 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         post_likes (count),
         post_saves (count)
       `
+      const applyCursor = (q: any) => {
+        if (!pageParam) return q
+        return q.or(`created_at.lt.${pageParam.createdAt},and(created_at.eq.${pageParam.createdAt},id.lt.${pageParam.id})`)
+      }
       if (feedTab === 'following') {
         if (followingUserIds.length === 0) return []
-        const { data } = await supabase
+        let q = supabase
           .from('posts').select(SELECT)
           .eq('is_public', true)
           .is('deleted_at', null)
           .in('user_id', followingUserIds)
           .order('created_at', { ascending: false })
-          .limit(60)
+          .order('id', { ascending: false })
+          .limit(FEED_PAGE_SIZE)
+        q = applyCursor(q)
+        const { data } = await q
         return data || []
       }
 
@@ -114,7 +132,8 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         .eq('is_public', true)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
-        .limit(60)
+        .order('id', { ascending: false })
+        .limit(FEED_PAGE_SIZE)
 
       if (city) {
         q = (q as any).eq('places.city', city)
@@ -129,12 +148,19 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
         }
       }
 
+      q = applyCursor(q)
       const { data } = await q
       return data || []
     },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.length < FEED_PAGE_SIZE) return undefined
+      const last = lastPage[lastPage.length - 1]
+      if (!last?.created_at || !last?.id) return undefined
+      return { createdAt: last.created_at, id: last.id }
+    },
     staleTime: 60 * 1000,
   })
-  const posts = (rawPosts ?? []) as any[]
+  const posts = ((rawPosts?.pages ?? []).flat() ?? []) as any[]
 
   async function togglePlaceSave(placeId: string) {
     const cur = (queryClient.getQueryData(['user-saved', userId]) as any)?.savedPlaceIds as Set<string> | undefined
@@ -213,6 +239,27 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
     if (sortBy === 'saves') return (parseInt(b.post_saves?.[0]?.count) || 0) - (parseInt(a.post_saves?.[0]?.count) || 0)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el) return
+    if (!hasNextPage) return
+    if (isFetchingNextPage) return
+    if (sortedPosts.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return
+        if (!hasNextPage) return
+        if (isFetchingNextPage) return
+        fetchNextPage()
+      },
+      { rootMargin: '800px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, sortedPosts.length])
 
   // 장소 뷰
   const placesFromPosts = (() => {
@@ -569,10 +616,29 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
           <div className="flex items-center justify-center py-20">
             <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
           </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <p className="text-gray-400 text-sm">{t('loadError')}</p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white"
+            >
+              {t('retry')}
+            </button>
+          </div>
         ) : sortedPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-2">
             <p className="text-gray-400 text-sm">{t('noPostsTitle')}</p>
             <p className="text-gray-300 text-xs">{t('noPostsSubtitle')}</p>
+            {hasNextPage && (
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
+              >
+                {isFetchingNextPage ? t('loadingMore') : t('loadMore')}
+              </button>
+            )}
           </div>
         ) : viewMode === 'places' ? (
           <div className="flex flex-col gap-2">
@@ -622,12 +688,30 @@ export default function FeedClient({ profile, userId, followingUserIds }: Props)
             userId={userId}
             onDelete={(postId) => {
               queryClient.setQueryData(
-                ['feed-posts', feedTab, city, district, followingUserIds.join(',')],
-                (old: any[]) => old?.filter(p => p.id !== postId) ?? []
+                feedQueryKey,
+                (old: any) => {
+                  if (!old) return old
+                  const pages = (old.pages ?? []).map((page: any[]) => page.filter(p => p.id !== postId))
+                  return { ...old, pages }
+                }
               )
             }}
           />
         )}
+
+        {hasNextPage && sortedPosts.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-6 gap-3">
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
+            >
+              {isFetchingNextPage ? t('loadingMore') : t('loadMore')}
+            </button>
+            <p className="text-xs text-gray-400">{t('loadMoreHint')}</p>
+          </div>
+        )}
+        <div ref={loadMoreRef} className="h-px" />
       </main>
 
       <BottomNav avatarUrl={profile?.avatar_url ?? null} />

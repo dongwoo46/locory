@@ -13,6 +13,11 @@
   "feed": {
     "noPostsTitle": "No posts yet",
     "noPostsSubtitle": "Be the first to share a place",
+    "loadError": "Failed to load feed",
+    "retry": "Retry",
+    "loadMore": "Load more",
+    "loadingMore": "Loading...",
+    "loadMoreHint": "Scroll down to load more",
     "wantTag": "Want to go",
     "all": "All",
     "other": "Other",

@@ -13,6 +13,11 @@
   "feed": {
     "noPostsTitle": "Aún no hay publicaciones",
     "noPostsSubtitle": "Sé el primero en compartir un lugar",
+    "loadError": "No se pudo cargar el feed",
+    "retry": "Reintentar",
+    "loadMore": "Cargar más",
+    "loadingMore": "Cargando...",
+    "loadMoreHint": "Desplázate hacia abajo para cargar más",
     "wantTag": "Quiero ir",
     "all": "Todo",
     "other": "Otros",

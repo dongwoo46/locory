@@ -13,6 +13,11 @@
   "feed": {
     "noPostsTitle": "還沒有貼文",
     "noPostsSubtitle": "成為第一個分享地點的人",
+    "loadError": "載入動態失敗",
+    "retry": "重試",
+    "loadMore": "載入更多",
+    "loadingMore": "載入中...",
+    "loadMoreHint": "向下捲動以載入更多",
     "wantTag": "想去",
     "all": "全部",
     "other": "其他",

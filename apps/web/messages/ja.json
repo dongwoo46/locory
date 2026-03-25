@@ -13,6 +13,11 @@
   "feed": {
     "noPostsTitle": "まだ投稿がありません",
     "noPostsSubtitle": "最初の場所をシェアしてみましょう",
+    "loadError": "フィードの読み込みに失敗しました",
+    "retry": "再試行",
+    "loadMore": "もっと見る",
+    "loadingMore": "読み込み中...",
+    "loadMoreHint": "下にスクロールしてさらに読み込み",
     "wantTag": "行きたい",
     "all": "すべて",
     "other": "その他",

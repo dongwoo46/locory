@@ -13,6 +13,11 @@
   "feed": {
     "noPostsTitle": "아직 포스팅이 없어요",
     "noPostsSubtitle": "첫 번째로 장소를 공유해보세요",
+    "loadError": "피드를 불러오지 못했어요",
+    "retry": "다시 시도",
+    "loadMore": "더 불러오기",
+    "loadingMore": "불러오는 중...",
+    "loadMoreHint": "아래로 스크롤하면 더 불러와요",
     "wantTag": "가고싶어",
     "all": "전체",
     "other": "기타",

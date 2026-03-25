@@ -12,6 +12,11 @@
   "feed": {
     "noPostsTitle": "暂无帖子",
     "noPostsSubtitle": "成为第一个分享地点的人",
+    "loadError": "加载动态失败",
+    "retry": "重试",
+    "loadMore": "加载更多",
+    "loadingMore": "加载中...",
+    "loadMoreHint": "向下滑动以加载更多",
     "wantTag": "想去",
     "all": "全部",
     "other": "其他",
