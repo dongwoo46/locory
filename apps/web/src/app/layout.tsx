@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { Analytics } from '@vercel/analytics/next';
 import QueryProvider from '@/components/providers/QueryProvider';
-import Script from 'next/script';
 import './globals.css';
 
 const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
