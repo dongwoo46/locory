@@ -10,7 +10,7 @@ import StepRating from './StepRating'
 import StepMemo from './StepMemo'
 import { useTranslations } from 'next-intl'
 import { INITIAL_STATE, type UploadState } from './types'
-import { optimizeImageFile } from '@/lib/utils/image'
+import { optimizeImageFile, optimizeImageFileCover } from '@/lib/utils/image'
 
 export default function UploadFlow() {
   const router = useRouter()
@@ -92,10 +92,10 @@ export default function UploadFlow() {
         originalUrl: string
       }> = []
       for (const photo of state.photos) {
-        const thumbnail = await optimizeImageFile(photo, {
-          maxWidth: 480,
-          maxHeight: 480,
-          quality: 0.72,
+        const thumbnail = await optimizeImageFileCover(photo, {
+          width: 720,
+          height: 960,
+          quality: 0.78,
           mimeType: 'image/webp',
         })
         const medium = await optimizeImageFile(photo, {

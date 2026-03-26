@@ -74,7 +74,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       label: t('profile'),
       icon: (active: boolean) =>
         resolvedAvatar ? (
-          <div className={`w-6 h-6 rounded-full overflow-hidden border-2 transition-colors ${active ? 'border-gray-900' : 'border-transparent'}`}>
+          <div className={`w-4 h-4 rounded-full overflow-hidden border transition-colors ${active ? 'border-gray-900' : 'border-transparent'}`}>
             <img src={resolvedAvatar} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (

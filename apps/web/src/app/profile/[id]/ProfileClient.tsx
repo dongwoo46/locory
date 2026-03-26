@@ -412,6 +412,8 @@ export default function ProfileClient({
             <PostGrid
               posts={visiblePosts}
               userId={myId}
+              variant="feed_discover"
+              discoverCountMode="always"
             />
             {hasNextPage && (
               <div className="px-4 py-4 text-center text-xs text-gray-400">

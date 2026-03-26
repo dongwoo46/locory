@@ -15,22 +15,41 @@ const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',
 }
 const NATIONALITY_FLAGS: Record<string, string> = {
-  KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
+  KR: '\u{1F1F0}\u{1F1F7}',
+  JP: '\u{1F1EF}\u{1F1F5}',
+  US: '\u{1F1FA}\u{1F1F8}',
+  CN: '\u{1F1E8}\u{1F1F3}',
+  ES: '\u{1F1EA}\u{1F1F8}',
+  RU: '\u{1F1F7}\u{1F1FA}',
+  OTHER: '\u{1F30D}',
 }
 const CATEGORY_EMOJIS: Record<string, string> = {
-  cafe: '☕', restaurant: '🍽️', photospot: '📸', street: '🚶',
-  bar: '🍻', culture: '🎨', nature: '🌿', shopping: '🛍️',
+  cafe: '\u2615',
+  restaurant: '\u{1F37D}\uFE0F',
+  photospot: '\u{1F4F8}',
+  street: '\u{1F6B6}',
+  bar: '\u{1F37B}',
+  culture: '\u{1F3A8}',
+  nature: '\u{1F33F}',
+  shopping: '\u{1F6CD}\uFE0F',
 }
-
 const RATING_OPTIONS = ['must_go', 'worth_it', 'neutral', 'not_great']
 
 interface Props {
   posts: any[]
   userId: string
   onDelete?: (postId: string) => void
+  variant?: 'default' | 'feed_discover'
+  discoverCountMode?: 'threshold' | 'always'
 }
 
-export default function PostGrid({ posts, userId, onDelete }: Props) {
+export default function PostGrid({
+  posts,
+  userId,
+  onDelete,
+  variant = 'default',
+  discoverCountMode = 'threshold',
+}: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations()
@@ -74,7 +93,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     setLocalPosts(posts)
   }, [posts])
 
-  // 포스트 좋아요 수 store에 병합
+  // Merge initial like counts into zustand store
   useEffect(() => {
     const counts = Object.fromEntries(
       localPosts.map(p => [p.id, parseInt(p.post_likes?.[0]?.count) || 0])
@@ -82,7 +101,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     mergePostCounts(counts)
   }, [localPosts, mergePostCounts])
 
-  // 댓글 수 batch fetch
+  // Batch fetch comment counts for visible posts
   useEffect(() => {
     if (localPosts.length === 0) return
     const ids = localPosts.map(p => p.id)
@@ -101,6 +120,50 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
       })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localPosts])
+
+  // Sync current user's post like/save state for visible posts
+  useEffect(() => {
+    if (!userId || localPosts.length === 0) return
+    const postIds = localPosts.map(p => p.id).filter(Boolean)
+    if (postIds.length === 0) return
+
+    let cancelled = false
+    ;(async () => {
+      const [likesRes, savesRes] = await Promise.all([
+        supabase
+          .from('post_likes')
+          .select('post_id')
+          .eq('user_id', userId)
+          .in('post_id', postIds),
+        supabase
+          .from('post_saves')
+          .select('post_id')
+          .eq('user_id', userId)
+          .in('post_id', postIds),
+      ])
+
+      if (cancelled) return
+
+      const likedIds = new Set((likesRes.data ?? []).map((row: { post_id: string }) => row.post_id))
+      const savedIds = new Set((savesRes.data ?? []).map((row: { post_id: string }) => row.post_id))
+
+      useLikeStore.setState((state) => {
+        const nextLiked = new Set(state.likedPostIds)
+        const nextSaved = new Set(state.savedPostIds)
+        for (const id of postIds) {
+          nextLiked.delete(id)
+          nextSaved.delete(id)
+        }
+        for (const id of likedIds) nextLiked.add(id)
+        for (const id of savedIds) nextSaved.add(id)
+        return { likedPostIds: nextLiked, savedPostIds: nextSaved }
+      })
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [localPosts, userId, supabase])
 
   async function translateText(text: string): Promise<{ translated: string; remaining: number } | null> {
     const res = await fetch('/api/translate', {
@@ -175,6 +238,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     setCommentLoading(false)
     if (!error && data) {
       setComments(prev => [...prev, data])
+      setCommentCountMap(prev => ({ ...prev, [selected.id]: (prev[selected.id] ?? 0) + 1 }))
       setCommentText('')
     }
   }
@@ -182,6 +246,9 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
   async function deleteComment(commentId: string) {
     await supabase.from('post_comments').update({ deleted_at: new Date().toISOString() }).eq('id', commentId)
     setComments(prev => prev.filter((c: any) => c.id !== commentId))
+    if (selected) {
+      setCommentCountMap(prev => ({ ...prev, [selected.id]: Math.max(0, (prev[selected.id] ?? 0) - 1) }))
+    }
   }
 
   async function handleDeletePost(postId: string) {
@@ -191,23 +258,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
     setSelected(null)
     setLocalPosts(prev => prev.filter(p => p.id !== postId))
     onDelete?.(postId)
-  }
-
-  function openPostDetail(targetPost: any) {
-    setSelected(targetPost)
-    setPhotoIndex(0)
-    setComments([])
-    setCommentText('')
-    setMemoTranslated(null)
-    setCommentTranslations({})
-    const firstMedium = getPostImageUrl(targetPost, 0, 'medium')
-    if (firstMedium) {
-      const preload = new window.Image()
-      preload.src = firstMedium
-    }
-    window.setTimeout(() => {
-      loadComments(targetPost.id)
-    }, 120)
   }
 
   function openEdit(p: any) {
@@ -257,19 +307,21 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
 
   return (
     <>
-      {/* 3열 그리드 */}
-      <div className="grid grid-cols-3 gap-px px-4">
+      <div className={`grid grid-cols-3 ${variant === 'feed_discover' ? 'gap-1 px-4' : 'gap-px px-4'}`}>
         {localPosts.map((p, index) => {
           const place = p.places
           const likeCount = likeCountMap[p.id] ?? parseInt(p.post_likes?.[0]?.count) ?? 0
           const saveCount = parseInt(p.post_saves?.[0]?.count) || 0
+          const showLikeCount = discoverCountMode === 'always' ? true : likeCount >= 100
+          const showSaveCount = discoverCountMode === 'always' ? true : saveCount >= 100
+          const showCountMeta = showLikeCount || showSaveCount
           return (
             <div
               key={p.id}
-              onClick={() => openPostDetail(p)}
+              onClick={() => router.push(`/post/${p.id}`)}
               className="bg-white overflow-hidden text-left cursor-pointer"
             >
-              <div className="aspect-square bg-gray-100 relative">
+              <div className={`${variant === 'feed_discover' ? 'aspect-[3/4]' : 'aspect-square'} bg-gray-100 relative`}>
                 {p.photos?.[0] ? (
                   <Image
                     src={getPostImageUrl(p, 0, 'thumbnail')}
@@ -285,7 +337,7 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                     <span className="text-xs text-gray-400 text-center leading-tight">{place?.name}</span>
                   </div>
                 )}
-                {p.type === 'visited' && p.rating && (
+                {variant !== 'feed_discover' && p.type === 'visited' && p.rating && (
                   <div
                     className="absolute top-3 left-2 text-white text-[9px] font-semibold px-2 pt-1 pb-[2px] rounded-full"
                     style={{ backgroundColor: RATING_COLORS[p.rating] }}
@@ -293,17 +345,74 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                     {tPost('rating.' + p.rating)}
                   </div>
                 )}
-                {p.type === 'want' && (
+                {variant !== 'feed_discover' && p.type === 'want' && (
                   <div className="absolute top-3 left-2 bg-black/50 text-white text-[9px] px-2 pt-1 pb-[2px] rounded-full">
                     {tFeed('wantTag')}
                   </div>
                 )}
-                {place?.place_type === 'hidden_spot' && (
+                {variant !== 'feed_discover' && place?.place_type === 'hidden_spot' && (
                   <div className="absolute bottom-2 left-2 bg-purple-600/80 text-white text-[9px] px-2 pt-1 pb-[2px] rounded-full flex items-center gap-0.5">
-                    <span className="text-[10px]">🔍</span> <span>{tPost('hiddenSpot')}</span>
+                    <span className="text-[10px]">{'\u{1F50D}'}</span> <span>{tPost('hiddenSpot')}</span>
                   </div>
                 )}
+                {variant === 'feed_discover' && (
+                  <>
+                    {place?.category && (
+                      <div className="absolute right-2.5 top-2.5 rounded-full bg-black/55 px-2 py-0.5 text-[8px] font-semibold text-white backdrop-blur-[1px] [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
+                        {tPost(`category.${place.category}`)}
+                      </div>
+                    )}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/45 via-black/18 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-8 text-white">
+                      <p className="truncate text-[11px] font-bold leading-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                        {place?.name || ''}
+                      </p>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <span className="truncate text-[9px] font-medium text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                          {p.type === 'visited' && p.rating ? tPost('rating.' + p.rating) : tFeed('wantTag')}
+                        </span>
+                        {showCountMeta && (
+                          <span className="shrink-0 flex items-center gap-1.5 text-[10px] font-medium text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                            {showLikeCount && (
+                              <span className="flex items-center gap-0.5">
+                                <svg
+                                  width="10"
+                                  height="10"
+                                  viewBox="0 0 24 24"
+                                  fill={likedPostIds.has(p.id) ? 'currentColor' : 'none'}
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                  aria-hidden="true"
+                                >
+                                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                                <span>{likeCount}</span>
+                              </span>
+                            )}
+                            {showSaveCount && (
+                              <span className="flex items-center gap-0.5">
+                                <svg
+                                  width="10"
+                                  height="10"
+                                  viewBox="0 0 24 24"
+                                  fill={savedPostIds.has(p.id) ? 'currentColor' : 'none'}
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                  aria-hidden="true"
+                                >
+                                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                                </svg>
+                                <span>{saveCount}</span>
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
+              {variant !== 'feed_discover' && (
               <div className="px-2 py-1.5">
                 <div className="flex items-center gap-1 leading-tight">
                   <span className="text-xs shrink-0">{CATEGORY_EMOJIS[place?.category]}</span>
@@ -337,12 +446,12 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* 포스트 상세 모달 */}
       {post && (
         <div
           className="fixed inset-0 bg-black/60 z-60 flex items-center justify-center px-4"
@@ -426,7 +535,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                       {tFeed('wantTag')}
                     </span>
                   ) : null}
-                  {/* 점 3개 메뉴 */}
                   <div className="relative">
                     <button
                       onClick={() => setShowMenu(v => !v)}
@@ -555,6 +663,12 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                       </svg>
                       <span className="text-xs text-gray-400">{likeCountMap[post.id] || 0}</span>
                     </button>
+                    <div className="flex items-center gap-1">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={2}>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                      <span className="text-xs text-gray-400">{commentCountMap[post.id] ?? comments.length}</span>
+                    </div>
                   </div>
                 </div>
                 {post.memo && (
@@ -577,7 +691,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                 )}
               </div>
 
-              {/* 댓글 섹션 */}
               <div className="border-t border-gray-100 shrink-0">
                 {comments.length > 0 && (
                   <div className="px-4 pt-3 pb-1 flex flex-col gap-2 max-h-40 overflow-y-auto">
@@ -613,7 +726,9 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                             )}
                           </div>
                           {c.user_id === userId && (
-                            <button onClick={() => deleteComment(c.id)} className="shrink-0 text-gray-300 text-[10px] leading-none mt-0.5">✕</button>
+                            <button onClick={() => deleteComment(c.id)} className="shrink-0 text-gray-300 text-[10px] leading-none mt-0.5">
+                              {tPost('delete')}
+                            </button>
                           )}
                         </div>
                       )
@@ -642,7 +757,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
         </div>
       )}
 
-      {/* 수정 바텀시트 */}
       {showEdit && post && (
         <div className="fixed inset-0 z-[80] flex flex-col justify-end" onClick={() => setShowEdit(false)}>
           <div className="absolute inset-0 bg-black/40" />
@@ -662,7 +776,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
               </button>
             </div>
             <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-5 pb-8">
-              {/* 메모 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">Memo</p>
                 <textarea
@@ -674,7 +787,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                 <p className="text-right text-xs text-gray-300 mt-0.5">{editMemo.length}/500</p>
               </div>
 
-              {/* 추천 메뉴 */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">{tPost('category.restaurant')}</p>
                 <input
@@ -685,7 +797,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                 />
               </div>
 
-              {/* 평점 (방문 후기만) */}
               {post.type === 'visited' && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-2">Rating</p>
@@ -707,7 +818,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                 </div>
               )}
 
-              {/* 공개 여부 */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700">Public</p>
                 <button
@@ -718,7 +828,6 @@ export default function PostGrid({ posts, userId, onDelete }: Props) {
                 </button>
               </div>
 
-              {/* 현지인 추천 */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-700">{tPost('hiddenSpot')}</p>
                 <button

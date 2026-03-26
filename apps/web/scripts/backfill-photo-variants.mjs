@@ -153,6 +153,21 @@ async function createWebpBuffer(sourceBuffer, width, quality) {
     .toBuffer()
 }
 
+async function createWebpCoverBuffer(sourceBuffer, width, height, quality) {
+  const sharp = await getSharp()
+  return sharp(sourceBuffer)
+    .rotate()
+    .resize({
+      width,
+      height,
+      fit: 'cover',
+      position: 'centre',
+      withoutEnlargement: false,
+    })
+    .webp({ quality })
+    .toBuffer()
+}
+
 async function uploadVariantBuffer(targetPath, buffer) {
   const { error } = await supabase.storage
     .from('posts')
@@ -167,6 +182,11 @@ async function uploadVariantBuffer(targetPath, buffer) {
 
 async function uploadVariantFromSource(sourceBuffer, targetPath, width, quality) {
   const variantBuffer = await createWebpBuffer(sourceBuffer, width, quality)
+  return uploadVariantBuffer(targetPath, variantBuffer)
+}
+
+async function uploadVariantFromSourceCover(sourceBuffer, targetPath, width, height, quality) {
+  const variantBuffer = await createWebpCoverBuffer(sourceBuffer, width, height, quality)
   return uploadVariantBuffer(targetPath, variantBuffer)
 }
 
@@ -232,10 +252,12 @@ async function processPost(post) {
     sourcePathsToDelete.push(objectPath)
 
     const { thumbnailPath, mediumPath, originalPath } = buildVariantPaths(objectPath)
+    const sourceBuffer = await downloadSourceBuffer(objectPath)
+
     keepPaths.add(thumbnailPath)
     keepPaths.add(mediumPath)
     keepPaths.add(originalPath)
-    const thumbnailUrl = await uploadVariantFromRender(objectPath, thumbnailPath, 480, 72)
+    const thumbnailUrl = await uploadVariantFromSourceCover(sourceBuffer, thumbnailPath, 720, 960, 78)
     const mediumUrl = await uploadVariantFromRender(objectPath, mediumPath, 1280, 80)
     const originalUrl = await uploadVariantFromRender(objectPath, originalPath, 2048, 88)
 
@@ -253,6 +275,7 @@ async function processPost(post) {
 
   if (updateError) throw updateError
 
+  let deletedCount = 0
   if (DELETE_SOURCE) {
     const removablePaths = sourcePathsToDelete.filter((path) => !keepPaths.has(path))
     if (removablePaths.length > 0) {
@@ -261,11 +284,13 @@ async function processPost(post) {
         .remove(removablePaths)
       if (removeError) {
         console.error(`[warn] source remove failed for ${post.id}`, removeError)
+      } else {
+        deletedCount = removablePaths.length
       }
     }
   }
 
-  return { updated: true, reason: 'ok', deleted: removablePaths.length ?? 0 }
+  return { updated: true, reason: 'ok', deleted: deletedCount }
 }
 
 async function main() {

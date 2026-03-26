@@ -92,7 +92,13 @@ export default function FeedClient({ profile, userId }: Props) {
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
   const [viewMode, setViewMode] = useState<'posts' | 'places'>('posts')
-  const [filtersHydrated, setFiltersHydrated] = useState(useFeedFilterStore.persist.hasHydrated())
+  const getFiltersHydrated = () => {
+    if (typeof useFeedFilterStore.persist?.hasHydrated === 'function') {
+      return useFeedFilterStore.persist.hasHydrated()
+    }
+    return true
+  }
+  const [filtersHydrated, setFiltersHydrated] = useState(getFiltersHydrated)
 
   const categoriesSet = useMemo(() => new Set(categories), [categories])
   const nationalitiesSet = useMemo(() => new Set(nationalities), [nationalities])
@@ -105,11 +111,14 @@ export default function FeedClient({ profile, userId }: Props) {
   const districtScroll = useDragScroll()
 
   useEffect(() => {
-    const unsubscribe = useFeedFilterStore.persist.onFinishHydration(() => {
-      setFiltersHydrated(true)
-    })
-    setFiltersHydrated(useFeedFilterStore.persist.hasHydrated())
-    return () => unsubscribe()
+    if (typeof useFeedFilterStore.persist?.onFinishHydration === 'function') {
+      const unsubscribe = useFeedFilterStore.persist.onFinishHydration(() => {
+        setFiltersHydrated(true)
+      })
+      setFiltersHydrated(getFiltersHydrated())
+      return () => unsubscribe()
+    }
+    setFiltersHydrated(true)
   }, [])
 
   const [savedPlaceIds, setSavedPlaceIds] = useState(new Set<string>())
@@ -807,6 +816,7 @@ export default function FeedClient({ profile, userId }: Props) {
           <PostGrid
             posts={visiblePosts}
             userId={userId}
+            variant="feed_discover"
             onDelete={(postId) => {
               queryClient.setQueryData(
                 feedQueryKey,

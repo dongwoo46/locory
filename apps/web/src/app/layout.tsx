@@ -1,13 +1,10 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { Analytics } from '@vercel/analytics/next';
 import QueryProvider from '@/components/providers/QueryProvider';
 import ThirdPartyScripts from '@/components/providers/ThirdPartyScripts';
 import './globals.css';
-
-const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Locory',
@@ -41,7 +38,7 @@ export default async function RootLayout({
           </>
         )}
       </head>
-      <body className={`${geist.variable} antialiased`}>
+      <body className="antialiased">
         <QueryProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             {children}
