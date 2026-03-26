@@ -98,11 +98,11 @@ export default function OnboardingPage() {
             <Image
               src="/logo40.png"
               alt="Locory"
-              width={74}
-              height={40}
-              className="h-10 w-auto"
+              width={92}
+              height={44}
+              className="h-11 w-auto"
               priority
-              sizes="74px"
+              sizes="92px"
             />
           </h1>
           <p className="text-sm text-gray-500 mt-1">{t('title')}</p>

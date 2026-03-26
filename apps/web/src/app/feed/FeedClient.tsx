@@ -433,11 +433,11 @@ export default function FeedClient({ profile, userId }: Props) {
               <Image
                 src="/logo40.png"
                 alt="Locory"
-                width={102}
-                height={36}
-                className="h-9 w-auto"
+                width={116}
+                height={40}
+                className="h-10 w-auto"
                 priority
-                sizes="102px"
+                sizes="116px"
               />
             </h1>
             {/* 오른쪽: 필터 + 알림 */}
@@ -451,7 +451,6 @@ export default function FeedClient({ profile, userId }: Props) {
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
-                {t('filter')}
                 {activeFilterCount > 0 && (
                   <span className="w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[9px] font-bold flex items-center justify-center">
                     {activeFilterCount}

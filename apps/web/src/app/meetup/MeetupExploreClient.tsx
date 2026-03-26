@@ -89,6 +89,7 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('meetup')
+  const tFeed = useTranslations('feed')
   const tCities = useTranslations('cities')
   const tDistricts = useTranslations('districts')
 
@@ -233,7 +234,6 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
-                {t('explore.filterActivity').split('').slice(0, 0).join('') || '필터'}
                 {activeFilterCount > 0 && (
                   <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[10px] font-bold flex items-center justify-center">
                     {activeFilterCount}
@@ -323,12 +323,12 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowFilters(false)} />
           <div className="relative bg-white rounded-t-2xl max-w-lg mx-auto w-full max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <span className="text-sm font-bold text-gray-900">필터</span>
+              <span className="text-sm font-bold text-gray-900">{tFeed('filter')}</span>
               <button
                 onClick={resetFilters}
                 className="text-xs text-gray-400 underline"
               >
-                초기화
+                {tFeed('filterReset')}
               </button>
             </div>
 
@@ -418,7 +418,7 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
                 onClick={() => setShowFilters(false)}
                 className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold"
               >
-                {filtered.length}개 모임 보기
+                {tFeed('filterApply')}
               </button>
             </div>
           </div>

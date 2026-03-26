@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -14,20 +14,18 @@ import { CITIES, getMainDistricts, getExtraDistricts } from '@/lib/utils/distric
 import type { City } from '@/types/database'
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  cafe: '☕', restaurant: '🍽️', photospot: '📸', bar: '🍺',
-  culture: '🎨', nature: '🌿', shopping: '🛍️', street: '📍',
+  cafe: '\u2615',
+  restaurant: '\u{1F37D}\uFE0F',
+  photospot: '\u{1F4F8}',
+  bar: '\u{1F37B}',
+  culture: '\u{1F3A8}',
+  nature: '\u{1F33F}',
+  shopping: '\u{1F6CD}\uFE0F',
+  street: '\u{1F6B6}',
 }
 
-const CATEGORY_LABEL: Record<string, string> = {
-  cafe: '카페', restaurant: '맛집', photospot: '포토스팟', bar: '바',
-  culture: '문화', nature: '자연', shopping: '쇼핑', street: '거리',
-}
-
-const CATEGORIES = Object.keys(CATEGORY_LABEL)
-
-const RATING_LABEL: Record<string, string> = {
-  must_go: '강추', worth_it: '좋아요', neutral: '보통', not_great: '별로', never: '비추',
-}
+const CATEGORIES = ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping'] as const
+const RATING_OPTIONS = ['must_go', 'worth_it', 'neutral', 'not_great'] as const
 
 interface Props {
   userId: string
@@ -88,14 +86,14 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
 
-  // 도시/동네 공통 필터 (헤더)
+  // ?꾩떆/?숇꽕 怨듯넻 ?꾪꽣 (?ㅻ뜑)
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
   const allDistricts = selectedCity ? [...getMainDistricts(selectedCity), ...getExtraDistricts(selectedCity)] : []
 
   function selectCity(c: City | null) { setSelectedCity(c); setSelectedDistrict(null) }
 
-  // 카테고리/기타 필터 (모달)
+  // 移댄뀒怨좊━/湲고? ?꾪꽣 (紐⑤떖)
   const [placeCategory, setPlaceCategory] = useState<string | null>(null)
   const [placeHiddenOnly, setPlaceHiddenOnly] = useState(false)
   const [postCategory, setPostCategory] = useState<string | null>(null)
@@ -109,7 +107,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     await supabase.from('place_saves').delete().eq('user_id', userId).eq('place_id', placeId)
   }
 
-  // 필터 적용 (도시/동네는 공통으로 모든 탭에 적용)
+  // ?꾪꽣 ?곸슜 (?꾩떆/?숇꽕??怨듯넻?쇰줈 紐⑤뱺 ??뿉 ?곸슜)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function matchesCityDistrict(place: any) {
     if (selectedCity && place.city !== selectedCity) return false
@@ -141,7 +139,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     return true
   })
 
-  // 활성 필터 수 (도시/동네 제외 — 헤더에 따로 표시)
+  // ?쒖꽦 ?꾪꽣 ??(?꾩떆/?숇꽕 ?쒖쇅 ???ㅻ뜑???곕줈 ?쒖떆)
   const activeFilterCount = tab === 'places'
     ? [placeCategory, placeHiddenOnly || null].filter(Boolean).length
     : tab === 'posts'
@@ -154,34 +152,34 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     else { setFollowingCategory(null) }
   }
 
-  // 헤더 높이: 로고+필터(56) + 탭(44) + 도시(40) + 동네(40 if selected) = pt
+  // ?ㅻ뜑 ?믪씠: 濡쒓퀬+?꾪꽣(56) + ??44) + ?꾩떆(40) + ?숇꽕(40 if selected) = pt
   const headerPt = selectedCity ? 'pt-[180px]' : 'pt-[140px]'
 
   return (
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-100">
         <div className="max-w-lg mx-auto px-4">
-          {/* 상단 바 */}
+          {/* ?곷떒 諛?*/}
           <div className="flex items-center h-16 gap-2">
-            {/* 왼쪽: + 버튼 */}
+            {/* ?쇱そ: + 踰꾪듉 */}
             <button onClick={() => setShowActionSheet(true)} className="p-2 -ml-1 text-gray-700">
               <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14" strokeLinecap="round" />
               </svg>
             </button>
-            {/* 중앙: 로고 */}
+            {/* 以묒븰: 濡쒓퀬 */}
             <h1 className="flex-1 flex justify-center">
               <Image
                 src="/logo40.png"
                 alt="Locory"
-                width={126}
-                height={68}
-                className="h-16 w-auto"
+                width={140}
+                height={72}
+                className="h-[4.5rem] w-auto"
                 priority
-                sizes="126px"
+                sizes="140px"
               />
             </h1>
-            {/* 오른쪽: 필터 + 알림 */}
+            {/* ?ㅻⅨ履? ?꾪꽣 + ?뚮┝ */}
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setShowFilters(v => !v)}
@@ -192,7 +190,6 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
-                {t('filter')}
                 {activeFilterCount > 0 && (
                   <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[10px] font-bold flex items-center justify-center">
                     {activeFilterCount}
@@ -203,7 +200,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
             </div>
           </div>
 
-          {/* 탭 */}
+          {/* ??*/}
           <div className="flex border-b border-gray-100">
             {(['places', 'posts', 'following'] as const).map(key => (
               <button
@@ -218,7 +215,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
             ))}
           </div>
 
-          {/* 도시 가로 스크롤 */}
+          {/* ?꾩떆 媛濡??ㅽ겕濡?*/}
           <div className="flex overflow-x-auto scrollbar-hide -mx-4 px-4 py-2 gap-0">
             <button
               onClick={() => selectCity(null)}
@@ -241,7 +238,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
             ))}
           </div>
 
-          {/* 동네 칩 (도시 선택 시) */}
+          {/* ?숇꽕 移?(?꾩떆 ?좏깮 ?? */}
           {selectedCity && allDistricts.length > 0 && (
             <div className="flex overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2 gap-2">
               <button
@@ -268,7 +265,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
         </div>
       </header>
 
-      {/* 필터 모달 */}
+      {/* ?꾪꽣 紐⑤떖 */}
       {showFilters && (
         <div
           className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4"
@@ -280,7 +277,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
           >
             <div className="px-4 py-4 flex flex-col gap-4">
 
-              {/* 카테고리 */}
+              {/* 移댄뀒怨좊━ */}
               <div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{t('category')}</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -301,14 +298,14 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                         }`}
                       >
                         <span>{CATEGORY_EMOJI[cat]}</span>
-                        {CATEGORY_LABEL[cat]}
+                        {tPost(`category.${cat}`)}
                       </button>
                     )
                   })}
                 </div>
               </div>
 
-              {/* places: 히든스팟 */}
+              {/* places: ?덈뱺?ㅽ뙚 */}
               {tab === 'places' && (
                 <button
                   onClick={() => setPlaceHiddenOnly(v => !v)}
@@ -320,13 +317,13 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                 </button>
               )}
 
-              {/* posts: 평점 + 타입 */}
+              {/* posts: ?됱젏 + ???*/}
               {tab === 'posts' && (
                 <>
                   <div>
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{t('rating')}</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {Object.entries(RATING_LABEL).map(([val, label]) => (
+                      {RATING_OPTIONS.map((val) => (
                         <button
                           key={val}
                           onClick={() => setPostRating(postRating === val ? null : val)}
@@ -334,7 +331,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                             postRating === val ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
                           }`}
                         >
-                          {label}
+                          {tPost(`rating.${val}`)}
                         </button>
                       ))}
                     </div>
@@ -358,7 +355,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                 </>
               )}
 
-              {/* 초기화 */}
+              {/* 珥덇린??*/}
               {activeFilterCount > 0 && (
                 <button onClick={resetFilters} className="self-start text-xs text-gray-400 underline">
                   {t('reset')}
@@ -387,7 +384,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                   className="px-4 py-4 text-left flex items-center gap-3 cursor-pointer active:bg-gray-50"
                 >
                   <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 text-lg">
-                    {CATEGORY_EMOJI[place.category] ?? '📍'}
+                    {CATEGORY_EMOJI[place.category] ?? '?뱧'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{place.name}</p>
@@ -435,7 +432,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                   className="px-4 py-4 text-left flex items-center gap-3 active:bg-gray-50 w-full"
                 >
                   <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 text-lg">
-                    {CATEGORY_EMOJI[place.category] ?? '📍'}
+                    {CATEGORY_EMOJI[place.category] ?? '?뱧'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{place.name}</p>
@@ -455,7 +452,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
 
       <BottomNav avatarUrl={avatarUrl} />
 
-      {/* + 액션시트 */}
+      {/* + ?≪뀡?쒗듃 */}
       {showActionSheet && (
         <>
           <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
@@ -507,3 +504,4 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     </div>
   )
 }
+

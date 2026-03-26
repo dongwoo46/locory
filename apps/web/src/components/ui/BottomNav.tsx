@@ -33,7 +33,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       href: '/feed',
       label: t('feed'),
       icon: (active: boolean) => (
-        <svg width="18" height="18" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
+        <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
           <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -45,7 +45,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       href: '/map',
       label: t('map'),
       icon: (active: boolean) => (
-        <svg width="18" height="18" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
+        <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
           <circle cx="12" cy="9" r="2.5" />
         </svg>
@@ -55,7 +55,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       href: '/meetup',
       label: t('meetup'),
       icon: (active: boolean) => (
-        <svg width="18" height="18" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
+        <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
@@ -64,7 +64,7 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       href: '/saved',
       label: t('saved'),
       icon: (active: boolean) => (
-        <svg width="18" height="18" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
+        <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
       ),
@@ -74,11 +74,11 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
       label: t('profile'),
       icon: (active: boolean) =>
         resolvedAvatar ? (
-          <div className={`h-3 w-3 rounded-full overflow-hidden border transition-colors ${active ? 'border-gray-900' : 'border-transparent'}`}>
+          <div className={`h-3.5 w-3.5 rounded-full overflow-hidden border transition-colors ${active ? 'border-gray-900' : 'border-transparent'}`}>
             <img src={resolvedAvatar} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          <svg width="18" height="18" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
+          <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />
             <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
           </svg>
