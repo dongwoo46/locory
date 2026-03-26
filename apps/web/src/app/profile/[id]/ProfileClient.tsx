@@ -100,6 +100,7 @@ interface Props {
   profile: Profile
   followersCount: number
   followingCount: number
+  totalPostsCount: number
   isMe: boolean
   myId: string
   isFollowing: boolean
@@ -116,6 +117,7 @@ export default function ProfileClient({
   profile: initialProfile,
   followersCount: initialFollowers,
   followingCount,
+  totalPostsCount,
   isMe,
   myId,
   isFollowing: initialFollowing,
@@ -171,6 +173,7 @@ export default function ProfileClient({
   const [hasUserScrolled, setHasUserScrolled] = useState(false)
 
   const visiblePosts = isMe ? posts : (profile.is_public || isFollowing) ? posts : []
+  const displayedPostCount = canReadPosts ? totalPostsCount : 0
 
   useEffect(() => {
     if (!canReadPosts) return
@@ -230,28 +233,30 @@ export default function ProfileClient({
   return (
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40">
-        <div className="max-w-lg mx-auto flex items-center h-14 px-4">
+        <div className="max-w-lg mx-auto relative flex items-center h-14 px-4">
           {/* 왼쪽 */}
           {isMe ? (
             <button
               onClick={() => setShowActionSheet(true)}
-              className="p-2 -ml-1 text-gray-700 shrink-0"
+              className="p-2 -ml-1 text-gray-700 shrink-0 z-10"
             >
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14" strokeLinecap="round" />
               </svg>
             </button>
           ) : (
-            <button onClick={() => router.back()} className="text-gray-500 p-1 shrink-0">
+            <button onClick={() => router.back()} className="text-gray-500 p-1 shrink-0 z-10">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
           {/* 중앙: 닉네임 */}
-          <h1 className="flex-1 text-center text-base font-bold text-gray-900">{profile.nickname}</h1>
+          <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-base font-bold text-gray-900">
+            {profile.nickname}
+          </h1>
           {/* 오른쪽 */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="ml-auto flex items-center gap-1 shrink-0 z-10">
             {!isMe && (
               <button onClick={() => setShowReport(true)} className="text-gray-300 p-1">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -336,7 +341,7 @@ export default function ProfileClient({
               <p className="text-xs text-gray-400">{t('following')}</p>
             </div>
             <div>
-              <p className="text-base font-bold text-gray-900">{visiblePosts.length}</p>
+              <p className="text-base font-bold text-gray-900">{displayedPostCount}</p>
               <p className="text-xs text-gray-400">{t('posts')}</p>
             </div>
           </div>

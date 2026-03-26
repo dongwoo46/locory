@@ -41,6 +41,7 @@ interface Props {
   onDelete?: (postId: string) => void
   variant?: 'default' | 'feed_discover'
   discoverCountMode?: 'threshold' | 'always'
+  discoverNarrow?: boolean
 }
 
 export default function PostGrid({
@@ -49,6 +50,7 @@ export default function PostGrid({
   onDelete,
   variant = 'default',
   discoverCountMode = 'threshold',
+  discoverNarrow = false,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -307,7 +309,13 @@ export default function PostGrid({
 
   return (
     <>
-      <div className={`grid grid-cols-3 ${variant === 'feed_discover' ? 'gap-1 px-4' : 'gap-px px-4'}`}>
+      <div
+        className={`grid grid-cols-3 ${
+          variant === 'feed_discover'
+            ? `gap-[1px] px-0 ${discoverNarrow ? 'mx-auto max-w-[380px]' : ''}`
+            : 'gap-px px-4'
+        }`}
+      >
         {localPosts.map((p, index) => {
           const place = p.places
           const likeCount = likeCountMap[p.id] ?? parseInt(p.post_likes?.[0]?.count) ?? 0

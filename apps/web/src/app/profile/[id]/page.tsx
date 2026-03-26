@@ -12,7 +12,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const targetId = id === 'me' ? user.id : id
 
-  const [{ data: profile }, { count: followersCount }, { count: followingCount }] =
+  const [{ data: profile }, { count: followersCount }, { count: followingCount }, { count: totalPostsCount }] =
     await Promise.all([
       supabase
         .from('profiles')
@@ -29,6 +29,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         .select('*', { count: 'exact', head: true })
         .eq('follower_id', targetId)
         .eq('status', 'accepted'),
+      supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', targetId)
+        .is('deleted_at', null),
     ])
 
   // 팔로우 상태 확인 (본인이 아닐 때만)
@@ -54,6 +59,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       profile={profile}
       followersCount={followersCount ?? 0}
       followingCount={followingCount ?? 0}
+      totalPostsCount={totalPostsCount ?? 0}
       isMe={user.id === targetId}
       myId={user.id}
       isFollowing={followStatus === 'accepted'}

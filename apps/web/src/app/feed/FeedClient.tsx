@@ -53,6 +53,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 const RATING_COLORS: Record<string, string> = {
   must_go: '#B090D4', worth_it: '#6AC0D4', neutral: '#90C490', not_great: '#E8C070',
 }
+const FEED_FRAME_CLASS = 'mx-auto w-full max-w-lg'
 
 
 interface Props {
@@ -414,45 +415,45 @@ export default function FeedClient({ profile, userId }: Props) {
   return (
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 bg-white z-40">
-        <div className="max-w-lg mx-auto px-4 pt-3">
+        <div className={`${FEED_FRAME_CLASS} px-3 pt-1.5`}>
 
           {/* 헤더: 추가 버튼 | 로고 | 필터/알림 */}
-          <div className="flex items-center mb-2 h-16">
+          <div className="relative mb-0.5 flex h-10 items-center">
             {/* 왼쪽: 추가 버튼 */}
             <button
               onClick={() => setShowActionSheet(true)}
-              className="p-2 -ml-1 text-gray-700 shrink-0"
+              className="-ml-1 shrink-0 p-1 text-gray-700 z-10"
             >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14" strokeLinecap="round" />
               </svg>
             </button>
             {/* 중앙: 로고 */}
-            <h1 className="flex-1 flex justify-center">
+            <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2">
               <Image
                 src="/logo40.png"
                 alt="Locory"
-                width={126}
-                height={68}
-                className="h-16 w-auto"
+                width={102}
+                height={36}
+                className="h-9 w-auto"
                 priority
-                sizes="126px"
+                sizes="102px"
               />
             </h1>
             {/* 오른쪽: 필터 + 알림 */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="ml-auto flex items-center gap-1.5 shrink-0 z-10">
               <button
                 onClick={() => setShowFilters(v => !v)}
-                className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                className={`relative flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-colors border ${
                   activeFilterCount > 0 ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
                 }`}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
                 {t('filter')}
                 {activeFilterCount > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[10px] font-bold flex items-center justify-center">
+                  <span className="w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[9px] font-bold flex items-center justify-center">
                     {activeFilterCount}
                   </span>
                 )}
@@ -468,21 +469,21 @@ export default function FeedClient({ profile, userId }: Props) {
             onMouseMove={cityScroll.onMouseMove}
             onMouseUp={cityScroll.onMouseUp}
             onMouseLeave={cityScroll.onMouseLeave}
-            className="flex gap-0 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-0.5 select-none"
+            className="flex gap-0 overflow-x-auto scrollbar-hide -mx-3 px-3 pb-0.5 select-none"
           >
             <button
               onClick={() => selectCity(null)}
-              className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
-                city === null ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
-              }`}
-            >
+                className={`shrink-0 border-b-2 px-2.5 py-1 text-xs font-medium transition-colors ${
+                  city === null ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
+                }`}
+              >
               {t('all')}
             </button>
             {CITIES.map(c => (
               <button
                 key={c.value}
                 onClick={() => selectCity(c.value)}
-                className={`shrink-0 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                className={`shrink-0 border-b-2 px-2.5 py-1 text-xs font-medium transition-colors ${
                   city === c.value ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
                 }`}
               >
@@ -499,7 +500,7 @@ export default function FeedClient({ profile, userId }: Props) {
               onMouseMove={districtScroll.onMouseMove}
               onMouseUp={districtScroll.onMouseUp}
               onMouseLeave={districtScroll.onMouseLeave}
-              className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 py-2 select-none"
+              className="flex gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 py-1 select-none"
             >
               <button
                 onClick={() => setFilter({ district: null })}
@@ -739,8 +740,8 @@ export default function FeedClient({ profile, userId }: Props) {
       )}
 
       <main
-        className="max-w-lg mx-auto pb-24"
-        style={{ paddingTop: hasDistrict ? '156px' : '116px' }}
+        className={`${FEED_FRAME_CLASS} pb-16`}
+        style={{ paddingTop: hasDistrict ? '120px' : '84px' }}
       >
         {loading ? (
           <div className="flex items-center justify-center py-20">
