@@ -761,13 +761,18 @@ export default function FeedClient({ profile, userId }: Props) {
             <p className="text-gray-400 text-sm">{t('noPostsTitle')}</p>
             <p className="text-gray-300 text-xs">{t('noPostsSubtitle')}</p>
             {canLoadMorePosts && (
-              <button
-                onClick={handleLoadMore}
-                disabled={isFetchingNextPage}
-                className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
-              >
-                {isFetchingNextPage ? t('loadingMore') : t('loadMore')}
-              </button>
+              isFetchingNextPage ? (
+                <div className="mt-4 flex items-center justify-center" aria-label={t('loadingMore')}>
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+                </div>
+              ) : (
+                <button
+                  onClick={handleLoadMore}
+                  className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white"
+                >
+                  {t('loadMore')}
+                </button>
+              )
             )}
           </div>
         ) : viewMode === 'places' ? (
@@ -836,13 +841,18 @@ export default function FeedClient({ profile, userId }: Props) {
         {((viewMode === 'places' && canLoadMorePlaces && placesFromPosts.length > 0) ||
           (viewMode === 'posts' && canLoadMorePosts && sortedPosts.length > 0)) && (
           <div className="flex flex-col items-center justify-center py-6 gap-3">
-            <button
-              onClick={handleLoadMore}
-              disabled={isFetchingNextPage}
-              className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white disabled:opacity-50"
-            >
-              {isFetchingNextPage ? t('loadingMore') : t('loadMore')}
-            </button>
+            {isFetchingNextPage ? (
+              <div className="flex items-center justify-center" aria-label={t('loadingMore')}>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+              </div>
+            ) : (
+              <button
+                onClick={handleLoadMore}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white"
+              >
+                {t('loadMore')}
+              </button>
+            )}
             <p className="text-xs text-gray-400">{t('loadMoreHint')}</p>
           </div>
         )}
@@ -902,4 +912,3 @@ export default function FeedClient({ profile, userId }: Props) {
     </div>
   )
 }
-

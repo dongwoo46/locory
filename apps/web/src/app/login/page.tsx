@@ -40,25 +40,25 @@ function detectInAppBrowser(): {
   const isAndroid = /Android/i.test(ua);
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
   const inAppPatterns: Record<string, RegExp> = {
-    카카오톡: /KAKAOTALK/i,
-    인스타그램: /Instagram/i,
-    네이버: /NAVER/i,
-    페이스북: /FBAN|FBAV|FB_IAB/i,
-    라인: /Line\//i,
-    다음: /Daum/i,
-    트위터: /Twitter/i,
-    웨이보: /Weibo/i,
-    위챗: /MicroMessenger/i,
-    에브리타임: /everytime/i,
+    KakaoTalk: /KAKAOTALK/i,
+    Instagram: /Instagram/i,
+    Naver: /NAVER/i,
+    Facebook: /FBAN|FBAV|FB_IAB/i,
+    Line: /Line\//i,
+    Daum: /Daum/i,
+    Twitter: /Twitter/i,
+    Weibo: /Weibo/i,
+    WeChat: /MicroMessenger/i,
+    Everytime: /everytime/i,
   };
   for (const [name, pattern] of Object.entries(inAppPatterns)) {
     if (pattern.test(ua))
       return { isInApp: true, isAndroid, isIOS, appName: name };
   }
   if (isAndroid && /wv/.test(ua))
-    return { isInApp: true, isAndroid, isIOS, appName: '앱' };
+    return { isInApp: true, isAndroid, isIOS, appName: 'In-app browser' };
   if (isIOS && /AppleWebKit/i.test(ua) && !/Safari/i.test(ua))
-    return { isInApp: true, isAndroid, isIOS, appName: '앱' };
+    return { isInApp: true, isAndroid, isIOS, appName: 'In-app browser' };
   return { isInApp: false, isAndroid, isIOS, appName: '' };
 }
 
@@ -246,7 +246,7 @@ export default function LoginPage() {
   }
 
   const isIOS = inAppInfo?.isIOS ?? false;
-  const appName = inAppInfo?.appName ?? '앱';
+  const appName = inAppInfo?.appName ?? 'In-app browser';
   const currentSlide = slides[slide];
 
   return (
