@@ -434,8 +434,8 @@ export default function FeedClient({ profile, userId }: Props) {
                 src="/logo40.png"
                 alt="Locory"
                 width={116}
-                height={40}
-                className="h-10 w-auto"
+                height={48}
+                className="h-12 w-auto"
                 priority
                 sizes="116px"
               />
@@ -444,11 +444,11 @@ export default function FeedClient({ profile, userId }: Props) {
             <div className="ml-auto flex items-center gap-1.5 shrink-0 z-10">
               <button
                 onClick={() => setShowFilters(v => !v)}
-                className={`relative flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-colors border ${
+                className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors border ${
                   activeFilterCount > 0 ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
                 }`}
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
                 </svg>
                 {activeFilterCount > 0 && (

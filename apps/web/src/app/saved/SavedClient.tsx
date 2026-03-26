@@ -173,8 +173,8 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                 src="/logo40.png"
                 alt="Locory"
                 width={140}
-                height={72}
-                className="h-[4.5rem] w-auto"
+                height={64}
+                className="h-16 w-auto"
                 priority
                 sizes="140px"
               />

@@ -61,9 +61,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
   return (
     <button
       onClick={() => router.push('/notifications')}
-      className="relative w-8 h-8 flex items-center justify-center text-gray-500"
+      className="relative w-6 h-6 flex items-center justify-center text-gray-500"
     >
-      <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
