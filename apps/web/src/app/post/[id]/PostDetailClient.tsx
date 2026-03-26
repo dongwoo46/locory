@@ -249,9 +249,13 @@ export default function PostDetailClient({
             <button
               onClick={submitComment}
               disabled={!commentText.trim() || commentLoading}
-              className="shrink-0 text-xs font-semibold text-gray-900 disabled:text-gray-300"
+              className="shrink-0 text-gray-900 disabled:text-gray-300"
+              aria-label={tPost('commentPost')}
             >
-              {tPost('commentPost')}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+                <path d="M22 2L11 13" strokeLinecap="round" />
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
         </div>
@@ -259,4 +263,3 @@ export default function PostDetailClient({
     </div>
   )
 }
-
