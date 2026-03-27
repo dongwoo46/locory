@@ -498,6 +498,7 @@
       "tabConnected": "Conectados",
       "tabMy": "Mis meetups",
       "tabApplied": "Solicitados",
+      "participantSummary": "{name} y {count} más",
       "participantLabel": "Participante",
       "organizerLabel": "Organizador",
       "organizerOpen": "Organizador · Activo",
@@ -505,7 +506,8 @@
       "emptyConnected": "No hay meetups conectados",
       "emptyMy": "No has creado meetups",
       "emptyApplied": "No has solicitado meetups",
-      "pendingLabel": "En espera"
+      "pendingLabel": "En espera",
+      "noPlace": "Sin lugar"
     },
     "chat": {
       "emptyState": "Envía el primer mensaje",
@@ -519,6 +521,7 @@
       "blockUser": "Bloquear usuario",
       "unblockUser": "Desbloquear usuario",
       "blockConfirm": "¿Bloquear a este usuario? No podrán enviarse mensajes entre sí.",
+      "fallbackTitle": "Quedada",
       "headerTitle": "Meetup {name}"
     },
     "explore": {

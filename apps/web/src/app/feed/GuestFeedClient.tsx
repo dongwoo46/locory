@@ -45,19 +45,24 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
   const [showLoadMoreSpinner, setShowLoadMoreSpinner] = useState(false)
   const [showLoginGateModal, setShowLoginGateModal] = useState(false)
   const gateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const gateActiveRef = useRef(false)
 
   useEffect(() => {
     if (posts.length < GUEST_PREVIEW_LIMIT) return
 
     const onScroll = () => {
-      if (showLoadMoreSpinner || showLoginGateModal) return
+      if (gateActiveRef.current) return
       const scrollY = window.scrollY || window.pageYOffset
       const viewportBottom = window.innerHeight + scrollY
       const fullHeight = document.documentElement.scrollHeight
       const nearBottom = viewportBottom >= fullHeight - 180
       if (!nearBottom) return
 
+      gateActiveRef.current = true
       setShowLoadMoreSpinner(true)
+      if (gateTimerRef.current) {
+        clearTimeout(gateTimerRef.current)
+      }
       gateTimerRef.current = setTimeout(() => {
         setShowLoadMoreSpinner(false)
         setShowLoginGateModal(true)
@@ -71,7 +76,7 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
         clearTimeout(gateTimerRef.current)
       }
     }
-  }, [posts.length, showLoadMoreSpinner, showLoginGateModal])
+  }, [posts.length])
 
   return (
     <div className="min-h-screen bg-white">
@@ -153,8 +158,8 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
 
       {showLoadMoreSpinner && (
         <div className="fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
-          <div className="rounded-full bg-gray-900/92 px-3 py-1.5 text-xs font-medium text-white">
-            {tFeed('loadingMore')}
+          <div className="rounded-full bg-gray-900/92 p-2.5">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
           </div>
         </div>
       )}
@@ -170,6 +175,8 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
               <button
                 onClick={() => {
                   setShowLoginGateModal(false)
+                  setShowLoadMoreSpinner(false)
+                  gateActiveRef.current = false
                 }}
                 className="shrink-0 rounded-full p-1 text-gray-400"
                 aria-label="Close"

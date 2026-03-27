@@ -498,6 +498,7 @@
       "tabConnected": "연결된 모임",
       "tabMy": "내가 만든 모임",
       "tabApplied": "신청한 모임",
+      "participantSummary": "{name} 외 {count}명",
       "participantLabel": "참가자",
       "organizerLabel": "주최자",
       "organizerOpen": "주최자 · 진행 중",
@@ -505,7 +506,8 @@
       "emptyConnected": "연결된 번개모임이 없어요",
       "emptyMy": "만든 번개모임이 없어요",
       "emptyApplied": "신청한 번개모임이 없어요",
-      "pendingLabel": "대기 중"
+      "pendingLabel": "대기 중",
+      "noPlace": "장소 없음"
     },
     "chat": {
       "emptyState": "첫 메시지를 보내보세요",
@@ -519,6 +521,7 @@
       "blockUser": "차단하기",
       "unblockUser": "차단 해제",
       "blockConfirm": "이 사용자를 차단할까요? 차단하면 서로 메시지를 보낼 수 없어요.",
+      "fallbackTitle": "번개모임",
       "headerTitle": "{name} 번개"
     },
     "explore": {

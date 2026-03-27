@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { containsProfanity } from '@/lib/utils/profanity'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface Message {
   id: string
@@ -37,6 +37,7 @@ const supabase = createClient()
 
 export default function ChatClient({ meetupId, userId, meetup, isOrganizer }: Props) {
   const router = useRouter()
+  const locale = useLocale()
   const t = useTranslations('meetup.chat')
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
@@ -254,7 +255,7 @@ export default function ChatClient({ meetupId, userId, meetup, isOrganizer }: Pr
   }, -1)
   const lastReadMyMsgId = lastReadMyMsgIdx >= 0 ? myMessages[lastReadMyMsgIdx]?.id : null
 
-  const placeName = (meetup.places as any)?.name ?? '번개모임'
+  const placeName = (meetup.places as any)?.name ?? t('fallbackTitle')
 
   return (
     <div className="flex flex-col h-dvh bg-white">
@@ -268,7 +269,7 @@ export default function ChatClient({ meetupId, userId, meetup, isOrganizer }: Pr
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-gray-900 truncate">{t('headerTitle', { name: placeName })}</p>
           <p className="text-xs text-gray-400">
-            {new Date(meetup.scheduled_at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+            {new Date(meetup.scheduled_at).toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'short' })}
           </p>
         </div>
         {/* 3-dot 메뉴 */}

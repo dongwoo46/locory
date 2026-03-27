@@ -251,6 +251,7 @@
       "tabConnected": "已连接",
       "tabMy": "我创建的",
       "tabApplied": "我申请的",
+      "participantSummary": "{name} 等{count}人",
       "participantLabel": "参与者",
       "organizerLabel": "主办方",
       "organizerOpen": "主办方 · 进行中",
@@ -258,7 +259,8 @@
       "emptyConnected": "暂无已连接活动",
       "emptyMy": "暂无创建的活动",
       "emptyApplied": "暂无申请的活动",
-      "pendingLabel": "等待中"
+      "pendingLabel": "等待中",
+      "noPlace": "无地点"
     },
     "chat": {
       "emptyState": "发送第一条消息吧",
@@ -272,6 +274,7 @@
       "blockUser": "屏蔽用户",
       "unblockUser": "取消屏蔽",
       "blockConfirm": "确认屏蔽该用户？屏蔽后双方无法互发消息。",
+      "fallbackTitle": "闪电聚会",
       "headerTitle": "{name}活动"
     },
     "explore": {

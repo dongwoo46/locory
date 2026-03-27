@@ -498,6 +498,7 @@
       "tabConnected": "Связанные",
       "tabMy": "Мои встречи",
       "tabApplied": "Заявки",
+      "participantSummary": "{name} и еще {count}",
       "participantLabel": "Участник",
       "organizerLabel": "Организатор",
       "organizerOpen": "Организатор · Активно",
@@ -505,7 +506,8 @@
       "emptyConnected": "Нет связанных встреч",
       "emptyMy": "Встреч не создано",
       "emptyApplied": "Заявок не подано",
-      "pendingLabel": "Ожидание"
+      "pendingLabel": "Ожидание",
+      "noPlace": "Без места"
     },
     "chat": {
       "emptyState": "Отправьте первое сообщение",
@@ -519,6 +521,7 @@
       "blockUser": "Заблокировать",
       "unblockUser": "Разблокировать",
       "blockConfirm": "Заблокировать этого пользователя? Вы не сможете обмениваться сообщениями.",
+      "fallbackTitle": "Встреча",
       "headerTitle": "Встреча {name}"
     },
     "explore": {

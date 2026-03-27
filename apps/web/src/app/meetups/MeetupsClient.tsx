@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface MeetupItem {
   id: string
@@ -17,18 +17,15 @@ interface MeetupItem {
   unreadCount: number
 }
 
-const CITY_LABEL: Record<string, string> = {
-  seoul: '서울', busan: '부산', jeju: '제주', gyeongju: '경주',
-  jeonju: '전주', gangneung: '강릉', sokcho: '속초', yeosu: '여수', incheon: '인천',
-}
-
 const supabase = createClient()
 type Tab = 'my' | 'applied' | 'connected'
 
 export default function MeetupsClient({ userId }: { userId: string }) {
   const router = useRouter()
+  const locale = useLocale()
   const t = useTranslations('meetup.inbox')
   const tStatus = useTranslations('meetup.status')
+  const tCities = useTranslations('cities')
   const [tab, setTab] = useState<Tab>('connected')
   const [myMeetups, setMyMeetups] = useState<MeetupItem[]>([])
   const [appliedMeetups, setAppliedMeetups] = useState<MeetupItem[]>([])
@@ -189,7 +186,7 @@ export default function MeetupsClient({ userId }: { userId: string }) {
 
   function formatDateTime(iso: string) {
     const d = new Date(iso)
-    const date = d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
+    const date = d.toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'short' })
     const time = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
     return `${date} ${time}`
   }
@@ -198,7 +195,10 @@ export default function MeetupsClient({ userId }: { userId: string }) {
     if (item.role === 'organizer') {
       if (item.participants.length === 0) return null
       if (item.participants.length === 1) return item.participants[0].nickname
-      return `${item.participants[0].nickname} 외 ${item.participants.length - 1}명`
+      return t('participantSummary', {
+        name: item.participants[0].nickname,
+        count: item.participants.length - 1,
+      })
     }
     return item.organizer?.nickname ?? null
   }
@@ -273,7 +273,7 @@ export default function MeetupsClient({ userId }: { userId: string }) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{item.place?.name ?? '장소 없음'}</p>
+                      <p className="text-sm font-semibold text-gray-900 truncate">{item.place?.name ?? t('noPlace')}</p>
                       {item.unreadCount > 0 && (
                         <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
                           {item.unreadCount > 9 ? '9+' : item.unreadCount}
@@ -288,7 +288,7 @@ export default function MeetupsClient({ userId }: { userId: string }) {
                     )}
 
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {CITY_LABEL[item.place?.city ?? ''] ?? ''} · {formatDateTime(item.scheduled_at)}
+                      {(item.place?.city ? tCities(item.place.city as Parameters<typeof tCities>[0]) : '')} · {formatDateTime(item.scheduled_at)}
                     </p>
 
                     <div className="mt-1 flex gap-1 flex-wrap">

@@ -498,6 +498,7 @@
       "tabConnected": "已連結",
       "tabMy": "我建立的",
       "tabApplied": "我申請的",
+      "participantSummary": "{name} 等{count}人",
       "participantLabel": "參與者",
       "organizerLabel": "主辦方",
       "organizerOpen": "主辦方 · 進行中",
@@ -505,7 +506,8 @@
       "emptyConnected": "目前沒有已連結的活動",
       "emptyMy": "目前沒有建立的活動",
       "emptyApplied": "目前沒有申請的活動",
-      "pendingLabel": "等待中"
+      "pendingLabel": "等待中",
+      "noPlace": "無地點"
     },
     "chat": {
       "emptyState": "發送第一則訊息吧",
@@ -519,6 +521,7 @@
       "blockUser": "封鎖使用者",
       "unblockUser": "解除封鎖",
       "blockConfirm": "確認封鎖此使用者？封鎖後雙方無法互傳訊息。",
+      "fallbackTitle": "閃約",
       "headerTitle": "{name}活動"
     },
     "explore": {

@@ -498,6 +498,7 @@
       "tabConnected": "Connected",
       "tabMy": "My Meetups",
       "tabApplied": "Applied",
+      "participantSummary": "{name} +{count}",
       "participantLabel": "Participant",
       "organizerLabel": "Organizer",
       "organizerOpen": "Organizer · Active",
@@ -505,7 +506,8 @@
       "emptyConnected": "No connected meetups",
       "emptyMy": "No meetups created",
       "emptyApplied": "No applied meetups",
-      "pendingLabel": "Pending"
+      "pendingLabel": "Pending",
+      "noPlace": "No place"
     },
     "chat": {
       "emptyState": "Send the first message",
@@ -519,6 +521,7 @@
       "blockUser": "Block user",
       "unblockUser": "Unblock user",
       "blockConfirm": "Block this user? You won't be able to message each other.",
+      "fallbackTitle": "Meetup",
       "headerTitle": "{name} Meetup"
     },
     "explore": {

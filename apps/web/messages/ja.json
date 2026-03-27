@@ -498,6 +498,7 @@
       "tabConnected": "つながり",
       "tabMy": "自分のミート",
       "tabApplied": "申請済み",
+      "participantSummary": "{name} ほか {count}人",
       "participantLabel": "参加者",
       "organizerLabel": "主催者",
       "organizerOpen": "主催者 · 進行中",
@@ -505,7 +506,8 @@
       "emptyConnected": "つながったミートがありません",
       "emptyMy": "作成したミートがありません",
       "emptyApplied": "申請したミートがありません",
-      "pendingLabel": "待機中"
+      "pendingLabel": "待機中",
+      "noPlace": "場所なし"
     },
     "chat": {
       "emptyState": "最初のメッセージを送りましょう",
@@ -519,6 +521,7 @@
       "blockUser": "ブロックする",
       "unblockUser": "ブロック解除",
       "blockConfirm": "このユーザーをブロックしますか？互いにメッセージを送れなくなります。",
+      "fallbackTitle": "ミートアップ",
       "headerTitle": "{name} ミート"
     },
     "explore": {
