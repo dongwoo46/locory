@@ -44,10 +44,11 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
-        <div className={`${FEED_FRAME_CLASS} flex items-center justify-between px-4 py-1.5`}>
-          <Image src="/logo40.png" alt="Locory" width={132} height={54} className="h-11 w-auto" priority sizes="132px" />
+        <div className={`${FEED_FRAME_CLASS} flex items-center justify-between px-4 py-1`}>
+          <Image src="/logo_guest_header.png" alt="Locory" width={168} height={72} className="h-14 w-auto" priority sizes="168px" />
           <Link
             href={loginHref('/feed')}
+            prefetch={false}
             className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"
           >
             {tUpload('loginRequired')}
@@ -71,6 +72,7 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
                 <Link
                   key={post.id}
                   href={loginHref(`/post/${post.id}`)}
+                  prefetch={false}
                   className="relative block aspect-[3/4] overflow-hidden bg-gray-100"
                 >
                   {post.photos?.[0] ? (
@@ -124,6 +126,7 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
               <p className="text-xs text-gray-500">{tUpload('loginRequired')}</p>
               <Link
                 href={loginHref('/feed')}
+                prefetch={false}
                 className="shrink-0 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"
               >
                 {tFeed('loadMore')}
@@ -135,7 +138,7 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white pb-1">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom)+4px)]">
-          <Link href={loginHref('/feed')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-900">
+          <Link href={loginHref('/feed')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-900">
             <svg width="20" height="20" fill="currentColor" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
               <rect x="3" y="3" width="7" height="7" rx="1" />
               <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -143,23 +146,23 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
               <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           </Link>
-          <Link href={loginHref('/map')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+          <Link href={loginHref('/map')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
               <circle cx="12" cy="9" r="2.5" />
             </svg>
           </Link>
-          <Link href={loginHref('/meetup')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+          <Link href={loginHref('/meetup')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
-          <Link href={loginHref('/saved')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+          <Link href={loginHref('/saved')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </Link>
-          <Link href={loginHref('/profile/me')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+          <Link href={loginHref('/profile/me')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
               <circle cx="12" cy="8" r="4" />
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />

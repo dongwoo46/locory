@@ -418,7 +418,7 @@ export default function FeedClient({ profile, userId }: Props) {
         <div className={`${FEED_FRAME_CLASS} px-3 pt-1.5`}>
 
           {/* 헤더: 추가 버튼 | 로고 | 필터/알림 */}
-          <div className="relative mb-0.5 flex h-10 items-center">
+          <div className="relative mb-0.5 flex h-12 items-center">
             {/* 왼쪽: 추가 버튼 */}
             <button
               onClick={() => setShowActionSheet(true)}
@@ -430,16 +430,16 @@ export default function FeedClient({ profile, userId }: Props) {
             </button>
             {/* 중앙: 로고 */}
             <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2">
-              <Image
-                src="/logo40.png"
-                alt="Locory"
-                width={116}
-                height={48}
-                className="h-12 w-auto"
-                priority
-                sizes="116px"
-              />
-            </h1>
+                <Image
+                  src="/logo40.png"
+                  alt="Locory"
+                  width={140}
+                  height={64}
+                  className="h-14 w-auto"
+                  priority
+                  sizes="140px"
+                />
+              </h1>
             {/* 오른쪽: 필터 + 알림 */}
             <div className="ml-auto flex items-center gap-1.5 shrink-0 z-10">
               <button
