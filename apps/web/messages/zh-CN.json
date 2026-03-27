@@ -17,6 +17,7 @@
     "loadMore": "加载更多",
     "loadingMore": "加载中...",
     "loadMoreHint": "向下滑动以加载更多",
+    "guestLoginRequiredMessage": "若要继续使用更多服务，请先登录",
     "wantTag": "想去",
     "all": "全部",
     "other": "其他",

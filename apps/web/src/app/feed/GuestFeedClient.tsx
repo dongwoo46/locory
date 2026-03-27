@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
@@ -17,6 +18,7 @@ type GuestPost = {
 }
 
 const FEED_FRAME_CLASS = 'mx-auto w-full max-w-lg'
+const GUEST_PREVIEW_LIMIT = 30
 
 function loginHref(nextPath: string): string {
   return `/login?next=${encodeURIComponent(nextPath)}`
@@ -40,6 +42,36 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
   const tFeed = useTranslations('feed')
   const tPost = useTranslations('post')
   const tUpload = useTranslations('upload')
+  const [showLoadMoreSpinner, setShowLoadMoreSpinner] = useState(false)
+  const [showLoginGateModal, setShowLoginGateModal] = useState(false)
+  const gateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (posts.length < GUEST_PREVIEW_LIMIT) return
+
+    const onScroll = () => {
+      if (showLoadMoreSpinner || showLoginGateModal) return
+      const scrollY = window.scrollY || window.pageYOffset
+      const viewportBottom = window.innerHeight + scrollY
+      const fullHeight = document.documentElement.scrollHeight
+      const nearBottom = viewportBottom >= fullHeight - 180
+      if (!nearBottom) return
+
+      setShowLoadMoreSpinner(true)
+      gateTimerRef.current = setTimeout(() => {
+        setShowLoadMoreSpinner(false)
+        setShowLoginGateModal(true)
+      }, 700)
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (gateTimerRef.current) {
+        clearTimeout(gateTimerRef.current)
+      }
+    }
+  }, [posts.length, showLoadMoreSpinner, showLoginGateModal])
 
   return (
     <div className="min-h-screen bg-white">
@@ -119,22 +151,46 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
         )}
       </main>
 
-      <div className="fixed inset-x-0 bottom-16 z-40 px-4">
-        <div className={`${FEED_FRAME_CLASS}`}>
-          <div className="rounded-2xl border border-gray-200 bg-white/96 p-3 shadow-sm backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-gray-500">{tUpload('loginRequired')}</p>
+      {showLoadMoreSpinner && (
+        <div className="fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
+          <div className="rounded-full bg-gray-900/92 px-3 py-1.5 text-xs font-medium text-white">
+            {tFeed('loadingMore')}
+          </div>
+        </div>
+      )}
+
+      {showLoginGateModal && (
+        <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/40 px-4 pb-24 sm:items-center sm:pb-0">
+          <div className={`${FEED_FRAME_CLASS} w-full rounded-2xl bg-white p-4 shadow-lg`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{tUpload('loginRequired')}</p>
+                <p className="mt-1 text-xs text-gray-500">{tFeed('guestLoginRequiredMessage')}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowLoginGateModal(false)
+                }}
+                className="shrink-0 rounded-full p-1 text-gray-400"
+                aria-label="Close"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-3 flex justify-end">
               <Link
                 href={loginHref('/feed')}
                 prefetch={false}
-                className="shrink-0 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"
+                className="rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white"
               >
-                {tFeed('loadMore')}
+                Continue with Google
               </Link>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white pb-1">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom)+4px)]">
