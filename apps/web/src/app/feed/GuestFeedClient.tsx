@@ -44,8 +44,8 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
-        <div className={`${FEED_FRAME_CLASS} flex items-center justify-between px-4 py-3`}>
-          <Image src="/logo40.png" alt="Locory" width={92} height={38} className="h-9 w-auto" priority sizes="92px" />
+        <div className={`${FEED_FRAME_CLASS} flex items-center justify-between px-4 py-1.5`}>
+          <Image src="/logo40.png" alt="Locory" width={132} height={54} className="h-11 w-auto" priority sizes="132px" />
           <Link
             href={loginHref('/feed')}
             className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"

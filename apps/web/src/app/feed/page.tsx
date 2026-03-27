@@ -15,7 +15,7 @@ export default async function FeedPage() {
       .eq('is_public', true)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
-      .limit(45)
+      .limit(30)
 
     return <GuestFeedClient posts={guestPosts ?? []} />
   }
