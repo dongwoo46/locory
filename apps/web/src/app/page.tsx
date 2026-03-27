@@ -15,6 +15,6 @@ export default async function RootPage() {
     const target = lastRoute && RESTORABLE.some(p => lastRoute.startsWith(p)) ? lastRoute : '/feed'
     redirect(target)
   } else {
-    redirect('/login')
+    redirect('/feed')
   }
 }

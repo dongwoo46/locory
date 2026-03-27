@@ -32,17 +32,19 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const protectedPaths = ['/feed', '/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
-  const isProtected = protectedPaths.some(path => pathname.startsWith(path))
+  const authRequiredPaths = ['/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
+  const onboardingCheckPaths = ['/feed', ...authRequiredPaths]
+  const isAuthRequiredPath = authRequiredPaths.some(path => pathname.startsWith(path))
+  const shouldCheckOnboarding = onboardingCheckPaths.some(path => pathname.startsWith(path))
 
-  if (!user && isProtected) {
+  if (!user && isAuthRequiredPath) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
   // 로그인됐지만 온보딩 안 됐으면 온보딩으로 (쿠키 캐싱)
-  if (user && isProtected) {
+  if (user && shouldCheckOnboarding) {
     const onboardedCookie = request.cookies.get('onboarded')?.value
     if (onboardedCookie !== '1') {
       const { data: profile } = await supabase
@@ -68,7 +70,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 인증된 유저의 현재 경로를 쿠키에 저장 (루트 복원용)
-  if (user && isProtected) {
+  if (user && shouldCheckOnboarding) {
     supabaseResponse.cookies.set('last-route', pathname, { path: '/', maxAge: 60 * 60 * 24 * 7 })
   }
 

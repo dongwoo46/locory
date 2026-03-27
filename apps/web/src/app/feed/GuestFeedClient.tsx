@@ -1,0 +1,172 @@
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { getPostImageUrl } from '@/lib/utils/postImage'
+
+type GuestPost = {
+  id: string
+  type: 'visited' | 'want'
+  rating: string | null
+  photos?: string[] | null
+  photo_variants?: Array<{ thumbnailUrl?: string; mediumUrl?: string; originalUrl?: string }> | null
+  places?: { name?: string | null; category?: string | null } | Array<{ name?: string | null; category?: string | null }> | null
+  post_likes?: Array<{ count?: number | string }>
+  post_saves?: Array<{ count?: number | string }>
+}
+
+const FEED_FRAME_CLASS = 'mx-auto w-full max-w-lg'
+
+function loginHref(nextPath: string): string {
+  return `/login?next=${encodeURIComponent(nextPath)}`
+}
+
+function resolvePlace(
+  place: GuestPost['places']
+): { name?: string | null; category?: string | null } | null {
+  if (!place) return null
+  if (Array.isArray(place)) return place[0] ?? null
+  return place
+}
+
+function toCount(value: number | string | undefined): number {
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') return parseInt(value, 10) || 0
+  return 0
+}
+
+export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
+  const tFeed = useTranslations('feed')
+  const tPost = useTranslations('post')
+  const tUpload = useTranslations('upload')
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
+        <div className={`${FEED_FRAME_CLASS} flex items-center justify-between px-4 py-3`}>
+          <Image src="/logo40.png" alt="Locory" width={92} height={38} className="h-9 w-auto" priority sizes="92px" />
+          <Link
+            href={loginHref('/feed')}
+            className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            {tUpload('loginRequired')}
+          </Link>
+        </div>
+      </header>
+
+      <main className={`${FEED_FRAME_CLASS} pb-28`}>
+        {posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-2">
+            <p className="text-gray-400 text-sm">{tFeed('noPostsTitle')}</p>
+            <p className="text-gray-300 text-xs">{tFeed('noPostsSubtitle')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-[1px] bg-gray-100">
+            {posts.map((post, index) => {
+              const place = resolvePlace(post.places)
+              const likeCount = toCount(post.post_likes?.[0]?.count)
+              const saveCount = toCount(post.post_saves?.[0]?.count)
+              return (
+                <Link
+                  key={post.id}
+                  href={loginHref(`/post/${post.id}`)}
+                  className="relative block aspect-[3/4] overflow-hidden bg-gray-100"
+                >
+                  {post.photos?.[0] ? (
+                    <Image
+                      src={getPostImageUrl(
+                        {
+                          photos: post.photos ?? undefined,
+                          photo_variants: post.photo_variants ?? undefined,
+                        },
+                        0,
+                        'thumbnail'
+                      )}
+                      alt={place?.name ? `${place.name} thumbnail` : ''}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 33vw, 180px"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      priority={index === 0}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center p-2">
+                      <span className="text-center text-[11px] text-gray-400">{place?.name || ''}</span>
+                    </div>
+                  )}
+
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 via-black/22 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-8 text-white">
+                    <p className="truncate text-[11px] font-bold leading-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                      {place?.name || ''}
+                    </p>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="truncate text-[9px] font-medium text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                        {post.type === 'visited' && post.rating ? tPost(`rating.${post.rating}`) : tFeed('wantTag')}
+                      </span>
+                      <span className="shrink-0 text-[10px] font-medium text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                        {likeCount + saveCount > 0 ? `${likeCount + saveCount}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </main>
+
+      <div className="fixed inset-x-0 bottom-16 z-40 px-4">
+        <div className={`${FEED_FRAME_CLASS}`}>
+          <div className="rounded-2xl border border-gray-200 bg-white/96 p-3 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-gray-500">{tUpload('loginRequired')}</p>
+              <Link
+                href={loginHref('/feed')}
+                className="shrink-0 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                {tFeed('loadMore')}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white pb-1">
+        <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom)+4px)]">
+          <Link href={loginHref('/feed')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-900">
+            <svg width="20" height="20" fill="currentColor" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          </Link>
+          <Link href={loginHref('/map')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
+          </Link>
+          <Link href={loginHref('/meetup')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+          <Link href={loginHref('/saved')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </Link>
+          <Link href={loginHref('/profile/me')} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+            </svg>
+          </Link>
+        </div>
+      </nav>
+    </div>
+  )
+}
