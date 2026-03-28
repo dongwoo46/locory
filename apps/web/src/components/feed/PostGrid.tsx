@@ -322,6 +322,14 @@ export default function PostGrid({
                 )}
                 {variant === 'feed_discover' && (
                   <>
+                    {/* 현지인 추천 별표 배지 */}
+                    {p.is_local_recommendation && (
+                      <div className="absolute left-2 top-2 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center shadow-sm">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="white">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      </div>
+                    )}
                     {place?.category && (
                       <div className="absolute right-2.5 top-2.5 rounded-full bg-black/55 px-2 py-0.5 text-[8px] font-semibold text-white backdrop-blur-[1px] [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]">
                         {tPost(`category.${place.category}`)}

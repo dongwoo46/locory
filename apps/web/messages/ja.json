@@ -786,7 +786,8 @@
       "localRecLocked": "韓国国籍のユーザーのみ現地人おすすめを追加できます",
       "submit": "投稿する",
       "submitting": "投稿中..."
-    }
+    },
+    "uploading": "投稿をアップロード中..."
   },
   "placeAdd": {
     "title": "場所を保存",

@@ -32,8 +32,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const authRequiredPaths = ['/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
-  const onboardingCheckPaths = ['/feed', ...authRequiredPaths]
+  const authRequiredPaths = ['/feed', '/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
+  const onboardingCheckPaths = [...authRequiredPaths]
   const isAuthRequiredPath = authRequiredPaths.some(path => pathname.startsWith(path))
   const shouldCheckOnboarding = onboardingCheckPaths.some(path => pathname.startsWith(path))
 
@@ -79,6 +79,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/feed/:path*',
     '/map/:path*',
     '/upload/:path*',

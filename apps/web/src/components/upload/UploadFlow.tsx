@@ -177,6 +177,8 @@ export default function UploadFlow() {
         })
       }
 
+      // 피드 돌아올 때 새로고침 트리거
+      sessionStorage.setItem('feed-needs-refresh', '1')
       router.push('/feed')
     } catch (err) {
       console.error(err)
@@ -186,8 +188,12 @@ export default function UploadFlow() {
     }
   }
 
-  // 현지인 추천 가능 여부: 한국 장소 = KR 국적만 (추후 다국가 확장 시 place.country 비교)
-  const canLocalRecommend = userNationality === 'KR'
+  // 현지인 추천 가능 여부: 장소 국가코드와 사용자 국적이 일치해야 함
+  // KR 장소 → KR 국적, JP 장소 → JP 국적
+  const placeCountryCode = (state.place?.countryCode || 'KR').toUpperCase()
+  const COUNTRY_TO_NATIONALITY: Record<string, string> = { KR: 'KR', JP: 'JP', US: 'US' }
+  const requiredNationality = COUNTRY_TO_NATIONALITY[placeCountryCode] ?? placeCountryCode
+  const canLocalRecommend = userNationality === requiredNationality
 
   // visited면 5단계, want면 4단계 (평점 없음)
   const totalSteps = state.postType === 'want' ? 4 : 5
@@ -197,6 +203,15 @@ export default function UploadFlow() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+
+      {/* 업로드 중 전체화면 스피너 */}
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-white/80 flex flex-col items-center justify-center gap-4">
+          <div className="w-10 h-10 border-[3px] border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+          <p className="text-sm font-medium text-gray-600">{t('uploading')}</p>
+        </div>
+      )}
+
       {/* 헤더 */}
       <header className="flex items-center gap-3 px-4 h-14 border-b border-gray-100">
         <button onClick={goBack} className="text-gray-600">

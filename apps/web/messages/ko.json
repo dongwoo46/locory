@@ -726,6 +726,7 @@
   },
   "upload": {
     "title": "포스팅",
+    "uploading": "포스팅 올리는 중...",
     "failedMsg": "포스팅에 실패했어요. 다시 시도해주세요",
     "loginRequired": "로그인이 필요해요",
     "place": {

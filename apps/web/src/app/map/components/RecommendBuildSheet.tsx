@@ -30,6 +30,7 @@ interface RecommendBuildSheetProps {
   recommendSettings: RecommendSettings;
   setRecommendSettings: Dispatch<SetStateAction<RecommendSettings>>;
   handleRecommendCourse: () => void;
+  courseLoading: boolean;
   onClose: () => void;
 }
 
@@ -50,6 +51,7 @@ export default function RecommendBuildSheet({
   recommendSettings,
   setRecommendSettings,
   handleRecommendCourse,
+  courseLoading,
   onClose,
 }: RecommendBuildSheetProps) {
   const t = useTranslations('map');
@@ -350,9 +352,10 @@ export default function RecommendBuildSheet({
 
                   <button
                     onClick={handleRecommendCourse}
-                    className="w-full py-3.5 bg-purple-600 text-white rounded-xl text-sm font-semibold"
+                    disabled={courseLoading}
+                    className="w-full py-3.5 bg-purple-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40"
                   >
-                    {t('recommend.generateBtn')}
+                    {courseLoading ? t('course.generating') : t('recommend.generateBtn')}
                   </button>
                 </div>
               )}

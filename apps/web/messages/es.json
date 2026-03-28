@@ -786,7 +786,8 @@
       "localRecLocked": "Solo usuarios con nacionalidad coreana pueden dejar una recomendación local",
       "submit": "Publicar",
       "submitting": "Publicando..."
-    }
+    },
+    "uploading": "Subiendo publicación..."
   },
   "placeAdd": {
     "title": "Guardar lugar",

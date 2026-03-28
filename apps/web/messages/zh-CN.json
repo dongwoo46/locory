@@ -414,5 +414,8 @@
     "dendentown": "电电城",
     "kyoto": "京都",
     "gion": "祇园"
+  },
+  "upload": {
+    "uploading": "正在上传帖子..."
   }
 }

@@ -786,7 +786,8 @@
       "localRecLocked": "僅限韓國國籍用戶可以留下在地人推薦",
       "submit": "發文",
       "submitting": "發文中..."
-    }
+    },
+    "uploading": "正在上傳貼文..."
   },
   "placeAdd": {
     "title": "儲存地點",

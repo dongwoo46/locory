@@ -494,6 +494,16 @@ export default function FeedClient({ profile, userId }: Props) {
     )
   }, [neighborhoodSearchQuery, allNeighborhoodsLabeled])
 
+  // 업로드 완료 후 피드로 돌아올 때 새로고침
+  useEffect(() => {
+    if (typeof sessionStorage === 'undefined') return
+    const flag = sessionStorage.getItem('feed-needs-refresh')
+    if (flag === '1') {
+      sessionStorage.removeItem('feed-needs-refresh')
+      queryClient.invalidateQueries({ queryKey: ['feed-posts'] })
+    }
+  }, [queryClient])
+
   // Click-outside를 감지해 드롭다운 닫기
   useEffect(() => {
     if (!searchFocused) return

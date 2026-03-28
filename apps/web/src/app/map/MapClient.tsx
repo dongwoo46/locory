@@ -1481,6 +1481,7 @@ export default function MapClient({ userId }: Props) {
         recommendSettings={recommendSettings}
         setRecommendSettings={setRecommendSettings}
         handleRecommendCourse={handleRecommendCourse}
+        courseLoading={courseLoading}
         onClose={() => setMapMode('normal')}
       />
 

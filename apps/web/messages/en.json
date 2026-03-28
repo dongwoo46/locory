@@ -786,7 +786,8 @@
       "localRecLocked": "Only Korean nationals can leave a local recommendation",
       "submit": "Post",
       "submitting": "Posting..."
-    }
+    },
+    "uploading": "Uploading post..."
   },
   "placeAdd": {
     "title": "Save Place",
