@@ -80,10 +80,23 @@ export default function FeedClient({ profile, userId }: Props) {
   const tNeighborhoods = useTranslations('neighborhoods')
 
   const {
-    neighborhood, feedTab, postType, sortBy, minRating,
+    neighborhoods, feedTab, postType, sortBy, minRating,
     categories, hiddenOnly, nationalities, ageRange, genderFilter,
     setFilter, resetFilter,
   } = useFeedFilterStore()
+
+  // 선택된 동네들의 union bounding box
+  const unionBounds = useMemo(() => {
+    if (neighborhoods.length === 0) return null
+    return {
+      latMin: Math.min(...neighborhoods.map(n => n.latMin)),
+      latMax: Math.max(...neighborhoods.map(n => n.latMax)),
+      lngMin: Math.min(...neighborhoods.map(n => n.lngMin)),
+      lngMax: Math.max(...neighborhoods.map(n => n.lngMax)),
+    }
+  }, [neighborhoods])
+
+  const neighborhoodsKey = neighborhoods.map(n => n.id).sort().join(',')
 
   const [showFilters, setShowFilters] = useState(false)
   const [showActionSheet, setShowActionSheet] = useState(false)
@@ -148,7 +161,7 @@ export default function FeedClient({ profile, userId }: Props) {
   const INITIAL_RENDER_PLACES = 15
   const RENDER_PLACE_CHUNK = 15
   const followingReady = feedTab !== 'following' || !followingIdsLoading
-  const feedQueryKey = ['feed-posts', feedTab, neighborhood?.id ?? null, followingUserIds.join(',')] as const
+  const feedQueryKey = ['feed-posts', feedTab, neighborhoodsKey, followingUserIds.join(',')] as const
   const {
     data: rawPosts,
     isLoading: loading,
@@ -169,10 +182,10 @@ export default function FeedClient({ profile, userId }: Props) {
         p_user_id: userId,
         p_feed_tab: feedTab,
         p_following_ids: followingUserIds,
-        p_lat_min: neighborhood?.latMin ?? null,
-        p_lat_max: neighborhood?.latMax ?? null,
-        p_lng_min: neighborhood?.lngMin ?? null,
-        p_lng_max: neighborhood?.lngMax ?? null,
+        p_lat_min: unionBounds?.latMin ?? null,
+        p_lat_max: unionBounds?.latMax ?? null,
+        p_lng_min: unionBounds?.lngMin ?? null,
+        p_lng_max: unionBounds?.lngMax ?? null,
         p_limit: FEED_PAGE_SIZE,
         p_cursor_created_at: pageParam?.createdAt ?? null,
         p_cursor_id: pageParam?.id ?? null,
@@ -207,7 +220,7 @@ export default function FeedClient({ profile, userId }: Props) {
 
   useEffect(() => {
     setInteractionsInitialized(false)
-  }, [feedTab, neighborhood?.id, userId, followingUserIds.join(',')])
+  }, [feedTab, neighborhoodsKey, userId, followingUserIds.join(',')])
 
   useEffect(() => {
     if (interactionsInitialized) return
@@ -256,10 +269,21 @@ export default function FeedClient({ profile, userId }: Props) {
     }
   }
 
-  function selectNeighborhood(n: NeighborhoodFilter | null) { setFilter({ neighborhood: n }) }
+  function toggleNeighborhood(n: NeighborhoodFilter) {
+    const exists = neighborhoods.some(nb => nb.id === n.id)
+    if (exists) {
+      setFilter({ neighborhoods: neighborhoods.filter(nb => nb.id !== n.id) })
+    } else {
+      setFilter({ neighborhoods: [...neighborhoods, n] })
+    }
+  }
+
+  function removeNeighborhood(id: string) {
+    setFilter({ neighborhoods: neighborhoods.filter(n => n.id !== id) })
+  }
 
   function handleDropdownSelect(n: typeof allNeighborhoodsLabeled[number]) {
-    setFilter({ neighborhood: { id: n.id, label: n.label, ...n.bounds } })
+    toggleNeighborhood({ id: n.id, label: n.label, ...n.bounds })
     setNeighborhoodSearchQuery('')
     setSearchFocused(false)
   }
@@ -278,7 +302,7 @@ export default function FeedClient({ profile, userId }: Props) {
       const res = await fetch(`/api/places/geocode-forward?q=${encodeURIComponent(q)}`)
       const data = await res.json()
       if (data.bounds) {
-        setFilter({ neighborhood: { id: `search:${q}`, label: q, ...data.bounds } })
+        toggleNeighborhood({ id: `search:${q}`, label: q, ...data.bounds })
         setNeighborhoodSearchQuery('')
         setSearchFocused(false)
       }
@@ -335,7 +359,7 @@ export default function FeedClient({ profile, userId }: Props) {
   useEffect(() => {
     setRenderPostCount(INITIAL_RENDER_POSTS)
     setRenderPlaceCount(INITIAL_RENDER_PLACES)
-  }, [feedTab, neighborhood?.id, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
+  }, [feedTab, neighborhoodsKey, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
 
   const visiblePosts = useMemo(
     () => sortedPosts.slice(0, renderPostCount),
@@ -532,22 +556,22 @@ export default function FeedClient({ profile, userId }: Props) {
             </div>
           </div>
 
-          {/* 동네 검색 (드롭다운) */}
+          {/* 동네 검색 (드롭다운, 다중선택) */}
           <div ref={searchRef} className="relative pb-2">
             <div
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border bg-white transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border bg-white transition-colors flex-wrap ${
                 searchFocused ? 'border-gray-400' : 'border-gray-200'
               }`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={2.5} className="shrink-0">
                 <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" />
               </svg>
-              {/* 선택된 동네 태그 */}
-              {neighborhood && !neighborhoodSearchQuery && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-900 text-white text-[11px] font-medium shrink-0">
-                  {neighborhood.label}
+              {/* 선택된 동네 태그들 */}
+              {neighborhoods.length > 0 && !neighborhoodSearchQuery && neighborhoods.map(nb => (
+                <span key={nb.id} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-900 text-white text-[11px] font-medium shrink-0">
+                  {nb.label}
                   <button
-                    onMouseDown={e => { e.preventDefault(); selectNeighborhood(null) }}
+                    onMouseDown={e => { e.preventDefault(); removeNeighborhood(nb.id) }}
                     className="leading-none"
                   >
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
@@ -555,7 +579,7 @@ export default function FeedClient({ profile, userId }: Props) {
                     </svg>
                   </button>
                 </span>
-              )}
+              ))}
               <input
                 value={neighborhoodSearchQuery}
                 onChange={e => setNeighborhoodSearchQuery(e.target.value)}
@@ -564,7 +588,7 @@ export default function FeedClient({ profile, userId }: Props) {
                   if (e.key === 'Enter') searchNeighborhood()
                   if (e.key === 'Escape') setSearchFocused(false)
                 }}
-                placeholder={neighborhood ? t('searchNeighborhood') : t('searchNeighborhood')}
+                placeholder={neighborhoods.length === 0 ? t('searchNeighborhood') : ''}
                 className="flex-1 text-xs outline-none bg-transparent placeholder-gray-400 min-w-0"
               />
               {neighborhoodSearchLoading && (
@@ -588,18 +612,26 @@ export default function FeedClient({ profile, userId }: Props) {
                 {neighborhoodSearchQuery ? (
                   /* 검색 결과 */
                   <div className="max-h-56 overflow-y-auto">
-                    {dropdownItems.length > 0 ? dropdownItems.map(n => (
-                      <button
-                        key={n.id}
-                        onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                          neighborhood?.id === n.id ? 'bg-gray-50' : ''
-                        }`}
-                      >
-                        <span className="text-sm font-medium text-gray-900">{n.label}</span>
-                        <span className="text-xs text-gray-400">{n.country === 'KR' ? t('groupKorea') : t('groupJapan')}</span>
-                      </button>
-                    )) : (
+                    {dropdownItems.length > 0 ? dropdownItems.map(n => {
+                      const selected = neighborhoods.some(nb => nb.id === n.id)
+                      return (
+                        <button
+                          key={n.id}
+                          onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${selected ? 'bg-gray-50' : ''}`}
+                        >
+                          <span className={`text-sm font-medium ${selected ? 'text-gray-900' : 'text-gray-700'}`}>{n.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">{n.country === 'KR' ? t('groupKorea') : t('groupJapan')}</span>
+                            {selected && (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth={2.5}>
+                                <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    }) : (
                       <div className="px-4 py-3 text-xs text-gray-400 text-center">
                         {neighborhoodSearchLoading ? '···' : t('searchNeighborhood')}
                       </div>
@@ -608,46 +640,49 @@ export default function FeedClient({ profile, userId }: Props) {
                 ) : (
                   /* 인기 동네 (한국 / 일본 그룹) */
                   <div className="p-3 space-y-3">
+                    {/* 전체 초기화 */}
+                    {neighborhoods.length > 0 && (
+                      <button
+                        onMouseDown={e => { e.preventDefault(); setFilter({ neighborhoods: [] }); setSearchFocused(false) }}
+                        className="w-full text-xs text-gray-400 text-left px-0.5 underline underline-offset-2"
+                      >
+                        {t('all')} (초기화)
+                      </button>
+                    )}
                     {/* 한국 */}
                     <div>
                       <p className="text-[11px] font-semibold text-gray-400 mb-1.5 px-0.5">{t('groupKorea')}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        <button
-                          onMouseDown={e => { e.preventDefault(); selectNeighborhood(null); setSearchFocused(false) }}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                            !neighborhood ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {t('all')}
-                        </button>
-                        {featuredKR.map(n => (
-                          <button
-                            key={n.id}
-                            onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                              neighborhood?.id === n.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {n.label}
-                          </button>
-                        ))}
+                        {featuredKR.map(n => {
+                          const selected = neighborhoods.some(nb => nb.id === n.id)
+                          return (
+                            <button
+                              key={n.id}
+                              onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selected ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                            >
+                              {n.label}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                     {/* 일본 */}
                     <div>
                       <p className="text-[11px] font-semibold text-gray-400 mb-1.5 px-0.5">{t('groupJapan')}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {featuredJP.map(n => (
-                          <button
-                            key={n.id}
-                            onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                              neighborhood?.id === n.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {n.label}
-                          </button>
-                        ))}
+                        {featuredJP.map(n => {
+                          const selected = neighborhoods.some(nb => nb.id === n.id)
+                          return (
+                            <button
+                              key={n.id}
+                              onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selected ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+                            >
+                              {n.label}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -865,7 +900,7 @@ export default function FeedClient({ profile, userId }: Props) {
 
       <main
         className={`${FEED_FRAME_CLASS} pb-16`}
-        style={{ paddingTop: '88px' }}
+        style={{ paddingTop: '104px' }}
       >
         {loading ? (
           <div className="flex items-center justify-center py-20">

@@ -243,6 +243,9 @@
     "tasteDist": "Мои вкусовые предпочтения"
   },
   "settings": {
+    "linkGoogle": "Привязать аккаунт Google",
+    "linkGoogleDesc": "Привяжите аккаунт, чтобы использовать встречи и все функции",
+    "linkGoogleBtn": "Привязать через Google",
     "title": "Настройки",
     "profileImage": "Фото профиля",
     "changePhoto": "Изменить фото",
@@ -555,7 +558,10 @@
       "filterApply": "Применить",
       "closeMeetup": "Завершить встречу",
       "closeConfirm": "Завершить эту встречу?"
-    }
+    },
+    "anonymousBlockTitle": "Для встреч нужен аккаунт Google",
+    "anonymousBlockDesc": "Привяжите Google-аккаунт, чтобы использовать встречи и все функции",
+    "linkAccountBtn": "Привязать аккаунт Google"
   },
   "map": {
     "searchPlaceholder": "Поиск мест...",

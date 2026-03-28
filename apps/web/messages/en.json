@@ -243,6 +243,9 @@
     "tasteDist": "My taste distribution"
   },
   "settings": {
+    "linkGoogle": "Connect Google Account",
+    "linkGoogleDesc": "Link your account to use meetups and all features",
+    "linkGoogleBtn": "Connect with Google",
     "title": "Settings",
     "profileImage": "Profile Image",
     "changePhoto": "Change Photo",
@@ -555,7 +558,10 @@
       "filterApply": "Apply",
       "closeMeetup": "Close meetup",
       "closeConfirm": "Close this meetup?"
-    }
+    },
+    "anonymousBlockTitle": "Meetups require a Google account",
+    "anonymousBlockDesc": "Link your Google account to use meetups and all features",
+    "linkAccountBtn": "Link Google Account"
   },
   "map": {
     "searchPlaceholder": "Search places...",

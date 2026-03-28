@@ -243,6 +243,9 @@
     "tasteDist": "我的喜好分布"
   },
   "settings": {
+    "linkGoogle": "連結谷歌帳號",
+    "linkGoogleDesc": "連結帳號後可使用閃聚及所有功能",
+    "linkGoogleBtn": "用谷歌連結",
     "title": "設定",
     "profileImage": "大頭貼",
     "changePhoto": "更換照片",
@@ -555,7 +558,10 @@
       "filterApply": "套用",
       "closeMeetup": "結束聚會",
       "closeConfirm": "確定結束這個聚會？"
-    }
+    },
+    "anonymousBlockTitle": "閃聚需要谷歌帳號",
+    "anonymousBlockDesc": "連結谷歌帳號後可使用閃聚及所有功能",
+    "linkAccountBtn": "連結谷歌帳號"
   },
   "map": {
     "searchPlaceholder": "搜尋地點...",

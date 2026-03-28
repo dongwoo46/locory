@@ -72,6 +72,7 @@ interface MeetupCard {
 
 interface Props {
   userId: string
+  isAnonymous?: boolean
   profile: {
     id: string
     gender: string | null
@@ -85,7 +86,7 @@ interface Props {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-export default function MeetupExploreClient({ userId, profile }: Props) {
+export default function MeetupExploreClient({ userId, profile, isAnonymous = false }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('meetup')
@@ -203,6 +204,48 @@ export default function MeetupExploreClient({ userId, profile }: Props) {
     setFilterVibe(null)
     setFilterGender(null)
     setFilterDate(null)
+  }
+
+  // 익명 사용자 차단 화면
+  if (isAnonymous) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <header className="fixed top-0 left-0 right-0 bg-white z-40">
+          <div className="max-w-lg mx-auto px-4">
+            <div className="flex items-center h-14">
+              <h1 className="text-base font-bold text-gray-900">{t('explore.title')}</h1>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 gap-5 pt-14">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+            <svg width="28" height="28" fill="none" stroke="#9CA3AF" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-gray-900 mb-1">{t('anonymousBlockTitle')}</p>
+            <p className="text-sm text-gray-400 leading-relaxed">{t('anonymousBlockDesc')}</p>
+          </div>
+          <button
+            onClick={async () => {
+              const redirectTo = `${window.location.origin}/auth/callback`
+              await supabase.auth.linkIdentity({ provider: 'google', options: { redirectTo } })
+            }}
+            className="flex items-center gap-2 px-5 py-3 bg-gray-900 text-white text-sm font-medium rounded-2xl"
+          >
+            <svg width="16" height="16" viewBox="0 0 18 18">
+              <path fill="#fff" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z" opacity=".7"/>
+              <path fill="#fff" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z" opacity=".7"/>
+              <path fill="#fff" d="M4.51 10.53c-.16-.48-.25-.98-.25-1.53s.09-1.05.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z" opacity=".7"/>
+              <path fill="#fff" d="M8.98 3.58c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 .89 5.4L3.53 7.47c.63-1.89 2.39-3.89 5.45-3.89z" opacity=".7"/>
+            </svg>
+            {t('linkAccountBtn')}
+          </button>
+        </div>
+        <BottomNav avatarUrl={profile?.avatar_url ?? null} />
+      </div>
+    )
   }
 
   return (

@@ -7,7 +7,7 @@ export type NeighborhoodFilter = NeighborhoodBounds & { id: string; label: strin
 export const FEED_FILTER_DEFAULT = {
   city: null as string | null,
   district: null as string | null,
-  neighborhood: null as NeighborhoodFilter | null,
+  neighborhoods: [] as NeighborhoodFilter[],
   feedTab: 'all' as 'all' | 'following',
   postType: 'all' as 'all' | 'visited' | 'want',
   sortBy: 'latest' as 'latest' | 'likes' | 'saves',

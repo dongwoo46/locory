@@ -27,7 +27,7 @@ const NATIONALITY_FLAGS: Record<string, string> = {
   KR: '🇰🇷', JP: '🇯🇵', US: '🇺🇸', CN: '🇨🇳', ES: '🇪🇸', RU: '🇷🇺', OTHER: '🌍',
 }
 
-export default function SettingsClient({ profile: initial, currentLocale: initialLocale, isAdmin = false }: { profile: Profile; currentLocale: string; isAdmin?: boolean }) {
+export default function SettingsClient({ profile: initial, currentLocale: initialLocale, isAdmin = false, isAnonymous = false }: { profile: Profile; currentLocale: string; isAdmin?: boolean; isAnonymous?: boolean }) {
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('settings')
@@ -179,6 +179,29 @@ export default function SettingsClient({ profile: initial, currentLocale: initia
       </header>
 
       <main className="max-w-lg mx-auto pt-14 pb-10 px-4">
+
+        {/* 익명 사용자: 계정 연결 배너 */}
+        {isAnonymous && (
+          <section className="mt-6 bg-gray-900 rounded-2xl px-4 py-5">
+            <p className="text-sm font-bold text-white mb-1">{t('linkGoogle')}</p>
+            <p className="text-xs text-gray-300 mb-4">{t('linkGoogleDesc')}</p>
+            <button
+              onClick={async () => {
+                const redirectTo = `${window.location.origin}/auth/callback`
+                await supabase.auth.linkIdentity({ provider: 'google', options: { redirectTo } })
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl"
+            >
+              <svg width="16" height="16" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.84-1.4-4.47-3.29H1.87v2.07A8 8 0 0 0 8.98 17z"/>
+                <path fill="#FBBC05" d="M4.51 10.53c-.16-.48-.25-.98-.25-1.53s.09-1.05.25-1.53V5.4H1.87A8 8 0 0 0 .98 9c0 1.29.31 2.51.89 3.6l2.64-2.07z"/>
+                <path fill="#EA4335" d="M8.98 3.58c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 .89 5.4L3.53 7.47c.63-1.89 2.39-3.89 5.45-3.89z"/>
+              </svg>
+              {t('linkGoogleBtn')}
+            </button>
+          </section>
+        )}
 
         {/* 프로필 이미지 */}
         <section className="mt-6 bg-white rounded-2xl px-4 py-5">

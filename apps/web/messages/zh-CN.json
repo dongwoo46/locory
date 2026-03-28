@@ -180,6 +180,9 @@
     "requested": "已申请"
   },
   "settings": {
+    "linkGoogle": "连接谷歌账号",
+    "linkGoogleDesc": "连接账号后可使用闪聚及全部功能",
+    "linkGoogleBtn": "用谷歌连接",
     "title": "设置",
     "profileImage": "头像",
     "changePhoto": "更换照片",
@@ -309,6 +312,9 @@
       "closeMeetup": "结束聚会",
       "closeConfirm": "确定结束这个聚会？"
     },
+    "anonymousBlockTitle": "闪聚需要谷歌账号",
+    "anonymousBlockDesc": "连接谷歌账号后可使用闪聚及全部功能",
+    "linkAccountBtn": "连接谷歌账号",
     "status": {
       "accepted": "已接受",
       "rejected": "已拒绝",

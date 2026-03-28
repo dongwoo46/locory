@@ -13,5 +13,5 @@ export default async function MeetupExplorePage() {
     .eq('id', session.user.id)
     .single()
 
-  return <MeetupExploreClient userId={session.user.id} profile={profile as any} />
+  return <MeetupExploreClient userId={session.user.id} profile={profile as any} isAnonymous={session.user.is_anonymous ?? false} />
 }

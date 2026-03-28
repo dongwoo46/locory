@@ -145,28 +145,32 @@ const SLIDES: Record<Lang, { icon: string; title: string; desc: string }[]> = {
 
 const LOGIN_TEXT: Record<
   Lang,
-  { tagline: string; loginBtn: string; terms: string }
+  { tagline: string; loginBtn: string; anonymousBtn: string; terms: string }
 > = {
   ko: {
     tagline: '한국의 숨겨진 장소를\n발견하고 공유하세요',
     loginBtn: 'Google로 시작하기',
+    anonymousBtn: '임시로 시작하기',
     terms: '계속하면 서비스 이용약관 및 개인정보처리방침에 동의합니다',
   },
   en: {
     tagline: 'Discover & share\nhidden spots in Korea',
     loginBtn: 'Continue with Google',
+    anonymousBtn: 'Try without signing up',
     terms:
       'By continuing, you agree to our Terms of Service and Privacy Policy',
   },
   ja: {
     tagline: '韓国の隠れた場所を\n発見してシェアしよう',
     loginBtn: 'Googleで始める',
+    anonymousBtn: 'アカウントなしで始める',
     terms:
       '続けることで、利用規約とプライバシーポリシーに同意したことになります',
   },
   ru: {
     tagline: 'Открывайте скрытые\nместа Кореи',
     loginBtn: 'Войти через Google',
+    anonymousBtn: 'Начать без аккаунта',
     terms:
       'Продолжая, вы соглашаетесь с Условиями и Политикой конфиденциальности',
   },
@@ -245,6 +249,16 @@ export default function LoginPage() {
     });
   }
 
+  async function handleAnonymousLogin() {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error || !data.user) return;
+    // 익명 프로필 초기화
+    await fetch('/api/auth/init-anonymous', { method: 'POST' });
+    // onboarded 쿠키 설정 (미들웨어가 온보딩 리다이렉트 안 하도록)
+    document.cookie = 'onboarded=1; path=/; max-age=31536000; SameSite=Lax';
+    window.location.href = '/feed';
+  }
+
   const isIOS = inAppInfo?.isIOS ?? false;
   const appName = inAppInfo?.appName ?? 'In-app browser';
   const currentSlide = slides[slide];
@@ -315,6 +329,14 @@ export default function LoginPage() {
           >
             <GoogleIcon />
             {loginText.loginBtn}
+          </button>
+
+          {/* 임시 시작 버튼 */}
+          <button
+            onClick={handleAnonymousLogin}
+            className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600 transition-colors"
+          >
+            {loginText.anonymousBtn}
           </button>
 
           <p className="text-xs text-gray-400 text-center leading-relaxed px-4">

@@ -243,6 +243,9 @@
     "tasteDist": "Mi distribución de gustos"
   },
   "settings": {
+    "linkGoogle": "Conectar cuenta de Google",
+    "linkGoogleDesc": "Vincula tu cuenta para usar encuentros y todas las funciones",
+    "linkGoogleBtn": "Conectar con Google",
     "title": "Ajustes",
     "profileImage": "Foto de perfil",
     "changePhoto": "Cambiar foto",
@@ -555,7 +558,10 @@
       "filterApply": "Aplicar",
       "closeMeetup": "Cerrar encuentro",
       "closeConfirm": "¿Cerrar este encuentro?"
-    }
+    },
+    "anonymousBlockTitle": "Los encuentros requieren una cuenta de Google",
+    "anonymousBlockDesc": "Vincula tu cuenta de Google para usar encuentros y todas las funciones",
+    "linkAccountBtn": "Vincular cuenta de Google"
   },
   "map": {
     "searchPlaceholder": "Buscar lugares...",

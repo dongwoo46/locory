@@ -243,6 +243,9 @@
     "tasteDist": "私の好みの分布"
   },
   "settings": {
+    "linkGoogle": "Googleアカウントを連携する",
+    "linkGoogleDesc": "アカウントを連携して全機能を使えるようにしましょう",
+    "linkGoogleBtn": "Googleで連携する",
     "title": "設定",
     "profileImage": "プロフィール画像",
     "changePhoto": "写真を変更",
@@ -555,7 +558,10 @@
       "filterApply": "適用",
       "closeMeetup": "모임 마감",
       "closeConfirm": "この모임を終了しますか？"
-    }
+    },
+    "anonymousBlockTitle": "フラッシュミートアップにはGoogleアカウントが必要です",
+    "anonymousBlockDesc": "Googleアカウントを連携して全機能を使えるようにしましょう",
+    "linkAccountBtn": "Googleアカウントと連携する"
   },
   "map": {
     "searchPlaceholder": "場所を検索...",
