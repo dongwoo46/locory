@@ -1,21 +1,18 @@
 ﻿'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
-import { useDragScroll } from '@/hooks/useDragScroll'
 import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import { useTranslations } from 'next-intl'
-import { CITIES, getMainDistricts, getExtraDistricts, getDistricts } from '@/lib/utils/districts'
-
-const OTHER_DISTRICT = '__other__'
-import type { City } from '@/types/database'
+import { POPULAR_NEIGHBORHOODS } from '@/lib/utils/districts'
+import type { NeighborhoodFilter } from '@/store/filterStore'
 
 const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
 const NotificationBell = dynamic(() => import('@/components/ui/NotificationBell'), {
@@ -80,11 +77,10 @@ export default function FeedClient({ profile, userId }: Props) {
   const t = useTranslations('feed')
   const tPost = useTranslations('post')
   const tProfile = useTranslations('profile')
-  const tCities = useTranslations('cities')
-  const tDistricts = useTranslations('districts')
+  const tNeighborhoods = useTranslations('neighborhoods')
 
   const {
-    city, district, feedTab, postType, sortBy, minRating,
+    neighborhood, feedTab, postType, sortBy, minRating,
     categories, hiddenOnly, nationalities, ageRange, genderFilter,
     setFilter, resetFilter,
   } = useFeedFilterStore()
@@ -104,12 +100,10 @@ export default function FeedClient({ profile, userId }: Props) {
   const categoriesSet = useMemo(() => new Set(categories), [categories])
   const nationalitiesSet = useMemo(() => new Set(nationalities), [nationalities])
 
-  const allDistricts = useMemo(
-    () => (city ? [...getMainDistricts(city), ...getExtraDistricts(city)] : []),
-    [city]
-  )
-  const cityScroll = useDragScroll()
-  const districtScroll = useDragScroll()
+  const searchRef = useRef<HTMLDivElement>(null)
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [neighborhoodSearchQuery, setNeighborhoodSearchQuery] = useState('')
+  const [neighborhoodSearchLoading, setNeighborhoodSearchLoading] = useState(false)
 
   useEffect(() => {
     if (typeof useFeedFilterStore.persist?.onFinishHydration === 'function') {
@@ -154,7 +148,7 @@ export default function FeedClient({ profile, userId }: Props) {
   const INITIAL_RENDER_PLACES = 15
   const RENDER_PLACE_CHUNK = 15
   const followingReady = feedTab !== 'following' || !followingIdsLoading
-  const feedQueryKey = ['feed-posts', feedTab, city, district, followingUserIds.join(',')] as const
+  const feedQueryKey = ['feed-posts', feedTab, neighborhood?.id ?? null, followingUserIds.join(',')] as const
   const {
     data: rawPosts,
     isLoading: loading,
@@ -171,15 +165,14 @@ export default function FeedClient({ profile, userId }: Props) {
     refetchOnReconnect: false,
     initialPageParam: null as { createdAt: string; id: string } | null,
     queryFn: async ({ pageParam }): Promise<FeedPagePayload> => {
-      const knownDistricts =
-        city && district === OTHER_DISTRICT ? getDistricts(city).map(d => d.value) : []
       const { data, error } = await supabase.rpc('get_feed_with_interactions', {
         p_user_id: userId,
         p_feed_tab: feedTab,
         p_following_ids: followingUserIds,
-        p_city: city,
-        p_district: district,
-        p_known_districts: knownDistricts,
+        p_lat_min: neighborhood?.latMin ?? null,
+        p_lat_max: neighborhood?.latMax ?? null,
+        p_lng_min: neighborhood?.lngMin ?? null,
+        p_lng_max: neighborhood?.lngMax ?? null,
         p_limit: FEED_PAGE_SIZE,
         p_cursor_created_at: pageParam?.createdAt ?? null,
         p_cursor_id: pageParam?.id ?? null,
@@ -204,14 +197,17 @@ export default function FeedClient({ profile, userId }: Props) {
     },
     staleTime: 60 * 1000,
   })
-  const posts = (((rawPosts?.pages ?? []).flatMap(page => page.posts)) ?? []) as any[]
+  const posts = useMemo(
+    () => ((rawPosts?.pages ?? []).flatMap(page => page.posts)) as any[],
+    [rawPosts]
+  )
   const [renderPostCount, setRenderPostCount] = useState(INITIAL_RENDER_POSTS)
   const [renderPlaceCount, setRenderPlaceCount] = useState(INITIAL_RENDER_PLACES)
   const [hasUserScrolled, setHasUserScrolled] = useState(false)
 
   useEffect(() => {
     setInteractionsInitialized(false)
-  }, [feedTab, city, district, userId, followingUserIds.join(',')])
+  }, [feedTab, neighborhood?.id, userId, followingUserIds.join(',')])
 
   useEffect(() => {
     if (interactionsInitialized) return
@@ -260,7 +256,37 @@ export default function FeedClient({ profile, userId }: Props) {
     }
   }
 
-  function selectCity(c: City | null) { setFilter({ city: c, district: null }) }
+  function selectNeighborhood(n: NeighborhoodFilter | null) { setFilter({ neighborhood: n }) }
+
+  function handleDropdownSelect(n: typeof allNeighborhoodsLabeled[number]) {
+    setFilter({ neighborhood: { id: n.id, label: n.label, ...n.bounds } })
+    setNeighborhoodSearchQuery('')
+    setSearchFocused(false)
+  }
+
+  async function searchNeighborhood() {
+    const q = neighborhoodSearchQuery.trim()
+    if (!q) return
+    // Local match → select first
+    if (dropdownItems.length > 0) {
+      handleDropdownSelect(dropdownItems[0])
+      return
+    }
+    // Geocoding fallback
+    setNeighborhoodSearchLoading(true)
+    try {
+      const res = await fetch(`/api/places/geocode-forward?q=${encodeURIComponent(q)}`)
+      const data = await res.json()
+      if (data.bounds) {
+        setFilter({ neighborhood: { id: `search:${q}`, label: q, ...data.bounds } })
+        setNeighborhoodSearchQuery('')
+        setSearchFocused(false)
+      }
+    } finally {
+      setNeighborhoodSearchLoading(false)
+    }
+  }
+
   function toggleCategory(cat: string) {
     const next = new Set(categoriesSet)
     next.has(cat) ? next.delete(cat) : next.add(cat)
@@ -309,7 +335,7 @@ export default function FeedClient({ profile, userId }: Props) {
   useEffect(() => {
     setRenderPostCount(INITIAL_RENDER_POSTS)
     setRenderPlaceCount(INITIAL_RENDER_PLACES)
-  }, [feedTab, city, district, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
+  }, [feedTab, neighborhood?.id, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
 
   const visiblePosts = useMemo(
     () => sortedPosts.slice(0, renderPostCount),
@@ -318,12 +344,30 @@ export default function FeedClient({ profile, userId }: Props) {
   const canRenderMorePosts = renderPostCount < sortedPosts.length
 
   const placesFromPosts = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; category: string; city: string; district: string | null; postCount: number }>()
+    const map = new Map<string, {
+      id: string
+      name: string
+      category: string
+      city: string
+      district: string | null
+      city_global?: string | null
+      neighborhood_global?: string | null
+      postCount: number
+    }>()
     for (const p of filteredPosts) {
       const place = p.places
       if (!place?.id) continue
       if (!map.has(place.id)) {
-        map.set(place.id, { id: place.id, name: place.name, category: place.category, city: place.city, district: place.district, postCount: 0 })
+        map.set(place.id, {
+          id: place.id,
+          name: place.name,
+          category: place.category,
+          city: place.city,
+          district: place.district,
+          city_global: place.city_global ?? null,
+          neighborhood_global: place.neighborhood_global ?? null,
+          postCount: 0,
+        })
       }
       map.get(place.id)!.postCount++
     }
@@ -410,7 +454,34 @@ export default function FeedClient({ profile, userId }: Props) {
     genderFilter != null,
   ].filter(Boolean).length
 
-  const hasDistrict = !!city
+  const allNeighborhoodsLabeled = useMemo(
+    () => POPULAR_NEIGHBORHOODS.map(n => ({ ...n, label: tNeighborhoods(n.id as any) })),
+    [tNeighborhoods]
+  )
+  const featuredKR = useMemo(() => allNeighborhoodsLabeled.filter(n => n.featured && n.country === 'KR'), [allNeighborhoodsLabeled])
+  const featuredJP = useMemo(() => allNeighborhoodsLabeled.filter(n => n.featured && n.country === 'JP'), [allNeighborhoodsLabeled])
+
+  const dropdownItems = useMemo(() => {
+    const q = neighborhoodSearchQuery.trim()
+    if (!q) return []
+    const qNorm = q.toLowerCase().replace(/\s+/g, '')
+    return allNeighborhoodsLabeled.filter(n =>
+      n.searchTokens.some(t => t.toLowerCase().replace(/\s+/g, '').includes(qNorm))
+    )
+  }, [neighborhoodSearchQuery, allNeighborhoodsLabeled])
+
+  // Click-outside를 감지해 드롭다운 닫기
+  useEffect(() => {
+    if (!searchFocused) return
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [searchFocused])
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -461,75 +532,129 @@ export default function FeedClient({ profile, userId }: Props) {
             </div>
           </div>
 
-          {/* 도시 탭 */}
-          <div
-            ref={cityScroll.ref}
-            onMouseDown={cityScroll.onMouseDown}
-            onMouseMove={cityScroll.onMouseMove}
-            onMouseUp={cityScroll.onMouseUp}
-            onMouseLeave={cityScroll.onMouseLeave}
-            className="flex gap-0 overflow-x-auto scrollbar-hide -mx-3 px-3 pb-0.5 select-none"
-          >
-            <button
-              onClick={() => selectCity(null)}
-                className={`shrink-0 border-b-2 px-2.5 py-1 text-xs font-medium transition-colors ${
-                  city === null ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
-                }`}
-              >
-              {t('all')}
-            </button>
-            {CITIES.map(c => (
-              <button
-                key={c.value}
-                onClick={() => selectCity(c.value)}
-                className={`shrink-0 border-b-2 px-2.5 py-1 text-xs font-medium transition-colors ${
-                  city === c.value ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
-                }`}
-              >
-                {tCities(c.value)}
-              </button>
-            ))}
-          </div>
-
-          {/* 동네(구역) 탭 */}
-          {hasDistrict && (
+          {/* 동네 검색 (드롭다운) */}
+          <div ref={searchRef} className="relative pb-2">
             <div
-              ref={districtScroll.ref}
-              onMouseDown={districtScroll.onMouseDown}
-              onMouseMove={districtScroll.onMouseMove}
-              onMouseUp={districtScroll.onMouseUp}
-              onMouseLeave={districtScroll.onMouseLeave}
-              className="flex gap-2 overflow-x-auto scrollbar-hide -mx-3 px-3 py-1 select-none"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border bg-white transition-colors ${
+                searchFocused ? 'border-gray-400' : 'border-gray-200'
+              }`}
             >
-              <button
-                onClick={() => setFilter({ district: null })}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  !district ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {t('all')}
-              </button>
-              {allDistricts.map(d => (
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={2.5} className="shrink-0">
+                <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+              </svg>
+              {/* 선택된 동네 태그 */}
+              {neighborhood && !neighborhoodSearchQuery && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-900 text-white text-[11px] font-medium shrink-0">
+                  {neighborhood.label}
+                  <button
+                    onMouseDown={e => { e.preventDefault(); selectNeighborhood(null) }}
+                    className="leading-none"
+                  >
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                      <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </span>
+              )}
+              <input
+                value={neighborhoodSearchQuery}
+                onChange={e => setNeighborhoodSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') searchNeighborhood()
+                  if (e.key === 'Escape') setSearchFocused(false)
+                }}
+                placeholder={neighborhood ? t('searchNeighborhood') : t('searchNeighborhood')}
+                className="flex-1 text-xs outline-none bg-transparent placeholder-gray-400 min-w-0"
+              />
+              {neighborhoodSearchLoading && (
+                <span className="text-gray-400 text-xs shrink-0">···</span>
+              )}
+              {neighborhoodSearchQuery && (
                 <button
-                  key={d.value}
-                  onClick={() => setFilter({ district: d.value })}
-                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    district === d.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}
+                  onMouseDown={e => { e.preventDefault(); setNeighborhoodSearchQuery('') }}
+                  className="shrink-0 text-gray-300"
                 >
-                  {city ? tDistricts(`${city}.${d.value}`) : d.label}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                  </svg>
                 </button>
-              ))}
-              <button
-                onClick={() => setFilter({ district: OTHER_DISTRICT })}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  district === OTHER_DISTRICT ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {t('other')}
-              </button>
+              )}
             </div>
-          )}
+
+            {/* 드롭다운 패널 */}
+            {searchFocused && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+                {neighborhoodSearchQuery ? (
+                  /* 검색 결과 */
+                  <div className="max-h-56 overflow-y-auto">
+                    {dropdownItems.length > 0 ? dropdownItems.map(n => (
+                      <button
+                        key={n.id}
+                        onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                          neighborhood?.id === n.id ? 'bg-gray-50' : ''
+                        }`}
+                      >
+                        <span className="text-sm font-medium text-gray-900">{n.label}</span>
+                        <span className="text-xs text-gray-400">{n.country === 'KR' ? t('groupKorea') : t('groupJapan')}</span>
+                      </button>
+                    )) : (
+                      <div className="px-4 py-3 text-xs text-gray-400 text-center">
+                        {neighborhoodSearchLoading ? '···' : t('searchNeighborhood')}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* 인기 동네 (한국 / 일본 그룹) */
+                  <div className="p-3 space-y-3">
+                    {/* 한국 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-gray-400 mb-1.5 px-0.5">{t('groupKorea')}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onMouseDown={e => { e.preventDefault(); selectNeighborhood(null); setSearchFocused(false) }}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                            !neighborhood ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {t('all')}
+                        </button>
+                        {featuredKR.map(n => (
+                          <button
+                            key={n.id}
+                            onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                              neighborhood?.id === n.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {n.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 일본 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-gray-400 mb-1.5 px-0.5">{t('groupJapan')}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {featuredJP.map(n => (
+                          <button
+                            key={n.id}
+                            onMouseDown={e => { e.preventDefault(); handleDropdownSelect(n) }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                              neighborhood?.id === n.id ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {n.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
         </div>
       </header>
@@ -740,7 +865,7 @@ export default function FeedClient({ profile, userId }: Props) {
 
       <main
         className={`${FEED_FRAME_CLASS} pb-16`}
-        style={{ paddingTop: hasDistrict ? '120px' : '84px' }}
+        style={{ paddingTop: '88px' }}
       >
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -791,7 +916,7 @@ export default function FeedClient({ profile, userId }: Props) {
                     <p className="text-sm font-bold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {tPost(`category.${place.category}`)}
-                      {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {place.neighborhood_global && ` · ${place.neighborhood_global}`}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 shrink-0">{place.postCount} posts</span>

@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
@@ -10,7 +10,7 @@ import BottomNav from '@/components/ui/BottomNav'
 import NotificationBell from '@/components/ui/NotificationBell'
 import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 import PostGrid from '@/components/feed/PostGrid'
-import { CITIES, getMainDistricts, getExtraDistricts } from '@/lib/utils/districts'
+import { CITIES, getMainDistricts, getExtraDistricts, getPlaceCityFilterToken, getPlaceNeighborhoodFilterToken } from '@/lib/utils/districts'
 import type { City } from '@/types/database'
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -47,7 +47,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     queryFn: async () => {
       const followingQuery = followingUserIds.length > 0
         ? supabase.from('place_saves')
-            .select('id, user_id, created_at, places!place_id(id, name, category, city, district, place_type), profiles!user_id(id, nickname, avatar_url)')
+            .select('id, user_id, created_at, places!place_id(id, name, category, city, district, city_global, neighborhood_global, country_code, place_type), profiles!user_id(id, nickname, avatar_url)')
             .in('user_id', followingUserIds).order('created_at', { ascending: false }).limit(50)
         : Promise.resolve({ data: [] })
 
@@ -57,10 +57,10 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
         { data: fData },
       ] = await Promise.all([
         supabase.from('place_saves')
-          .select('id, created_at, places!place_id(id, name, category, city, district, place_type, lat, lng)')
+          .select('id, created_at, places!place_id(id, name, category, city, district, city_global, neighborhood_global, country_code, place_type, lat, lng)')
           .eq('user_id', userId).order('created_at', { ascending: false }),
         supabase.from('post_saves')
-          .select('id, created_at, posts!post_id(id, type, rating, memo, photos, created_at, profiles!user_id(id, nickname, nationality, avatar_url, trust_score), places!place_id(id, name, category, district, city, place_type), post_likes(count))')
+          .select('id, created_at, posts!post_id(id, type, rating, memo, photos, created_at, profiles!user_id(id, nickname, nationality, avatar_url, trust_score), places!place_id(id, name, category, district, city, city_global, neighborhood_global, country_code, place_type), post_likes(count))')
           .eq('user_id', userId).order('created_at', { ascending: false }),
         followingQuery,
       ])
@@ -79,19 +79,61 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   const [tab, setTab] = useState<'places' | 'posts' | 'following'>('places')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [savedPlacesOverride, setSavedPlacesOverride] = useState<any[] | null>(null)
-  const savedPlaces = savedPlacesOverride ?? savedData?.places ?? []
-  const posts = savedData?.posts ?? []
-  const followingPlaces = savedData?.followingPlaces ?? []
+  const savedPlaces = useMemo(() => savedPlacesOverride ?? savedData?.places ?? [], [savedPlacesOverride, savedData?.places])
+  const posts = useMemo(() => savedData?.posts ?? [], [savedData?.posts])
+  const followingPlaces = useMemo(() => savedData?.followingPlaces ?? [], [savedData?.followingPlaces])
+  const postPlaces = useMemo(
+    () => posts.map((p: { places?: unknown }) => p?.places).filter(Boolean),
+    [posts]
+  )
   const [showFilters, setShowFilters] = useState(false)
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showPlaceAdd, setShowPlaceAdd] = useState(false)
 
   // ?꾩떆/?숇꽕 怨듯넻 ?꾪꽣 (?ㅻ뜑)
-  const [selectedCity, setSelectedCity] = useState<City | null>(null)
+  const [selectedCity, setSelectedCity] = useState<string | null>(null)
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
-  const allDistricts = selectedCity ? [...getMainDistricts(selectedCity), ...getExtraDistricts(selectedCity)] : []
+  const cityOptions = useMemo(() => {
+    const preset = CITIES.map(c => ({ value: c.value, label: tCities(c.value), isPreset: true as const }))
+    const seen = new Set(preset.map(c => c.value.toLowerCase()))
+    const dynamic: Array<{ value: string; label: string; isPreset: false }> = []
+    const allPlaces = [...savedPlaces, ...followingPlaces, ...postPlaces]
+    for (const place of allPlaces) {
+      const token = getPlaceCityFilterToken(place)
+      const rawLabel = (place?.city_global || place?.city || '').toString().trim()
+      if (!token || !rawLabel || seen.has(token)) continue
+      seen.add(token)
+      dynamic.push({ value: rawLabel, label: rawLabel, isPreset: false })
+    }
+    return [...preset, ...dynamic]
+  }, [tCities, savedPlaces, followingPlaces, postPlaces])
 
-  function selectCity(c: City | null) { setSelectedCity(c); setSelectedDistrict(null) }
+  const allDistricts = useMemo(() => {
+    if (!selectedCity) return []
+    const isPreset = CITIES.some(c => c.value === selectedCity)
+    if (isPreset) {
+      const cityCode = selectedCity as City
+      return [...getMainDistricts(cityCode), ...getExtraDistricts(cityCode)].map(d => ({
+        value: d.value,
+        label: tDistricts(`${cityCode}.${d.value}`),
+      }))
+    }
+
+    const seen = new Set<string>()
+    const dynamic: Array<{ value: string; label: string }> = []
+    const allPlaces = [...savedPlaces, ...followingPlaces, ...postPlaces]
+    for (const place of allPlaces) {
+      if (getPlaceCityFilterToken(place) !== selectedCity.trim().toLowerCase()) continue
+      const neighborhoodToken = getPlaceNeighborhoodFilterToken(place)
+      const neighborhoodLabel = (place?.neighborhood_global || place?.district || '').toString().trim()
+      if (!neighborhoodToken || !neighborhoodLabel || seen.has(neighborhoodToken)) continue
+      seen.add(neighborhoodToken)
+      dynamic.push({ value: neighborhoodLabel, label: neighborhoodLabel })
+    }
+    return dynamic
+  }, [selectedCity, savedPlaces, followingPlaces, postPlaces, tDistricts])
+
+  function selectCity(c: string | null) { setSelectedCity(c); setSelectedDistrict(null) }
 
   // 移댄뀒怨좊━/湲고? ?꾪꽣 (紐⑤떖)
   const [placeCategory, setPlaceCategory] = useState<string | null>(null)
@@ -110,9 +152,27 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   // ?꾪꽣 ?곸슜 (?꾩떆/?숇꽕??怨듯넻?쇰줈 紐⑤뱺 ??뿉 ?곸슜)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function matchesCityDistrict(place: any) {
-    if (selectedCity && place.city !== selectedCity) return false
-    if (selectedDistrict && place.district !== selectedDistrict) return false
+    if (selectedCity && getPlaceCityFilterToken(place) !== selectedCity.trim().toLowerCase()) return false
+    if (selectedDistrict) {
+      if (getPlaceNeighborhoodFilterToken(place) !== selectedDistrict.trim().toLowerCase()) return false
+    }
     return true
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getCityLabel(place: any): string {
+    if (place?.city_global) return place.city_global
+    if (place?.city && CITIES.some(c => c.value === place.city)) return tCities(place.city)
+    return place?.city || ''
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getNeighborhoodLabel(place: any): string {
+    if (place?.neighborhood_global) return place.neighborhood_global
+    if (place?.district && place?.district !== 'other' && place?.city && CITIES.some(c => c.value === place.city)) {
+      return tDistricts(`${place.city}.${place.district}`)
+    }
+    return place?.district || ''
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,7 +285,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
             >
               {tFeed('all')}
             </button>
-            {CITIES.map(c => (
+            {cityOptions.map(c => (
               <button
                 key={c.value}
                 onClick={() => selectCity(c.value)}
@@ -233,7 +293,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                   selectedCity === c.value ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
                 }`}
               >
-                {tCities(c.value)}
+                {c.label}
               </button>
             ))}
           </div>
@@ -257,7 +317,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                     selectedDistrict === d.value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {tDistricts(`${selectedCity}.${d.value}`)}
+                  {d.label}
                 </button>
               ))}
             </div>
@@ -389,7 +449,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {tCities(place.city)}{place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {getCityLabel(place)}{getNeighborhoodLabel(place) ? ` · ${getNeighborhoodLabel(place)}` : ''}
                       {place.place_type === 'hidden_spot' && ` · ${tPost('hiddenSpot')}`}
                     </p>
                   </div>
@@ -437,7 +497,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{place.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {tCities(place.city)}{place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                      {getCityLabel(place)}{getNeighborhoodLabel(place) ? ` · ${getNeighborhoodLabel(place)}` : ''}
                     </p>
                     {place.savedBy && (
                       <p className="text-[10px] text-gray-300 mt-0.5">{place.savedBy.nickname}</p>
@@ -504,4 +564,3 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
     </div>
   )
 }
-

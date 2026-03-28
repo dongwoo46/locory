@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { City } from '@/types/database'
+import type { NeighborhoodBounds } from '@/lib/utils/districts'
+
+export type NeighborhoodFilter = NeighborhoodBounds & { id: string; label: string }
 
 export const FEED_FILTER_DEFAULT = {
-  city: null as City | null,
+  city: null as string | null,
   district: null as string | null,
+  neighborhood: null as NeighborhoodFilter | null,
   feedTab: 'all' as 'all' | 'following',
   postType: 'all' as 'all' | 'visited' | 'want',
   sortBy: 'latest' as 'latest' | 'likes' | 'saves',

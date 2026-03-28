@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import type { SelectedPlace } from './types'
 import type { Category, City } from '@/types/database'
-import { getDistricts, inferCityFromAddress, inferDistrictFromAddress } from '@/lib/utils/districts'
 
 const CATEGORY_VALUES: Category[] = ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping']
 
@@ -14,7 +13,6 @@ const UploadMapSection = dynamic(() => import('./UploadMapSection'), {
   loading: () => <div className="rounded-xl overflow-hidden h-52 bg-gray-200 animate-pulse" />,
 })
 
-// 좌표로 도시 자동 감지
 function detectCity(lat: number, lng: number): City {
   if (lat >= 33.0 && lat <= 34.0) return 'jeju'
   if (lat >= 34.8 && lat <= 35.4 && lng >= 128.8) return 'busan'
@@ -32,6 +30,7 @@ interface LocationInfo {
   lat: number
   lng: number
   address: string
+  countryCode?: string | null
   existingId?: string
 }
 
@@ -44,17 +43,20 @@ export default function StepPlace({ onSelect }: Props) {
   const tPost = useTranslations('post')
   const [mode, setMode] = useState<'search' | 'map' | 'gps'>('search')
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<{ name: string; address: string; lat: number; lng: number }[]>([])
+  const [searchResults, setSearchResults] = useState<Array<{
+    name: string
+    address: string
+    lat: number
+    lng: number
+    countryCode?: string | null
+  }>>([])
   const [location, setLocation] = useState<LocationInfo | null>(null)
   const [category, setCategory] = useState<Category | null>(null)
-  const [district, setDistrict] = useState<string | null>(null)
-  const [customDistrict, setCustomDistrict] = useState('')
-  const [showCustomInput, setShowCustomInput] = useState(false)
   const [gpsLoading, setGpsLoading] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
   const [placeName, setPlaceName] = useState('')
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 })
-  const searchCache = useRef<Record<string, { name: string; address: string; lat: number; lng: number }[]>>({})
+  const searchCache = useRef<Record<string, Array<{ name: string; address: string; lat: number; lng: number; countryCode?: string | null }>>>({})
   const isSearching = useRef(false)
 
   const executeSearch = useCallback(async (query: string) => {
@@ -88,25 +90,20 @@ export default function StepPlace({ onSelect }: Props) {
     setSearchResults([])
   }
 
-  function handleSearchSubmit() {
-    executeSearch(searchQuery)
-  }
-
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter') executeSearch(searchQuery)
   }
 
-  function handlePickSearchResult(result: { name: string; address: string; lat: number; lng: number }) {
-    setLocation({ name: result.name, lat: result.lat, lng: result.lng, address: result.address })
+  function handlePickSearchResult(result: { name: string; address: string; lat: number; lng: number; countryCode?: string | null }) {
+    setLocation({
+      name: result.name,
+      lat: result.lat,
+      lng: result.lng,
+      address: result.address,
+      countryCode: result.countryCode,
+    })
     setSearchResults([])
     setSearchQuery(result.name)
-    const city = inferCityFromAddress(result.address) || detectCity(result.lat, result.lng)
-    autoSetDistrict(result.address, city)
-  }
-
-  function autoSetDistrict(address: string, city: City) {
-    const detected = inferDistrictFromAddress(address, city)
-    setDistrict(detected ?? 'other') // 매핑 안되면 기타로 자동 분류
   }
 
   async function handleGPS() {
@@ -120,10 +117,13 @@ export default function StepPlace({ onSelect }: Props) {
         try {
           const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          const address = data.address || ''
-          const city = inferCityFromAddress(address) || detectCity(lat, lng)
-          setLocation({ name: placeName || t('place.currentLocation'), lat, lng, address })
-          autoSetDistrict(address, city)
+          setLocation({
+            name: placeName || t('place.currentLocation'),
+            lat,
+            lng,
+            address: data.address || '',
+            countryCode: data.countryCode ?? null,
+          })
         } catch {
           setLocation({ name: t('place.currentLocation'), lat, lng, address: '' })
         }
@@ -134,34 +134,30 @@ export default function StepPlace({ onSelect }: Props) {
   }
 
   async function handleMapPick({ lat, lng, name: poiName, address: poiAddress }: { lat: number; lng: number; name?: string; address?: string }) {
-    // POI 클릭 시 이름/주소 바로 사용
     if (poiName) {
       setPlaceName(poiName)
-      const address = poiAddress || ''
-      const city = inferCityFromAddress(address) || detectCity(lat, lng)
-      setLocation({ name: poiName, lat, lng, address })
-      autoSetDistrict(address, city)
+      setLocation({ name: poiName, lat, lng, address: poiAddress || '', countryCode: null })
       return
     }
-    // 빈 공간 클릭 시 역지오코딩
     setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address: '' })
     try {
       const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
       const data = await res.json()
-      const address = data.address || ''
-      const city = inferCityFromAddress(address) || detectCity(lat, lng)
-      setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address })
-      autoSetDistrict(address, city)
+      setLocation({
+        name: placeName || t('place.selectedLocation'),
+        lat,
+        lng,
+        address: data.address || '',
+        countryCode: data.countryCode ?? null,
+      })
     } catch {
-      const city = detectCity(lat, lng)
-      autoSetDistrict('', city)
+      // keep existing location
     }
   }
 
   function handleConfirm() {
-    const effectiveDistrict = district || (customDistrict.trim() || null)
-    if (!location || !category || !effectiveDistrict) return
-    const city = inferCityFromAddress(location.address) || detectCity(location.lat, location.lng)
+    if (!location || !category) return
+    const city = detectCity(location.lat, location.lng)
     onSelect({
       id: location.existingId,
       name: location.name,
@@ -169,7 +165,7 @@ export default function StepPlace({ onSelect }: Props) {
       lng: location.lng,
       address: location.address,
       city,
-      district: effectiveDistrict,
+      countryCode: location.countryCode || null,
       category,
       place_type: 'normal',
     })
@@ -182,7 +178,7 @@ export default function StepPlace({ onSelect }: Props) {
         <p className="text-sm text-gray-500 mt-0.5">{t('place.subtitle')}</p>
       </div>
 
-      {/* 모드 탭 */}
+      {/* 탭 */}
       <div className="flex gap-2">
         {([
           { key: 'search', label: t('place.tabSearch') },
@@ -214,7 +210,7 @@ export default function StepPlace({ onSelect }: Props) {
               className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
             />
             <button
-              onClick={handleSearchSubmit}
+              onClick={() => executeSearch(searchQuery)}
               disabled={searchLoading || searchQuery.length < 2}
               className="px-4 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40 shrink-0"
             >
@@ -235,7 +231,6 @@ export default function StepPlace({ onSelect }: Props) {
               ))}
             </div>
           )}
-          {/* 선택된 장소 표시 */}
           {location && (
             <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl">
               <svg width="14" height="14" fill="none" stroke="#6B7280" strokeWidth={2} viewBox="0 0 24 24">
@@ -247,7 +242,7 @@ export default function StepPlace({ onSelect }: Props) {
         </div>
       )}
 
-      {/* 지도 핀 */}
+      {/* 지도 */}
       {(mode === 'map' || mode === 'gps') && (
         <div className="flex flex-col gap-3">
           <UploadMapSection center={mapCenter} onPick={handleMapPick} />
@@ -265,8 +260,8 @@ export default function StepPlace({ onSelect }: Props) {
         </div>
       )}
 
-      {/* 카테고리 + 히든스팟 - 장소 선택 후 표시 */}
-      {(location || (mode !== 'search')) && (
+      {/* 카테고리 - 장소 선택 후 표시 */}
+      {(location || mode !== 'search') && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-700">{t('place.categoryLabel')}</label>
@@ -285,46 +280,9 @@ export default function StepPlace({ onSelect }: Props) {
             </div>
           </div>
 
-          {/* 동네 — 자동 감지 실패 시만 선택 UI 표시 */}
-          {location && district === null && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-700">{t('place.neighborhoodLabel')}</label>
-              {showCustomInput ? (
-                <input
-                  type="text"
-                  value={customDistrict}
-                  onChange={e => setCustomDistrict(e.target.value)}
-                  onBlur={() => { if (customDistrict.trim()) setDistrict(customDistrict.trim()) }}
-                  placeholder={t('place.neighborhoodPlaceholder')}
-                  className="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-gray-400"
-                  autoFocus
-                />
-              ) : (
-                <div className="flex gap-2 flex-wrap">
-                  {getDistricts(detectCity(location.lat, location.lng)).map(d => (
-                    <button
-                      key={d.value}
-                      onClick={() => setDistrict(d.value)}
-                      className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600"
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setShowCustomInput(true)}
-                    className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-600"
-                  >
-                    {t('place.neighborhoodOther')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-
           <button
             onClick={handleConfirm}
-            disabled={!location || !category || !district}
+            disabled={!location || !category}
             className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-medium disabled:opacity-40"
           >
             {t('place.next')}

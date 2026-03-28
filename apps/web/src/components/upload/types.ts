@@ -1,13 +1,13 @@
 import type { Category, City, PlaceType, PostType, Rating } from '@/types/database'
 
 export interface SelectedPlace {
-  id?: string          // 기존 places 테이블에 있는 경우
+  id?: string // existing place id when already in places table
   name: string
   lat: number
   lng: number
   address: string
   city: City
-  district: string
+  countryCode?: string | null
   category: Category
   place_type: PlaceType
 }

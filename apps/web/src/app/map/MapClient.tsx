@@ -9,7 +9,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import { useTranslations, useLocale } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
-import { CITIES, getMainDistricts } from '@/lib/utils/districts';
+import { CITIES, getMainDistricts, normalizeDistrictForCity } from '@/lib/utils/districts';
 import type { City } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
 import { useDragScroll } from '@/hooks/useDragScroll';
@@ -430,7 +430,7 @@ export default function MapClient({ userId }: Props) {
         if (!p.genders || p.genders.length === 0) return false;
         return p.genders.includes(genderFilter);
       })
-      .filter((p) => !district || p.district === district)
+      .filter((p) => !district || normalizeDistrictForCity(p.city, p.district) === district)
       .sort((a, b) => (sortBy === 'popular' ? b.postCount - a.postCount : 0));
   }, [
     allPlaces,

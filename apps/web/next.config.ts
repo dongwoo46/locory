@@ -5,6 +5,7 @@ import { withSentryConfig } from '@sentry/nextjs'
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   experimental: {
     optimizeCss: true,
   },

@@ -61,9 +61,10 @@ export default function UploadFlow() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error(t('loginRequired'))
 
-      // 1. 장소 upsert (기존 장소도 district/category 업데이트)
+      // 1. 장소 upsert
       let placeId = state.place.id
       if (!placeId) {
+        const countryCode = (state.place.countryCode || 'KR').toUpperCase()
         const { data: place, error: placeError } = await supabase
           .from('places')
           .upsert({
@@ -72,7 +73,7 @@ export default function UploadFlow() {
             lng: state.place.lng,
             address: state.place.address,
             city: state.place.city,
-            district: state.place.district,
+            country_code: countryCode,
             category: state.place.category,
             place_type: state.place.place_type,
             created_by: user.id,

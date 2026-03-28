@@ -1,5 +1,54 @@
 import { NextResponse } from 'next/server'
 
+type AddressComponent = {
+  longText?: string
+  shortText?: string
+  long_name?: string
+  short_name?: string
+  types?: string[]
+}
+
+type PlaceApiResult = {
+  displayName?: { text?: string }
+  formattedAddress?: string
+  location?: { latitude?: number; longitude?: number }
+  addressComponents?: AddressComponent[]
+}
+
+function getAddressPart(components: AddressComponent[] | undefined, type: string, mode: 'long' | 'short' = 'long'): string | null {
+  if (!components) return null
+  const component = components.find(c => c.types?.includes(type))
+  if (!component) return null
+  if (mode === 'short') return component.shortText || component.short_name || null
+  return component.longText || component.long_name || null
+}
+
+function mapPlacePayload(p: PlaceApiResult) {
+  const components = (p.addressComponents || []) as AddressComponent[]
+  const locality =
+    getAddressPart(components, 'locality') ||
+    getAddressPart(components, 'postal_town') ||
+    getAddressPart(components, 'administrative_area_level_2')
+  const sublocality =
+    getAddressPart(components, 'sublocality_level_1') ||
+    getAddressPart(components, 'sublocality') ||
+    getAddressPart(components, 'neighborhood') ||
+    getAddressPart(components, 'administrative_area_level_3')
+
+  return {
+    name: p.displayName?.text || '',
+    address: p.formattedAddress || '',
+    lat: p.location?.latitude,
+    lng: p.location?.longitude,
+    countryCode: getAddressPart(components, 'country', 'short'),
+    adminAreaLevel1: getAddressPart(components, 'administrative_area_level_1'),
+    adminAreaLevel2: getAddressPart(components, 'administrative_area_level_2'),
+    locality,
+    sublocality,
+    postalCode: getAddressPart(components, 'postal_code'),
+  }
+}
+
 // Google Maps URL에서 장소 정보 추출
 async function resolveUrl(url: string): Promise<string> {
   try {
@@ -77,19 +126,14 @@ export async function POST(request: Request) {
       const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
         headers: {
           'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'displayName,formattedAddress,location',
+          'X-Goog-FieldMask': 'displayName,formattedAddress,location,addressComponents',
           'Accept-Language': 'ko',
         },
         next: { revalidate: 86400 },
       })
       const data = await res.json()
       if (data.displayName) {
-        return NextResponse.json({
-          name: data.displayName.text,
-          address: data.formattedAddress || '',
-          lat: data.location?.latitude,
-          lng: data.location?.longitude,
-        })
+        return NextResponse.json(mapPlacePayload(data))
       }
     }
 
@@ -101,19 +145,14 @@ export async function POST(request: Request) {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.addressComponents',
         },
         body: JSON.stringify({ textQuery: query, maxResultCount: 1, languageCode: 'ko' }),
       })
       const data = await res.json()
       const p = data.places?.[0]
       if (p) {
-        return NextResponse.json({
-          name: p.displayName?.text,
-          address: p.formattedAddress || '',
-          lat: p.location?.latitude,
-          lng: p.location?.longitude,
-        })
+        return NextResponse.json(mapPlacePayload(p))
       }
     }
   }
@@ -149,19 +188,14 @@ export async function POST(request: Request) {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location',
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.addressComponents',
         },
         body: JSON.stringify(body),
       })
       const data = await res.json()
       const p = data.places?.[0]
       if (p) {
-        return NextResponse.json({
-          name: p.displayName?.text,
-          address: p.formattedAddress || '',
-          lat: p.location?.latitude,
-          lng: p.location?.longitude,
-        })
+        return NextResponse.json(mapPlacePayload(p))
       }
     }
   }

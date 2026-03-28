@@ -123,49 +123,6 @@ export default function PostGrid({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localPosts])
 
-  // Sync current user's post like/save state for visible posts
-  useEffect(() => {
-    if (!userId || localPosts.length === 0) return
-    const postIds = localPosts.map(p => p.id).filter(Boolean)
-    if (postIds.length === 0) return
-
-    let cancelled = false
-    ;(async () => {
-      const [likesRes, savesRes] = await Promise.all([
-        supabase
-          .from('post_likes')
-          .select('post_id')
-          .eq('user_id', userId)
-          .in('post_id', postIds),
-        supabase
-          .from('post_saves')
-          .select('post_id')
-          .eq('user_id', userId)
-          .in('post_id', postIds),
-      ])
-
-      if (cancelled) return
-
-      const likedIds = new Set((likesRes.data ?? []).map((row: { post_id: string }) => row.post_id))
-      const savedIds = new Set((savesRes.data ?? []).map((row: { post_id: string }) => row.post_id))
-
-      useLikeStore.setState((state) => {
-        const nextLiked = new Set(state.likedPostIds)
-        const nextSaved = new Set(state.savedPostIds)
-        for (const id of postIds) {
-          nextLiked.delete(id)
-          nextSaved.delete(id)
-        }
-        for (const id of likedIds) nextLiked.add(id)
-        for (const id of savedIds) nextSaved.add(id)
-        return { likedPostIds: nextLiked, savedPostIds: nextSaved }
-      })
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [localPosts, userId, supabase])
 
   async function translateText(text: string): Promise<{ translated: string; remaining: number } | null> {
     const res = await fetch('/api/translate', {

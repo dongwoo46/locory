@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
-import { inferCityFromAddress, inferDistrictFromAddress } from '@/lib/utils/districts'
+import { extractAdministrativeAddressParts, inferCityFromAddress, inferDistrictFromAddress, normalizeDistrictForCity } from '@/lib/utils/districts'
 import type { Category, City } from '@/types/database'
 
 const CATEGORY_EMOJIS: Record<Category, string> = {
@@ -29,9 +29,21 @@ interface FoundPlace {
   address: string
   lat: number
   lng: number
+  countryCode?: string | null
+  adminAreaLevel1?: string | null
+  adminAreaLevel2?: string | null
+  locality?: string | null
+  sublocality?: string | null
+  postalCode?: string | null
   googlePlaceId?: string | null
   googleRating?: number | null
   googleReviewCount?: number | null
+}
+
+interface ResolvedNeighborhoodRow {
+  city_global?: string | null
+  neighborhood_global?: string | null
+  neighborhood_code?: string | null
 }
 
 interface Props {
@@ -69,7 +81,18 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
         try {
           const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
           const data = await res.json()
-          selectPlace({ name: data.placeName || t('currentLocation'), address: data.address || '', lat, lng })
+          selectPlace({
+            name: data.placeName || t('currentLocation'),
+            address: data.address || '',
+            lat,
+            lng,
+            countryCode: data.countryCode ?? null,
+            adminAreaLevel1: data.adminAreaLevel1 ?? null,
+            adminAreaLevel2: data.adminAreaLevel2 ?? null,
+            locality: data.locality ?? null,
+            sublocality: data.sublocality ?? null,
+            postalCode: data.postalCode ?? null,
+          })
         } catch {
           selectPlace({ name: t('currentLocation'), address: '', lat, lng })
         } finally {
@@ -119,15 +142,44 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
     setFound(r)
     const detectedCity = inferCityFromAddress(r.address || '') || detectCity(r.lat, r.lng)
     const detectedDistrict = r.address ? inferDistrictFromAddress(r.address, detectedCity) : null
-    setDistrict(detectedDistrict ?? 'other') // 매핑 안되면 기타로 자동 분류
+    const isKorea = (r.countryCode || 'KR').toUpperCase() === 'KR'
+    setDistrict(isKorea ? (detectedDistrict ?? 'other') : null)
   }
 
   async function handleSave() {
     if (!found || !category) return
-    const effectiveDistrict = district || null
     setSaving(true)
     try {
-      const city = detectCity(found.lat, found.lng)
+      const city = inferCityFromAddress(found.address || '') || detectCity(found.lat, found.lng)
+      let effectiveDistrict = normalizeDistrictForCity(city, district || null)
+      const adminParts = extractAdministrativeAddressParts(found.address || '')
+      const cityGlobalFallback = found.locality || found.adminAreaLevel2 || adminParts.cityRaw || city
+      const neighborhoodGlobalFallback = found.sublocality || adminParts.dongRaw || adminParts.guRaw || effectiveDistrict
+      let cityGlobal = cityGlobalFallback
+      let neighborhoodGlobal = neighborhoodGlobalFallback
+      const countryCode = (found.countryCode || 'KR').toUpperCase()
+
+      const { data: resolvedLocationData } = await supabase
+        .rpc('resolve_place_neighborhood', {
+          p_country_code: countryCode,
+          p_city_key: city,
+          p_city_fallback: cityGlobalFallback,
+          p_admin_area_level_2: found.adminAreaLevel2 || null,
+          p_locality: found.locality || null,
+          p_sublocality: found.sublocality || null,
+          p_postal_code: found.postalCode || null,
+          p_neighborhood_fallback: neighborhoodGlobalFallback || null,
+        })
+        .maybeSingle()
+      const resolvedLocation = resolvedLocationData as ResolvedNeighborhoodRow | null
+
+      if (resolvedLocation) {
+        cityGlobal = resolvedLocation.city_global || cityGlobalFallback
+        neighborhoodGlobal = resolvedLocation.neighborhood_global || neighborhoodGlobalFallback
+        if (countryCode === 'KR' && resolvedLocation.neighborhood_code) {
+          effectiveDistrict = resolvedLocation.neighborhood_code
+        }
+      }
 
       // places 테이블에 저장 (기존 장소 있으면 재사용)
       let placeId = ''
@@ -162,6 +214,13 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
             address: found.address,
             city,
             district: effectiveDistrict,
+            city_raw: adminParts.cityRaw,
+            gu_raw: adminParts.guRaw,
+            dong_raw: adminParts.dongRaw,
+            country_code: countryCode || null,
+            city_global: cityGlobal || null,
+            neighborhood_global: neighborhoodGlobal || null,
+            postal_code_raw: found.postalCode || null,
             category,
             place_type: saveType === 'hidden_spot' ? 'hidden_spot' : 'normal',
             created_by: userId,
@@ -183,7 +242,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
 
       onSaved({ id: place.id, name: found.name, category, city, district: effectiveDistrict })
       onClose()
-    } catch (e) {
+    } catch {
       setError(t('saveError'))
     } finally {
       setSaving(false)

@@ -81,7 +81,6 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
   const tPost = useTranslations('post')
   const tPlace = useTranslations('place')
   const tCities = useTranslations('cities')
-  const tDistricts = useTranslations('districts')
   const [isPlaceSaved, setIsPlaceSaved] = useState(initialSaved)
   const [isPlaceLiked, setIsPlaceLiked] = useState(initialLiked)
   const [placeLikeCount, setPlaceLikeCount] = useState(initialLikeCount)
@@ -224,7 +223,7 @@ export default function PlaceClient({ place, posts, userId, savedPostIds, likedP
               <h2 className="text-lg font-bold text-gray-900 mt-1">{place.name}</h2>
               <p className="text-sm text-gray-400">
                 {tCities(place.city)}
-                {place.district && place.district !== 'other' ? ` · ${tDistricts(`${place.city}.${place.district}`)}` : ''}
+                {place.district && place.district !== 'other' ? ` · ${place.district}` : ''}
               </p>
               {place.address && (
                 <p className="text-xs text-gray-400 mt-0.5">{place.address}</p>
