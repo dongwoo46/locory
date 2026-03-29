@@ -24,7 +24,7 @@ interface Notification {
   type: NotifType
   title: string
   body: string
-  data: { meetup_id?: string; join_id?: string; message_id?: string; place_id?: string; post_id?: string; actor_id?: string } | null
+  data: { meetup_id?: string; join_id?: string; message_id?: string; place_id?: string; place_name?: string; post_id?: string; actor_id?: string } | null
   read_at: string | null
   created_at: string
 }

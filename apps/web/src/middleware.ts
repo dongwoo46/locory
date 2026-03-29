@@ -1,94 +1,48 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+const PROTECTED_PATHS = ['/settings', '/upload', '/saved', '/admin', '/map']
+
+function matchesPrefix(pathname: string, prefixes: string[]) {
+  return prefixes.some((prefix) => pathname.startsWith(prefix))
+}
+
+function hasSupabaseAuthCookie(request: NextRequest) {
+  const cookies = request.cookies.getAll()
+  return cookies.some(({ name, value }) => {
+    if (!name.startsWith('sb-') || !name.includes('-auth-token')) return false
+    return Boolean(value && value !== '[]')
   })
+}
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+function withServerTiming(response: NextResponse, startTime: number) {
+  const durationMs = performance.now() - startTime
+  response.headers.set('Server-Timing', `mw_total;dur=${durationMs.toFixed(1)}`)
+  return response
+}
 
-  // getUser()로 Auth 서버에서 검증 (미들웨어에서 1회만 호출)
-  const { data: { user } } = await supabase.auth.getUser()
-
+export function middleware(request: NextRequest) {
+  const startedAt = performance.now()
   const { pathname } = request.nextUrl
 
-  const authRequiredPaths = ['/feed', '/map', '/upload', '/profile', '/place', '/post', '/settings', '/saved']
-  const onboardingCheckPaths = [...authRequiredPaths]
-  const isAuthRequiredPath = authRequiredPaths.some(path => pathname.startsWith(path))
-  const shouldCheckOnboarding = onboardingCheckPaths.some(path => pathname.startsWith(path))
+  if (!matchesPrefix(pathname, PROTECTED_PATHS)) {
+    return withServerTiming(NextResponse.next({ request }), startedAt)
+  }
 
-  if (!user && isAuthRequiredPath) {
+  if (!hasSupabaseAuthCookie(request)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return withServerTiming(NextResponse.redirect(url), startedAt)
   }
 
-  // 로그인됐지만 온보딩 안 됐으면 온보딩으로 (쿠키 캐싱, 익명 사용자는 제외)
-  if (user && !user.is_anonymous && shouldCheckOnboarding) {
-    const onboardedCookie = request.cookies.get('onboarded')?.value
-    if (onboardedCookie !== '1') {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarded')
-        .eq('id', user.id)
-        .single()
-
-      if (!profile?.onboarded) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/onboarding'
-        return NextResponse.redirect(url)
-      }
-      supabaseResponse.cookies.set('onboarded', '1', { path: '/', maxAge: 60 * 60 * 24 * 365 })
-    }
-  }
-
-  // 로그인된 유저가 로그인 페이지 접근 시 피드로
-  if (user && pathname === '/login') {
-    const url = request.nextUrl.clone()
-    url.pathname = '/feed'
-    return NextResponse.redirect(url)
-  }
-
-  // 인증된 유저의 현재 경로를 쿠키에 저장 (루트 복원용)
-  if (user && !user.is_anonymous && shouldCheckOnboarding) {
-    supabaseResponse.cookies.set('last-route', pathname, { path: '/', maxAge: 60 * 60 * 24 * 7 })
-  }
-
-  return supabaseResponse
+  return withServerTiming(NextResponse.next({ request }), startedAt)
 }
 
 export const config = {
   matcher: [
-    '/',
-    '/feed/:path*',
     '/map/:path*',
     '/upload/:path*',
-    '/profile/:path*',
-    '/place/:path*',
-    '/post/:path*',
     '/settings/:path*',
     '/saved/:path*',
-    '/login',
-    '/onboarding',
+    '/admin/:path*',
   ],
 }

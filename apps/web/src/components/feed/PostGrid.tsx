@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -42,6 +42,7 @@ interface Props {
   variant?: 'default' | 'feed_discover'
   discoverCountMode?: 'threshold' | 'always'
   discoverNarrow?: boolean
+  enableCommentCounts?: boolean
 }
 
 export default function PostGrid({
@@ -51,6 +52,7 @@ export default function PostGrid({
   variant = 'default',
   discoverCountMode = 'threshold',
   discoverNarrow = false,
+  enableCommentCounts = true,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -90,6 +92,7 @@ export default function PostGrid({
   const [memoTranslating, setMemoTranslating] = useState(false)
   const [translateRemaining, setTranslateRemaining] = useState<number | null>(null)
   const [commentTranslations, setCommentTranslations] = useState<Record<string, string>>({})
+  const prefetchedPostIds = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     setLocalPosts(posts)
@@ -105,6 +108,7 @@ export default function PostGrid({
 
   // Batch fetch comment counts for visible posts
   useEffect(() => {
+    if (!enableCommentCounts) return
     if (localPosts.length === 0) return
     const ids = localPosts.map(p => p.id)
     supabase
@@ -121,7 +125,7 @@ export default function PostGrid({
         setCommentCountMap(prev => ({ ...prev, ...counts }))
       })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localPosts])
+  }, [localPosts, enableCommentCounts])
 
 
   async function translateText(text: string): Promise<{ translated: string; remaining: number } | null> {
@@ -175,16 +179,6 @@ export default function PostGrid({
     }
   }
 
-  async function loadComments(postId: string) {
-    const { data } = await supabase
-      .from('post_comments')
-      .select('id, body, created_at, user_id, profiles(nickname, avatar_url)')
-      .eq('post_id', postId)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: true })
-    setComments(data ?? [])
-  }
-
   async function submitComment() {
     if (!selected || !commentText.trim()) return
     setCommentLoading(true)
@@ -217,6 +211,12 @@ export default function PostGrid({
     setSelected(null)
     setLocalPosts(prev => prev.filter(p => p.id !== postId))
     onDelete?.(postId)
+  }
+
+  function prefetchPostDetail(postId: string) {
+    if (prefetchedPostIds.current.has(postId)) return
+    prefetchedPostIds.current.add(postId)
+    void router.prefetch(`/post/${postId}`)
   }
 
   function openEdit(p: any) {
@@ -283,6 +283,8 @@ export default function PostGrid({
           return (
             <div
               key={p.id}
+              onMouseEnter={() => prefetchPostDetail(p.id)}
+              onTouchStart={() => prefetchPostDetail(p.id)}
               onClick={() => router.push(`/post/${p.id}`)}
               className="bg-white overflow-hidden text-left cursor-pointer"
             >
@@ -408,7 +410,7 @@ export default function PostGrid({
                       </svg>
                       <span className="text-[9px] text-gray-400">{saveCount}</span>
                     </div>
-                    {(commentCountMap[p.id] ?? 0) > 0 && (
+                    {enableCommentCounts && (commentCountMap[p.id] ?? 0) > 0 && (
                       <div className="flex items-center gap-0.5">
                         <svg width="8" height="8" viewBox="0 0 24 24" fill="#9CA3AF" stroke="none">
                           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

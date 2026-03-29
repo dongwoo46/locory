@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { getPostImageUrl } from '@/lib/utils/postImage'
+import { createClient } from '@/lib/supabase/client'
 
 type GuestPost = {
   id: string
@@ -18,7 +19,7 @@ type GuestPost = {
 }
 
 const FEED_FRAME_CLASS = 'mx-auto w-full max-w-lg'
-const GUEST_PREVIEW_LIMIT = 30
+const GUEST_PREVIEW_LIMIT = 8
 
 function loginHref(nextPath: string): string {
   return `/login?next=${encodeURIComponent(nextPath)}`
@@ -39,16 +40,45 @@ function toCount(value: number | string | undefined): number {
 }
 
 export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
+  const supabase = useMemo(() => createClient(), [])
   const tFeed = useTranslations('feed')
   const tPost = useTranslations('post')
   const tUpload = useTranslations('upload')
+  const [guestPosts, setGuestPosts] = useState<GuestPost[]>(posts)
+  const [loadingPosts, setLoadingPosts] = useState(posts.length === 0)
   const [showLoadMoreSpinner, setShowLoadMoreSpinner] = useState(false)
   const [showLoginGateModal, setShowLoginGateModal] = useState(false)
   const gateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const gateActiveRef = useRef(false)
 
   useEffect(() => {
-    if (posts.length < GUEST_PREVIEW_LIMIT) return
+    if (posts.length > 0) return
+
+    let active = true
+    const loadGuestPosts = async () => {
+      setLoadingPosts(true)
+      const { data } = await supabase
+        .from('posts')
+        .select('id, type, rating, created_at, photos, photo_variants, places(name, category), post_likes(count), post_saves(count)')
+        .eq('is_public', true)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(GUEST_PREVIEW_LIMIT)
+
+      if (active) {
+        setGuestPosts((data as GuestPost[]) ?? [])
+        setLoadingPosts(false)
+      }
+    }
+
+    void loadGuestPosts()
+    return () => {
+      active = false
+    }
+  }, [posts.length, supabase])
+
+  useEffect(() => {
+    if (guestPosts.length < GUEST_PREVIEW_LIMIT) return
 
     const onScroll = () => {
       if (gateActiveRef.current) return
@@ -76,7 +106,7 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
         clearTimeout(gateTimerRef.current)
       }
     }
-  }, [posts.length])
+  }, [guestPosts.length])
 
   return (
     <div className="min-h-screen bg-white">
@@ -94,14 +124,20 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
       </header>
 
       <main className={`${FEED_FRAME_CLASS} pb-28`}>
-        {posts.length === 0 ? (
+        {loadingPosts ? (
+          <div className="grid grid-cols-3 gap-[1px] bg-gray-100">
+            {Array.from({ length: 9 }).map((_, idx) => (
+              <div key={idx} className="aspect-[3/4] animate-pulse bg-gray-200" />
+            ))}
+          </div>
+        ) : guestPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-2">
             <p className="text-gray-400 text-sm">{tFeed('noPostsTitle')}</p>
             <p className="text-gray-300 text-xs">{tFeed('noPostsSubtitle')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-[1px] bg-gray-100">
-            {posts.map((post, index) => {
+            {guestPosts.map((post, index) => {
               const place = resolvePlace(post.places)
               const likeCount = toCount(post.post_likes?.[0]?.count)
               const saveCount = toCount(post.post_saves?.[0]?.count)

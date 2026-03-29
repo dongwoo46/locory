@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -23,7 +23,7 @@ export default function PostDetailClient({
   initialComments,
 }: Props) {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const tPost = useTranslations('post')
   const tFeed = useTranslations('feed')
   const [photoIndex, setPhotoIndex] = useState(0)
@@ -32,8 +32,30 @@ export default function PostDetailClient({
   const [likeCount, setLikeCount] = useState(parseInt(post.post_likes?.[0]?.count) || 0)
   const [saveCount, setSaveCount] = useState(parseInt(post.post_saves?.[0]?.count) || 0)
   const [comments, setComments] = useState<any[]>(initialComments)
+  const [commentsLoading, setCommentsLoading] = useState(initialComments.length === 0)
   const [commentText, setCommentText] = useState('')
   const [commentLoading, setCommentLoading] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    const loadComments = async () => {
+      setCommentsLoading(true)
+      const { data } = await supabase
+        .from('post_comments')
+        .select('id, body, created_at, user_id, profiles(nickname, avatar_url)')
+        .eq('post_id', post.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true })
+      if (active) {
+        setComments(data ?? [])
+        setCommentsLoading(false)
+      }
+    }
+    void loadComments()
+    return () => {
+      active = false
+    }
+  }, [post.id, supabase])
 
   async function handleToggleLike() {
     const next = !liked
@@ -188,20 +210,24 @@ export default function PostDetailClient({
                 </svg>
                 <span className="text-xs text-gray-400">{likeCount}</span>
               </button>
-              <div className="flex items-center gap-1">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={2}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <span className="text-xs text-gray-400">{comments.length}</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={2}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span className="text-xs text-gray-400">{commentsLoading ? '…' : comments.length}</span>
             </div>
           </div>
+        </div>
 
           {post.memo && <p className="text-sm leading-relaxed text-gray-700">{post.memo}</p>}
         </div>
 
         <div className="border-t border-gray-100">
-          {comments.length > 0 && (
+          {commentsLoading ? (
+            <div className="px-4 py-3">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+            </div>
+          ) : comments.length > 0 && (
             <div className="flex max-h-64 flex-col gap-2 overflow-y-auto px-4 pb-1 pt-3">
               {comments.map((c) => {
                 const profile = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles

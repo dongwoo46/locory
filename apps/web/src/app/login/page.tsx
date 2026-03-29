@@ -19,6 +19,15 @@ function setLocaleCookie(locale: string) {
   document.cookie = `locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
+function getLocaleCookie(): string | null {
+  if (typeof document === 'undefined') return null;
+  const raw = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('locale='))
+    ?.split('=')[1];
+  return raw ? decodeURIComponent(raw) : null;
+}
+
 // 인트로 언어 → next-intl locale 매핑
 const LANG_TO_LOCALE: Record<Lang, string> = {
   ko: 'ko',
@@ -26,6 +35,20 @@ const LANG_TO_LOCALE: Record<Lang, string> = {
   ja: 'ja',
   ru: 'ru',
 };
+
+function localeToLang(locale: string): Lang {
+  const normalized = locale.toLowerCase();
+  if (normalized.startsWith('ko')) return 'ko';
+  if (normalized.startsWith('ja')) return 'ja';
+  if (normalized.startsWith('ru')) return 'ru';
+  return 'en';
+}
+
+function detectInitialLang(): Lang {
+  const localeCookie = getLocaleCookie();
+  if (localeCookie) return localeToLang(localeCookie);
+  return detectBrowserLang();
+}
 
 // ─── 인앱 브라우저 감지 ───────────────────────────────────────────────────────
 function detectInAppBrowser(): {
@@ -176,15 +199,19 @@ const LOGIN_TEXT: Record<
   },
 };
 
+const ANONYMOUS_WARNING: Record<Lang, string> = {
+  ko: '임시 계정은 기기 변경, 브라우저 데이터 삭제 시 복구가 어려울 수 있어요. 가능하면 계정을 연동해 주세요.',
+  en: 'Temporary accounts can be hard to recover after changing devices or clearing browser data. Link an account when possible.',
+  ja: '一時アカウントは、端末変更やブラウザデータ削除後の復旧が難しい場合があります。可能ならアカウント連携をおすすめします。',
+  ru: 'Временный аккаунт может быть трудно восстановить после смены устройства или очистки данных браузера. По возможности привяжите аккаунт.',
+};
+
 // ─── 컴포넌트 ──────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const supabase = createClient();
   const t = useTranslations('login.inAppBrowser');
 
-  const [lang, setLang] = useState<Lang>(() => {
-    if (typeof navigator === 'undefined') return 'en';
-    return detectBrowserLang();
-  });
+  const [lang, setLang] = useState<Lang>(() => detectInitialLang());
   const [slide, setSlide] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -193,6 +220,7 @@ export default function LoginPage() {
     typeof navigator !== 'undefined' ? detectInAppBrowser() : null;
   const slides = SLIDES[lang];
   const loginText = LOGIN_TEXT[lang];
+  const anonymousWarning = ANONYMOUS_WARNING[lang];
   const totalSlides = slides.length;
 
   const redirectTo = process.env.NEXT_PUBLIC_SITE_URL
@@ -228,6 +256,12 @@ export default function LoginPage() {
     setLang(l);
     setLocaleCookie(LANG_TO_LOCALE[l]);
   }
+
+  // First visit: if locale cookie does not exist, use browser language and persist it.
+  useEffect(() => {
+    if (getLocaleCookie()) return;
+    setLocaleCookie(LANG_TO_LOCALE[lang]);
+  }, [lang]);
 
   function goToSlide(idx: number) {
     if (idx === slide) return;
@@ -338,6 +372,10 @@ export default function LoginPage() {
           >
             {loginText.anonymousBtn}
           </button>
+
+          <p className="max-w-xs text-center text-[11px] leading-relaxed text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+            {anonymousWarning}
+          </p>
 
           <p className="text-xs text-gray-400 text-center leading-relaxed px-4">
             {loginText.terms}

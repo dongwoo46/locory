@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
@@ -60,7 +59,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
           .select('id, created_at, places!place_id(id, name, category, city, district, city_global, neighborhood_global, country_code, place_type, lat, lng)')
           .eq('user_id', userId).order('created_at', { ascending: false }),
         supabase.from('post_saves')
-          .select('id, created_at, posts!post_id(id, type, rating, memo, photos, created_at, profiles!user_id(id, nickname, nationality, avatar_url, trust_score), places!place_id(id, name, category, district, city, city_global, neighborhood_global, country_code, place_type), post_likes(count))')
+          .select('id, created_at, posts!post_id(id, type, rating, memo, photos, created_at, profiles!user_id(id, nickname, nationality, avatar_url, trust_score), places!place_id(id, name, category, district, city, city_global, neighborhood_global, country_code, place_type), post_likes(count), post_saves(count))')
           .eq('user_id', userId).order('created_at', { ascending: false }),
         followingQuery,
       ])
@@ -228,17 +227,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
               </svg>
             </button>
             {/* 以묒븰: 濡쒓퀬 */}
-            <h1 className="flex-1 flex justify-center">
-              <Image
-                src="/logo40.png"
-                alt="Locory"
-                width={140}
-                height={64}
-                className="h-16 w-auto"
-                priority
-                sizes="140px"
-              />
-            </h1>
+            <h1 className="flex-1 text-center text-base font-bold text-gray-900">{t('title')}</h1>
             {/* ?ㅻⅨ履? ?꾪꽣 + ?뚮┝ */}
             <div className="flex items-center gap-1.5">
               <button

@@ -26,15 +26,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   if (!post) redirect('/feed')
   if (!post.is_public && post.user_id !== user.id) redirect('/feed')
 
-  const [{ data: likeRow }, { data: saveRow }, { data: comments }] = await Promise.all([
+  const [{ data: likeRow }, { data: saveRow }] = await Promise.all([
     supabase.from('post_likes').select('id').eq('post_id', id).eq('user_id', user.id).maybeSingle(),
     supabase.from('post_saves').select('id').eq('post_id', id).eq('user_id', user.id).maybeSingle(),
-    supabase
-      .from('post_comments')
-      .select('id, body, created_at, user_id, profiles(nickname, avatar_url)')
-      .eq('post_id', id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: true }),
   ])
 
   return (
@@ -43,8 +37,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       post={post}
       initialLiked={!!likeRow}
       initialSaved={!!saveRow}
-      initialComments={comments ?? []}
+      initialComments={[]}
     />
   )
 }
-

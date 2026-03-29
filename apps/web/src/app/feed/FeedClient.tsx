@@ -1,24 +1,29 @@
 ﻿'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useLikeStore } from '@/store/likeStore'
 import { useFeedFilterStore } from '@/store/filterStore'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import BottomNav from '@/components/ui/BottomNav'
 import PostGrid from '@/components/feed/PostGrid'
 import { useTranslations } from 'next-intl'
 import { POPULAR_NEIGHBORHOODS } from '@/lib/utils/districts'
 import type { NeighborhoodFilter } from '@/store/filterStore'
+
+type GenderFilterValue = 'female' | 'male' | null
+type AgeRangeValue = '10s' | '20s' | '30s' | '40s+' | null
 
 const PlaceAddSheet = dynamic(() => import('@/components/place/PlaceAddSheet'), { ssr: false })
 const NotificationBell = dynamic(() => import('@/components/ui/NotificationBell'), {
   ssr: false,
   loading: () => <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />,
 })
+const BottomNav = dynamic(() => import('@/components/ui/BottomNav'), { ssr: false })
+const FeedFilterModal = dynamic(() => import('./components/FeedFilterModal'), { ssr: false })
+const FeedActionSheet = dynamic(() => import('./components/FeedActionSheet'), { ssr: false })
 
 const NATIONALITY_CHIPS = [
   { code: 'KR', flag: '🇰🇷' }, { code: 'JP', flag: '🇯🇵' },
@@ -133,35 +138,15 @@ export default function FeedClient({ profile, userId }: Props) {
   const [likedPlaceIds, setLikedPlaceIds] = useState(new Set<string>())
   const [interactionsInitialized, setInteractionsInitialized] = useState(false)
   const { init: initLikeStore, togglePlaceLike: storePlaceLike, togglePlaceSave: storePlaceSave } = useLikeStore()
-  const {
-    data: followingUserIds = [],
-    isLoading: followingIdsLoading,
-  } = useQuery({
-    queryKey: ['following-ids', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', userId)
-        .eq('status', 'accepted')
-      if (error) throw error
-      return (data ?? []).map((item: { following_id: string }) => item.following_id)
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
 
   // 피드 목록 + 상호작용 데이터를 RPC 1회로 조회
   // city/district/feedTab 변경 시 queryKey 기준으로 자동 캐시 분리
   const FEED_PAGE_SIZE = 15
-  const INITIAL_RENDER_POSTS = 15
+  const INITIAL_RENDER_POSTS = 10
   const RENDER_POST_CHUNK = 15
-  const INITIAL_RENDER_PLACES = 15
+  const INITIAL_RENDER_PLACES = 10
   const RENDER_PLACE_CHUNK = 15
-  const followingReady = feedTab !== 'following' || !followingIdsLoading
-  const feedQueryKey = ['feed-posts', feedTab, neighborhoodsKey, followingUserIds.join(',')] as const
+  const feedQueryKey = ['feed-posts', feedTab, neighborhoodsKey] as const
   const {
     data: rawPosts,
     isLoading: loading,
@@ -172,26 +157,28 @@ export default function FeedClient({ profile, userId }: Props) {
     isError,
   } = useInfiniteQuery({
     queryKey: feedQueryKey,
-    enabled: filtersHydrated && followingReady,
+    enabled: filtersHydrated,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     initialPageParam: null as { createdAt: string; id: string } | null,
     queryFn: async ({ pageParam }): Promise<FeedPagePayload> => {
-      const { data, error } = await supabase.rpc('get_feed_with_interactions', {
-        p_user_id: userId,
-        p_feed_tab: feedTab,
-        p_following_ids: followingUserIds,
-        p_lat_min: unionBounds?.latMin ?? null,
-        p_lat_max: unionBounds?.latMax ?? null,
-        p_lng_min: unionBounds?.lngMin ?? null,
-        p_lng_max: unionBounds?.lngMax ?? null,
-        p_limit: FEED_PAGE_SIZE,
-        p_cursor_created_at: pageParam?.createdAt ?? null,
-        p_cursor_id: pageParam?.id ?? null,
+      const params = new URLSearchParams({
+        feedTab,
+        limit: String(FEED_PAGE_SIZE),
       })
-      if (error) throw error
-      const payload = (data ?? {}) as FeedPagePayload
+      if (unionBounds) {
+        params.set('latMin', String(unionBounds.latMin))
+        params.set('latMax', String(unionBounds.latMax))
+        params.set('lngMin', String(unionBounds.lngMin))
+        params.set('lngMax', String(unionBounds.lngMax))
+      }
+      if (pageParam?.createdAt) params.set('cursorCreatedAt', pageParam.createdAt)
+      if (pageParam?.id) params.set('cursorId', pageParam.id)
+
+      const res = await fetch(`/api/feed?${params.toString()}`, { method: 'GET' })
+      if (!res.ok) throw new Error('Failed to load feed')
+      const payload = (await res.json()) as FeedPagePayload
       return {
         posts: payload.posts ?? [],
         interactions: payload.interactions ?? {
@@ -220,7 +207,7 @@ export default function FeedClient({ profile, userId }: Props) {
 
   useEffect(() => {
     setInteractionsInitialized(false)
-  }, [feedTab, neighborhoodsKey, userId, followingUserIds.join(',')])
+  }, [feedTab, neighborhoodsKey, userId])
 
   useEffect(() => {
     if (interactionsInitialized) return
@@ -320,6 +307,27 @@ export default function FeedClient({ profile, userId }: Props) {
     const next = new Set(nationalitiesSet)
     next.has(nat) ? next.delete(nat) : next.add(nat)
     setFilter({ nationalities: Array.from(next) })
+  }
+
+  function setFeedTab(value: 'all' | 'following') {
+    setFilter({ feedTab: value })
+  }
+
+  function setSortBy(value: 'latest' | 'likes' | 'saves') {
+    setFilter({ sortBy: value })
+  }
+
+  function setPostType(value: 'all' | 'visited' | 'want') {
+    setFilter({ postType: value })
+    if (value !== 'visited') setFilter({ minRating: null })
+  }
+
+  function setGenderFilter(value: GenderFilterValue) {
+    setFilter({ genderFilter: value })
+  }
+
+  function setAgeRange(value: AgeRangeValue) {
+    setFilter({ ageRange: value })
   }
 
   const filteredPosts = useMemo(() => {
@@ -704,209 +712,37 @@ export default function FeedClient({ profile, userId }: Props) {
         </div>
       </header>
 
-      {/* 필터 모달 */}
-      {showFilters && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center px-4"
-          onClick={() => setShowFilters(false)}
-        >
-          <div
-            className="bg-white w-full max-w-lg rounded-2xl flex flex-col"
-            style={{ maxHeight: '75vh' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 고정 헤더: 제목 + 초기화 + 적용 */}
-            <div className="shrink-0 px-4 pt-4 pb-3 flex items-center justify-between gap-3 border-b border-gray-100">
-              <h2 className="text-sm font-bold text-gray-900">{t('filter')}</h2>
-              <div className="flex items-center gap-2 ml-auto">
-                <button
-                  onClick={resetFilter}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium text-gray-400 border border-gray-200"
-                >
-                  {t('filterReset')}
-                </button>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white"
-                >
-                  {t('filterApply')}
-                </button>
-              </div>
-            </div>
-
-            {/* 스크롤 가능한 필터 본문 */}
-            <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4">
-
-              {/* 보기 모드: 피드/장소 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterViewMode')}</p>
-                <div className="flex gap-2">
-                  {([
-                    { key: 'posts', label: t('viewModePost') },
-                    { key: 'places', label: t('viewModePlace') },
-                  ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => setViewMode(opt.key)}
-                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${viewMode === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 전체/팔로잉 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterFeed')}</p>
-                <div className="flex gap-2">
-                  {([
-                    { key: 'all', label: t('all') },
-                    { key: 'following', label: t('followingTab') },
-                  ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => setFilter({ feedTab: opt.key })}
-                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${feedTab === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 정렬 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterSort')}</p>
-                <div className="flex gap-2">
-                  {([
-                    { key: 'latest', label: t('filterSortLatest') },
-                    { key: 'likes', label: t('filterSortLikes') },
-                    { key: 'saves', label: t('filterSortSaves') },
-                  ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => setFilter({ sortBy: opt.key })}
-                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${sortBy === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 방문/가고싶어 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterPostType')}</p>
-                <div className="flex gap-2">
-                  {([
-                    { key: 'all', label: t('all') },
-                    { key: 'visited', label: t('filterPostVisited') },
-                    { key: 'want', label: t('filterPostWant') },
-                  ] as const).map(opt => (
-                    <button key={opt.key} onClick={() => {
-                      setFilter({ postType: opt.key })
-                      if (opt.key !== 'visited') setFilter({ minRating: null })
-                    }}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors ${postType === opt.key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 평점(방문일 때만) */}
-              {postType !== 'want' && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterRatingAbove')}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => setFilter({ minRating: null })}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${minRating == null ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {t('all')}
-                    </button>
-                    {[
-                      { score: 4, key: 'must_go' },
-                      { score: 3, key: 'worth_it' },
-                      { score: 2, key: 'neutral' },
-                    ].map(r => (
-                      <button key={r.score} onClick={() => setFilter({ minRating: minRating === r.score ? null : r.score })}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
-                        style={minRating === r.score
-                          ? { backgroundColor: RATING_COLORS[r.key], color: 'white', borderColor: 'transparent' }
-                          : { backgroundColor: 'white', color: '#4B5563', borderColor: '#E5E7EB' }
-                        }>
-                        {tPost(`rating.${r.key}`)} {t('filterAboveSuffix')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 카테고리 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterCategory')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(CATEGORY_COLORS).map(cat => (
-                    <button key={cat} onClick={() => toggleCategory(cat)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${categoriesSet.has(cat) ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
-                      style={categoriesSet.has(cat) ? { backgroundColor: CATEGORY_COLORS[cat] } : {}}>
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: categoriesSet.has(cat) ? 'white' : CATEGORY_COLORS[cat] }} />
-                      {tPost(`category.${cat}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 로컬 추천만 */}
-              <div>
-                <button
-                  onClick={() => setFilter({ hiddenOnly: !hiddenOnly })}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors border ${hiddenOnly ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}
-                >
-                  {t('filterLocalOnly')}
-                </button>
-              </div>
-
-              {/* 국적 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterNationality')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {NATIONALITY_CHIPS.map(({ code, flag }) => (
-                    <button key={code} onClick={() => toggleNationality(code)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors border ${nationalitiesSet.has(code) ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {flag} {code}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 성별 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterGender')}</p>
-                <div className="flex gap-2">
-                  {([null, 'female', 'male'] as const).map(g => (
-                    <button key={String(g)} onClick={() => setFilter({ genderFilter: g })}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${genderFilter === g ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {g === null ? t('all') : tProfile(`gender.${g}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 연령대 */}
-              <div>
-                <p className="text-xs font-semibold text-gray-400 mb-2">{t('filterAge')}</p>
-                <div className="flex gap-2 flex-wrap">
-                  {([
-                    { key: null, label: t('all') },
-                    { key: '10s', label: t('filterAge10s') },
-                    { key: '20s', label: t('filterAge20s') },
-                    { key: '30s', label: t('filterAge30s') },
-                    { key: '40s+', label: t('filterAge40s') },
-                  ] as const).map(opt => (
-                    <button key={String(opt.key)} onClick={() => setFilter({ ageRange: opt.key })}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${ageRange === opt.key ? 'bg-gray-900 text-white border-transparent' : 'bg-white text-gray-600 border-gray-200'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
+      <FeedFilterModal
+        open={showFilters}
+        onClose={() => setShowFilters(false)}
+        onReset={resetFilter}
+        t={t}
+        tPost={tPost}
+        tProfile={tProfile}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        feedTab={feedTab}
+        setFeedTab={setFeedTab}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        postType={postType}
+        setPostType={setPostType}
+        minRating={minRating}
+        setMinRating={(value) => setFilter({ minRating: value })}
+        categoryColors={CATEGORY_COLORS}
+        categoriesSet={categoriesSet}
+        toggleCategory={toggleCategory}
+        hiddenOnly={hiddenOnly}
+        setHiddenOnly={(value) => setFilter({ hiddenOnly: value })}
+        nationalityChips={NATIONALITY_CHIPS}
+        nationalitiesSet={nationalitiesSet}
+        toggleNationality={toggleNationality}
+        genderFilter={genderFilter as GenderFilterValue}
+        setGenderFilter={setGenderFilter}
+        ageRange={ageRange as AgeRangeValue}
+        setAgeRange={setAgeRange}
+        ratingColors={RATING_COLORS}
+      />
 
       <main
         className={`${FEED_FRAME_CLASS} pb-16`}
@@ -992,6 +828,7 @@ export default function FeedClient({ profile, userId }: Props) {
             posts={visiblePosts}
             userId={userId}
             variant="feed_discover"
+            enableCommentCounts={false}
             onDelete={(postId) => {
               queryClient.setQueryData(
                 feedQueryKey,
@@ -1030,47 +867,19 @@ export default function FeedClient({ profile, userId }: Props) {
 
       <BottomNav avatarUrl={profile?.avatar_url ?? null} />
 
-      {/* 추가 액션 시트 */}
-      {showActionSheet && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-60" onClick={() => setShowActionSheet(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-70 bg-white rounded-t-2xl pb-10 pt-3 max-w-lg mx-auto">
-            <div className="flex justify-center mb-4">
-              <div className="w-8 h-1 bg-gray-200 rounded-full" />
-            </div>
-            <div className="flex flex-col gap-2 px-4">
-              <button
-                onClick={() => { setShowActionSheet(false); router.push('/upload') }}
-                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
-              >
-                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{t('addFeed')}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('addFeedDesc')}</p>
-                </div>
-              </button>
-              <button
-                onClick={() => { setShowActionSheet(false); setShowPlaceAdd(true) }}
-                className="flex items-center gap-4 px-4 py-4 bg-gray-50 rounded-2xl text-left"
-              >
-                <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center shrink-0">
-                  <svg width="20" height="20" fill="none" stroke="white" strokeWidth={2} viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{t('addPlace')}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('addPlaceDesc')}</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      <FeedActionSheet
+        open={showActionSheet}
+        onClose={() => setShowActionSheet(false)}
+        onUpload={() => {
+          setShowActionSheet(false)
+          router.push('/upload')
+        }}
+        onAddPlace={() => {
+          setShowActionSheet(false)
+          setShowPlaceAdd(true)
+        }}
+        t={t}
+      />
 
       {showPlaceAdd && (
         <PlaceAddSheet

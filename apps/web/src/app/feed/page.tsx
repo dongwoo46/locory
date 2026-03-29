@@ -9,15 +9,7 @@ export default async function FeedPage() {
   const user = session?.user ?? null
 
   if (!user) {
-    const { data: guestPosts } = await supabase
-      .from('posts')
-      .select('id, type, rating, created_at, photos, photo_variants, places(name, category), post_likes(count), post_saves(count)')
-      .eq('is_public', true)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(30)
-
-    return <GuestFeedClient posts={guestPosts ?? []} />
+    return <GuestFeedClient posts={[]} />
   }
 
   const { data: profile } = await supabase
