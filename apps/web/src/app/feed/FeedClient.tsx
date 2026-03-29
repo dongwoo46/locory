@@ -142,9 +142,9 @@ export default function FeedClient({ profile, userId }: Props) {
   // 피드 목록 + 상호작용 데이터를 RPC 1회로 조회
   // city/district/feedTab 변경 시 queryKey 기준으로 자동 캐시 분리
   const FEED_PAGE_SIZE = 15
-  const INITIAL_RENDER_POSTS = 10
+  const INITIAL_RENDER_POSTS = 15
   const RENDER_POST_CHUNK = 15
-  const INITIAL_RENDER_PLACES = 10
+  const INITIAL_RENDER_PLACES = 15
   const RENDER_PLACE_CHUNK = 15
   const feedQueryKey = ['feed-posts', feedTab, neighborhoodsKey] as const
   const {
@@ -368,6 +368,15 @@ export default function FeedClient({ profile, userId }: Props) {
     setRenderPostCount(INITIAL_RENDER_POSTS)
     setRenderPlaceCount(INITIAL_RENDER_PLACES)
   }, [feedTab, neighborhoodsKey, postType, sortBy, minRating, categories, hiddenOnly, nationalities, ageRange, genderFilter])
+
+  // Ensure the first feed screen has enough cards even when client-side filters reduce first page results.
+  useEffect(() => {
+    if (viewMode !== 'posts') return
+    if (!filtersHydrated || loading || isFetchingNextPage) return
+    if (!hasNextPage) return
+    if (sortedPosts.length >= INITIAL_RENDER_POSTS) return
+    void fetchNextPage()
+  }, [viewMode, filtersHydrated, loading, isFetchingNextPage, hasNextPage, sortedPosts.length, fetchNextPage])
 
   const visiblePosts = useMemo(
     () => sortedPosts.slice(0, renderPostCount),

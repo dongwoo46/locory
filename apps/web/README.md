@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Locory Web
 
-## Getting Started
+장소 기반 여행 기록, 추천, 만남 기능을 한 곳에서 제공하는 Locory 웹 앱입니다.
 
-First, run the development server:
+## Tech Stack
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- Supabase (PostgreSQL/Auth/Storage)
+- Zustand
+- TanStack Query v5
+- next-intl (ko/en/ja/zh-TW/zh-CN/es/ru)
+- Google Maps API / Google Translate API
+- Gemini API
 
+## Core Features
+- 피드/지도 기반 장소 탐색
+- 장소 중심 여행 기록(사진/메모/평점)
+- 댓글/좋아요/저장 인터랙션
+- 장소 기반 모임 생성/참여
+- 다국어 UI + 텍스트 번역
+  - 일반 사용자: 일 5회 제한
+  - 관리자: 제한 없음
+
+## Local Setup
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+기본 실행 주소: `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
+`.env.local`에 아래 값을 설정하세요.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
-## Learn More
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+GOOGLE_PLACES_API_KEY=
+GOOGLE_TRANSLATE_API_KEY=
 
-To learn more about Next.js, take a look at the following resources:
+GEMINI_API_KEY=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+NEXT_PUBLIC_SENTRY_DSN=
+SENTRY_ORG=
+SENTRY_PROJECT=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
+```bash
+npm run dev
+npm run lint -- <files...>
+npm run build
+```
 
-## Deploy on Vercel
+## Main Directories
+- `src/app`: App Router page/API routes
+- `src/components`: 공통 UI 컴포넌트
+- `src/app/map`: 지도 화면 및 훅
+- `src/app/feed`: 피드 화면
+- `supabase/migrations`: DB 마이그레이션
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+- 성능 최적화 이력은 `MAP_OPTIMIZATION_WORKLOG.md` 참고
+- 자동화 에이전트 운영 가이드는 `AGENTS.md`, `CLAUDE.md` 참고
