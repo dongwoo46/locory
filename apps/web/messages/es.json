@@ -71,8 +71,8 @@
     "groupJapan": "Japón"
   },
   "cities": {
-    "seoul": "Seúl",
-    "busan": "Busan",
+    "seoul": "Se?l",
+    "busan": "Bus?n",
     "jeju": "Jeju",
     "gyeongju": "Gyeongju",
     "jeonju": "Jeonju",
@@ -80,7 +80,17 @@
     "sokcho": "Sokcho",
     "yeosu": "Yeosu",
     "incheon": "Incheon",
-    "daejeon": "Daejeon"
+    "daejeon": "Daejeon",
+    "daegu": "Daegu",
+    "gwangju": "Gwangju",
+    "ulsan": "Ulsan",
+    "sejong": "Sejong",
+    "suwon": "Suwon",
+    "chuncheon": "Chuncheon",
+    "andong": "Andong",
+    "pyeongchang": "Pyeongchang",
+    "tongyeong": "Tongyeong",
+    "namhae": "Namhae"
   },
   "districts": {
     "seoul": {
@@ -679,7 +689,7 @@
       "pickDesc": "¿Cómo quieres planear?",
       "pickFeature1": "Mis lugares",
       "pickFeature1Desc": "Optimiza la ruta con tus lugares seleccionados",
-      "pickFeature2": "Obtener recomendaciones",
+      "pickFeature2": "Zonas recomendadas",
       "pickFeature2Desc": "Elige un barrio y la IA crea tu ruta",
       "neighborhoodsTitle": "¿Dónde quieres explorar?",
       "neighborhoodsSubtitle": "Selecciona barrios y la IA planificará el mejor recorrido",

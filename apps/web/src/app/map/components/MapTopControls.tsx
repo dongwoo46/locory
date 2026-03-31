@@ -27,6 +27,7 @@ interface MapTopControlsProps {
   onOpenSavedCourses: () => void;
   onOpenCreateSheet: () => void;
   onOpenCourseTypePicker: () => void;
+  getCityLabel?: (city: string) => string;
 }
 
 export default function MapTopControls({
@@ -50,12 +51,12 @@ export default function MapTopControls({
   onOpenSavedCourses,
   onOpenCreateSheet,
   onOpenCourseTypePicker,
+  getCityLabel,
 }: MapTopControlsProps) {
   const locale = useLocale();
   const t = useTranslations('map');
   const tCities = useTranslations('cities');
-  const funSpotsLabel =
-    locale === 'ko' ? '\uB180\uB9CC\uD55C \uACF3' : t('recommend.pickFeature2');
+  const funSpotsLabel = t('recommend.pickFeature2');
   const authHref = '/login?next=%2Fmap';
 
   return (
@@ -191,9 +192,11 @@ export default function MapTopControls({
                       </p>
                       {place.city && (
                         <p className="text-xs text-gray-400 truncate">
-                          {tCities.has(place.city as Parameters<typeof tCities>[0])
-                            ? tCities(place.city as Parameters<typeof tCities>[0])
-                            : place.city}
+                          {getCityLabel
+                            ? getCityLabel(place.city)
+                            : (tCities.has(place.city as Parameters<typeof tCities>[0])
+                              ? tCities(place.city as Parameters<typeof tCities>[0])
+                              : place.city)}
                           {place.district && place.district !== 'other'
                             ? ' - ' + place.district
                             : ''}

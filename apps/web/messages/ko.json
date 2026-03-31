@@ -80,7 +80,17 @@
     "sokcho": "속초",
     "yeosu": "여수",
     "incheon": "인천",
-    "daejeon": "\uB300\uC804"
+    "daejeon": "대전",
+    "daegu": "대구",
+    "gwangju": "광주",
+    "ulsan": "울산",
+    "sejong": "세종",
+    "suwon": "수원",
+    "chuncheon": "춘천",
+    "andong": "안동",
+    "pyeongchang": "평창",
+    "tongyeong": "통영",
+    "namhae": "남해"
   },
   "districts": {
     "seoul": {
@@ -679,7 +689,7 @@
       "pickDesc": "어떻게 동선을 짤까요?",
       "pickFeature1": "내 장소로 짜기",
       "pickFeature1Desc": "직접 선택한 장소로 최적 동선",
-      "pickFeature2": "장소 추천받기",
+      "pickFeature2": "추천 지역",
       "pickFeature2Desc": "동네 선택하면 AI가 코스 추천",
       "neighborhoodsTitle": "어디서 놀까요?",
       "neighborhoodsSubtitle": "동네를 선택하면 그 안에서 최적의 코스를 짜드려요",

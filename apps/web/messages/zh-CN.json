@@ -45,16 +45,26 @@
     "groupJapan": "日本"
   },
   "cities": {
-    "seoul": "首尔",
-    "busan": "釜山",
-    "jeju": "济州",
-    "gyeongju": "庆州",
-    "jeonju": "全州",
-    "gangneung": "江陵",
-    "sokcho": "束草",
-    "yeosu": "丽水",
-    "incheon": "仁川",
-    "daejeon": "??"
+    "seoul": "??",
+    "busan": "??",
+    "jeju": "??",
+    "gyeongju": "??",
+    "jeonju": "??",
+    "gangneung": "??",
+    "sokcho": "??",
+    "yeosu": "??",
+    "incheon": "??",
+    "daejeon": "??",
+    "daegu": "??",
+    "gwangju": "??",
+    "ulsan": "??",
+    "sejong": "??",
+    "suwon": "??",
+    "chuncheon": "??",
+    "andong": "??",
+    "pyeongchang": "??",
+    "tongyeong": "??",
+    "namhae": "??"
   },
   "districts": {
     "seoul": {

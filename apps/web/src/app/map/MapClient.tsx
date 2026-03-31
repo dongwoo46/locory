@@ -164,6 +164,38 @@ const CITY_BUCKET_CENTERS: Record<string, { lat: number; lng: number }> = {
   sejong: { lat: 36.48, lng: 127.289 },
 };
 
+const CITY_NAME_ALIASES: Record<string, string> = {
+  '서울': 'seoul',
+  '서울특별시': 'seoul',
+  '부산': 'busan',
+  '부산광역시': 'busan',
+  '제주': 'jeju',
+  '제주특별자치도': 'jeju',
+  '인천': 'incheon',
+  '인천광역시': 'incheon',
+  '경주': 'gyeongju',
+  '전주': 'jeonju',
+  '강릉': 'gangneung',
+  '속초': 'sokcho',
+  '여수': 'yeosu',
+  '대구': 'daegu',
+  '대구광역시': 'daegu',
+  '대전': 'daejeon',
+  '대전광역시': 'daejeon',
+  '광주': 'gwangju',
+  '광주광역시': 'gwangju',
+  '울산': 'ulsan',
+  '울산광역시': 'ulsan',
+  '세종': 'sejong',
+  '세종특별자치시': 'sejong',
+  '수원': 'suwon',
+  '춘천': 'chuncheon',
+  '안동': 'andong',
+  '평창': 'pyeongchang',
+  '통영': 'tongyeong',
+  '남해': 'namhae',
+};
+
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -201,6 +233,15 @@ function resolveCityBucket(place: Place): string {
   return nearestCityBucket(place.lat, place.lng);
 }
 
+function resolveCityKey(rawCity: string): string {
+  const trimmed = (rawCity || '').trim();
+  if (!trimmed) return '';
+  const lower = trimmed.toLowerCase();
+  if (CITY_BUCKET_CENTERS[lower]) return lower;
+  const alias = CITY_NAME_ALIASES[trimmed] ?? CITY_NAME_ALIASES[lower];
+  return alias ?? trimmed;
+}
+
 function asSinglePlace(
   place: MapQueryPlace | MapQueryPlace[] | null | undefined,
 ): MapQueryPlace | null {
@@ -224,8 +265,7 @@ export default function MapClient({ userId }: Props) {
   const tPost = useTranslations('post');
   const tCities = useTranslations('cities');
   const tDistricts = useTranslations('districts');
-  const funSpotsLabel =
-    locale === 'ko' ? '\uB180\uB9CC\uD55C \uACF3' : t('recommend.pickFeature2');
+  const funSpotsLabel = t('recommend.pickFeature2');
   const canUseSavedMode = Boolean(userId);
 
   // Map data cache
@@ -391,6 +431,7 @@ export default function MapClient({ userId }: Props) {
   const [showPlaceAdd, setShowPlaceAdd] = useState(false);
   const [showRecommendNeighborhoods, setShowRecommendNeighborhoods] =
     useState(false);
+  const [showCategoryLegend, setShowCategoryLegend] = useState(true);
   const [recommendCity, setRecommendCity] = useState<string | null>(null);
 
   // Course builder state
@@ -1375,24 +1416,29 @@ export default function MapClient({ userId }: Props) {
                         )
                       }
                     >
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: '50%',
-                          backgroundColor: color,
-                          border: '2.5px solid white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontWeight: 700,
-                          fontSize: 12,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {p.order}
+                      <div className="relative flex flex-col items-center">
+                        <div className="mb-1 max-w-[120px] rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+                          <span className="block truncate">{place.name}</span>
+                        </div>
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            border: '2.5px solid white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {p.order}
+                        </div>
                       </div>
                     </AdvancedMarker>
                   );
@@ -1586,6 +1632,13 @@ export default function MapClient({ userId }: Props) {
         onOpenCourseTypePicker={() => {
           setShowCourseTypePicker(true);
           setSelected(null);
+        }}
+        getCityLabel={(rawCity) => {
+          const key = resolveCityKey(rawCity);
+          if (tCities.has(key as Parameters<typeof tCities>[0])) {
+            return tCities(key as Parameters<typeof tCities>[0]);
+          }
+          return rawCity;
         }}
       />
 
@@ -1793,6 +1846,42 @@ export default function MapClient({ userId }: Props) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
           <div className="bg-white rounded-2xl shadow px-6 py-4 text-center">
             <p className="text-sm text-gray-400">{t('noPlaces')}</p>
+          </div>
+        </div>
+      )}
+
+      {mapMode === 'course-build' && (
+        <div className="fixed bottom-[170px] right-3 z-[55] pointer-events-auto">
+          <div className="rounded-lg border border-white/60 bg-white/80 px-2 py-1.5 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className="text-[9px] font-semibold text-gray-500">
+                {t('category')}
+              </p>
+              <button
+                onClick={() => setShowCategoryLegend((v) => !v)}
+                className="text-[10px] font-semibold text-gray-500 px-1"
+                aria-label={showCategoryLegend ? 'Hide legend' : 'Show legend'}
+              >
+                {showCategoryLegend ? '–' : '+'}
+              </button>
+            </div>
+            {showCategoryLegend && (
+              <div className="flex flex-wrap gap-x-2 gap-y-1">
+                {(
+                  ['cafe', 'restaurant', 'photospot', 'street', 'bar', 'culture', 'nature', 'shopping'] as const
+                ).map((cat) => (
+                  <div key={cat} className="flex items-center gap-1">
+                    <span
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: CATEGORY_COLOR[cat] || '#607D8B' }}
+                    />
+                    <span className="text-[8px] text-gray-600">
+                      {tPost(`category.${cat}`)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

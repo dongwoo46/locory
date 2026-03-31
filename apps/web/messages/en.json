@@ -80,7 +80,17 @@
     "sokcho": "Sokcho",
     "yeosu": "Yeosu",
     "incheon": "Incheon",
-    "daejeon": "Daejeon"
+    "daejeon": "Daejeon",
+    "daegu": "Daegu",
+    "gwangju": "Gwangju",
+    "ulsan": "Ulsan",
+    "sejong": "Sejong",
+    "suwon": "Suwon",
+    "chuncheon": "Chuncheon",
+    "andong": "Andong",
+    "pyeongchang": "Pyeongchang",
+    "tongyeong": "Tongyeong",
+    "namhae": "Namhae"
   },
   "districts": {
     "seoul": {
@@ -679,7 +689,7 @@
       "pickDesc": "How would you like to plan?",
       "pickFeature1": "My Places",
       "pickFeature1Desc": "Optimize route with places you selected",
-      "pickFeature2": "Get Recommendations",
+      "pickFeature2": "Recommended areas",
       "pickFeature2Desc": "Pick a neighborhood, AI builds your course",
       "neighborhoodsTitle": "Where do you want to explore?",
       "neighborhoodsSubtitle": "Select neighborhoods and AI will plan the best course",
