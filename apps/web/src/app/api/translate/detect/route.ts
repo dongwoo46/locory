@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 function normalizeLanguage(value: string | null | undefined): string {
@@ -41,12 +40,6 @@ async function detectLanguageWithGemini(text: string): Promise<string | null> {
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { text, target } = await req.json()
   if (!text || !target) {
     return NextResponse.json({ error: 'text and target required' }, { status: 400 })

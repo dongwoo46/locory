@@ -1,14 +1,15 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { UIEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import ReportSheet from '@/components/ui/ReportSheet';
 import { createClient } from '@/lib/supabase/client';
 import { getPostImageUrl } from '@/lib/utils/postImage';
+import { getLocalizedKrDistrictLabel } from '@/lib/utils/administrativeLabels';
 import { CATEGORY_COLOR, RATING_COLORS } from '../map.constants';
 import type { Place, PlacePost } from '../map.types';
 
@@ -24,6 +25,7 @@ function toCount(value: string | number | undefined): number {
 }
 
 interface PlaceFeedSheetProps {
+  userId: string | null;
   place: Place | null;
   open: boolean;
   onClose: () => void;
@@ -37,6 +39,7 @@ interface PlaceFeedSheetProps {
 }
 
 export default function PlaceFeedSheet({
+  userId,
   place,
   open,
   onClose,
@@ -52,6 +55,7 @@ export default function PlaceFeedSheet({
   const supabase = createClient();
   const t = useTranslations('map');
   const tPost = useTranslations('post');
+  const locale = useLocale();
   const tCities = useTranslations('cities');
   const tDistricts = useTranslations('districts');
   const getCityLabel = (city: string): string => {
@@ -60,12 +64,18 @@ export default function PlaceFeedSheet({
   };
   const getDistrictLabel = (city: string, district: string): string => {
     const key = `${city}.${district}` as Parameters<typeof tDistricts>[0];
-    return tDistricts.has(key) ? tDistricts(key) : district;
+    if (tDistricts.has(key)) return tDistricts(key);
+    return getLocalizedKrDistrictLabel(district, locale) ?? district;
   };
 
   const [showPlaceReport, setShowPlaceReport] = useState(false);
   const [showPlaceMenu, setShowPlaceMenu] = useState(false);
   const [sheetPost, setSheetPost] = useState<PlacePost | null>(null);
+  const [memoTranslated, setMemoTranslated] = useState<string | null>(null);
+  const [memoTranslating, setMemoTranslating] = useState(false);
+  const [translateRemaining, setTranslateRemaining] = useState<number | null>(null);
+  const [canTranslateMemo, setCanTranslateMemo] = useState(false);
+  const [memoLangChecked, setMemoLangChecked] = useState(false);
   const selectedProfileId = sheetPost?.profiles?.id ?? null;
   const { data: selectedProfile } = useQuery({
     queryKey: ['place-sheet-profile', selectedProfileId],
@@ -84,6 +94,82 @@ export default function PlaceFeedSheet({
   });
   const selectedAvatarUrl =
     selectedProfile?.avatar_url ?? sheetPost?.profiles?.avatar_url ?? null;
+
+  useEffect(() => {
+    setMemoTranslated(null);
+    setMemoTranslating(false);
+    setTranslateRemaining(null);
+    setCanTranslateMemo(false);
+    setMemoLangChecked(false);
+  }, [sheetPost?.id]);
+
+  useEffect(() => {
+    const memo = sheetPost?.memo?.trim();
+    if (!memo) {
+      setCanTranslateMemo(false);
+      setMemoLangChecked(true);
+      return;
+    }
+
+    let active = true;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/translate/detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: memo, target: locale }),
+        });
+        const body = await res.json().catch(() => null);
+        if (!active) return;
+        if (res.ok) {
+          setCanTranslateMemo(body?.sameLanguage === false);
+        } else {
+          setCanTranslateMemo(true);
+        }
+      } catch {
+        if (!active) return;
+        setCanTranslateMemo(true);
+      } finally {
+        if (active) setMemoLangChecked(true);
+      }
+    };
+    void run();
+    return () => {
+      active = false;
+    };
+  }, [sheetPost?.memo, locale]);
+
+  async function translateText(text: string): Promise<{ translated: string; remaining: number } | null> {
+    const value = text.trim();
+    if (!value) return null;
+    const res = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: value, target: locale }),
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body?.translated) return null;
+    return {
+      translated: String(body.translated),
+      remaining: Number.isFinite(body?.remaining) ? Number(body.remaining) : -1,
+    };
+  }
+
+  async function translateMemo() {
+    if (!sheetPost?.memo || memoTranslating) return;
+    setMemoTranslating(true);
+    try {
+      const result = await translateText(sheetPost.memo);
+      if (!result) {
+        alert(tPost('translateError'));
+        return;
+      }
+      setMemoTranslated(result.translated);
+      setTranslateRemaining(result.remaining);
+    } finally {
+      setMemoTranslating(false);
+    }
+  }
 
   const handleScroll = useCallback(
     (event: UIEvent<HTMLDivElement>) => {
@@ -376,7 +462,33 @@ export default function PlaceFeedSheet({
                 </div>
               )}
               {sheetPost.memo && (
-                <p className="text-sm text-gray-700 leading-relaxed">{sheetPost.memo}</p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm text-gray-700 leading-relaxed">{sheetPost.memo}</p>
+                  {memoTranslated && (
+                    <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-wrap">
+                      {memoTranslated}
+                    </p>
+                  )}
+                  {memoLangChecked && canTranslateMemo && (
+                    userId ? (
+                      <button
+                        type="button"
+                        onClick={translateMemo}
+                        disabled={memoTranslating}
+                        className="self-start text-xs font-medium text-gray-500 disabled:text-gray-300"
+                      >
+                        {memoTranslating ? '...' : tPost('translate')}
+                        {translateRemaining !== null
+                          ? ` (${tPost('translateRemaining', { remaining: translateRemaining })})`
+                          : ''}
+                      </button>
+                    ) : (
+                      <p className="text-xs font-medium text-gray-400">
+                        {locale === 'ko' ? '번역은 로그인 시 이용 가능해요' : 'Translation is available after login'}
+                      </p>
+                    )
+                  )}
+                </div>
               )}
             </div>
           </div>

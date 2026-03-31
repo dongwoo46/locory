@@ -11,6 +11,7 @@ import {
 import { useTranslations, useLocale } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
 import { inferCityFromAddress, normalizeDistrictForCity } from '@/lib/utils/districts';
+import { getLocalizedKrDistrictLabel } from '@/lib/utils/administrativeLabels';
 import type { City } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
 import { useUserInteractions } from '@/hooks/useUserInteractions';
@@ -139,6 +140,7 @@ const SEOUL_GU_BY_NEIGHBORHOOD: Record<string, GuMapping> = {
   yeouido: { key: 'yeongdeungpo-gu', label: 'Yeongdeungpo-gu' },
 };
 
+
 const CITY_STAGE_MAX_ZOOM = 8.2;
 const DETAIL_STAGE_MIN_ZOOM = 12.6;
 
@@ -169,7 +171,7 @@ export default function MapClient({ userId }: Props) {
 
   // Map data cache
   const MAP_POST_FETCH_LIMIT = 300;
-  const { data: mapData } = useQuery({
+  const { data: mapData, isLoading: mapDataLoading } = useQuery({
     queryKey: ['map-data', userId],
     queryFn: async () => {
       const { data: posts } = await supabase
@@ -562,20 +564,24 @@ export default function MapClient({ userId }: Props) {
       const normalized = normalizeDistrictForCity(cityValue, districtValue);
       const rawKey = raw.toLowerCase();
       const normalizedKey = (normalized ?? '').toLowerCase();
-      if (cityValue === 'seoul') {
-        const mapped =
-          SEOUL_GU_BY_NEIGHBORHOOD[rawKey] ??
-          SEOUL_GU_BY_NEIGHBORHOOD[normalizedKey];
-        if (mapped) return mapped.label;
-      }
       if (raw && raw.toLowerCase() !== 'other') {
         if (raw.endsWith('\uAD6C') || raw.endsWith('\uAD70')) return raw;
       }
       if (!fallbackKey) return null;
       const i18nKey = `${cityValue}.${fallbackKey}`;
-      return tDistricts.has(i18nKey) ? tDistricts(i18nKey) : fallbackKey;
+      if (tDistricts.has(i18nKey)) return tDistricts(i18nKey);
+      if (cityValue === 'seoul') {
+        const mapped =
+          SEOUL_GU_BY_NEIGHBORHOOD[rawKey] ??
+          SEOUL_GU_BY_NEIGHBORHOOD[normalizedKey];
+        const mappedLabel = getLocalizedKrDistrictLabel(mapped?.key ?? fallbackKey, locale);
+        if (mappedLabel) return mappedLabel;
+      }
+      const generalizedLabel = getLocalizedKrDistrictLabel(fallbackKey, locale);
+      if (generalizedLabel) return generalizedLabel;
+      return fallbackKey;
     },
-    [tDistricts],
+    [tDistricts, locale],
   );
 
   const places = useMemo(() => {
@@ -1467,6 +1473,7 @@ export default function MapClient({ userId }: Props) {
       </APIProvider>
 
       <MapTopControls
+        userId={userId}
         mapMode={mapMode}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -1649,6 +1656,7 @@ export default function MapClient({ userId }: Props) {
       )}
 
       <PlaceFeedSheet
+        userId={userId}
         place={selected}
         open={Boolean(selected) && mapMode === 'normal'}
         onClose={() => setSelected(null)}
@@ -1661,8 +1669,11 @@ export default function MapClient({ userId }: Props) {
         setSheetSort={setSheetSort}
       />
 
-      {/* Empty state when no place found */}
-      {places.length === 0 && mapMode === 'normal' && (
+      {/* Empty state when no place found (show only after filters are applied) */}
+      {!mapDataLoading &&
+        places.length === 0 &&
+        mapMode === 'normal' &&
+        hasActiveFilters && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
           <div className="bg-white rounded-2xl shadow px-6 py-4 text-center">
             <p className="text-sm text-gray-400">{t('noPlaces')}</p>

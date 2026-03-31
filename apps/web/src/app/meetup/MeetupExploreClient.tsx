@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import BottomNav from '@/components/ui/BottomNav'
 import NotificationBell from '@/components/ui/NotificationBell'
 import { CITIES } from '@/lib/utils/districts'
+import { getLocalizedKrDistrictLabel } from '@/lib/utils/administrativeLabels'
 import { CameraPanner } from '../map/map-overlays'
 
 const FETCH_LIMIT = 300
@@ -243,9 +244,10 @@ export default function MeetupExploreClient({ userId, profile, isAnonymous = fal
   const getDistrictLabel = useCallback(
     (city: string, district: string): string => {
       const key = `${city}.${district}` as Parameters<typeof tDistricts>[0]
-      return tDistricts.has(key) ? tDistricts(key) : district
+      if (tDistricts.has(key)) return tDistricts(key)
+      return getLocalizedKrDistrictLabel(district, locale) ?? district
     },
-    [tDistricts],
+    [tDistricts, locale],
   )
 
   const filtered = useMemo(() => {

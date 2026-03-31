@@ -1,9 +1,13 @@
 ﻿'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import NotificationBell from '@/components/ui/NotificationBell';
 import type { Place } from '../map.types';
 
 interface MapTopControlsProps {
+  userId: string | null;
   mapMode: 'normal' | 'course-build' | 'course-view' | 'recommend-build';
   searchQuery: string;
   setSearchQuery: (value: string) => void;
@@ -25,6 +29,7 @@ interface MapTopControlsProps {
 }
 
 export default function MapTopControls({
+  userId,
   mapMode,
   searchQuery,
   setSearchQuery,
@@ -49,10 +54,65 @@ export default function MapTopControls({
   const tCities = useTranslations('cities');
   const funSpotsLabel =
     locale === 'ko' ? '\uB180\uB9CC\uD55C \uACF3' : t('recommend.pickFeature2');
+  const authHref = '/login?next=%2Fmap';
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
       <div className="max-w-lg mx-auto px-3 pt-3 flex flex-col gap-2">
+        {mapMode === 'normal' && (
+          <div className="relative mb-0.5 flex h-10 items-center rounded-xl border border-white/70 bg-white/85 px-2 shadow-md backdrop-blur-md pointer-events-auto">
+            <button
+              onClick={onOpenCourseTypePicker}
+              className="-ml-1 shrink-0 p-1 text-gray-700 z-10"
+            >
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </button>
+            <h1 className="pointer-events-none absolute left-1/2 -translate-x-1/2">
+              <Image
+                src="/logo40.png"
+                alt="Locory"
+                width={140}
+                height={64}
+                className="h-10 w-auto"
+                priority
+                sizes="140px"
+              />
+            </h1>
+            <div className="ml-auto flex items-center gap-1.5 shrink-0 z-10">
+              {!userId && (
+                <>
+                  <Link
+                    href={authHref}
+                    className="rounded-full border border-gray-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700"
+                  >
+                    {locale === 'ko' ? '회원가입' : 'Sign up'}
+                  </Link>
+                  <Link
+                    href={authHref}
+                    className="rounded-full bg-gray-900 px-2.5 py-1.5 text-[11px] font-semibold text-white"
+                  >
+                    {locale === 'ko' ? '로그인' : 'Log in'}
+                  </Link>
+                </>
+              )}
+              <button
+                onClick={onToggleFilters}
+                className={`relative flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors border ${
+                  hasActiveFilters ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200'
+                }`}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                  <line x1="11" y1="18" x2="13" y2="18" />
+                </svg>
+              </button>
+              {userId ? <NotificationBell userId={userId} /> : null}
+            </div>
+          </div>
+        )}
         {(mapMode === 'normal' || mapMode === 'course-build') && (
           <div className="relative pointer-events-auto">
             <div className="flex items-center bg-white rounded-full shadow px-3 py-2 gap-2">
@@ -129,7 +189,9 @@ export default function MapTopControls({
                       </p>
                       {place.city && (
                         <p className="text-xs text-gray-400 truncate">
-                          {tCities(place.city)}
+                          {tCities.has(place.city as Parameters<typeof tCities>[0])
+                            ? tCities(place.city as Parameters<typeof tCities>[0])
+                            : place.city}
                           {place.district && place.district !== 'other'
                             ? ' - ' + place.district
                             : ''}
@@ -232,23 +294,6 @@ export default function MapTopControls({
                 <span className="text-xs font-medium text-white">
                   {t('course.label')}
                 </span>
-              </button>
-              <button
-                onClick={onToggleFilters}
-                className={`bg-white rounded-full shadow p-2 pointer-events-auto ${hasActiveFilters ? 'ring-2 ring-gray-900' : ''}`}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <line x1="4" y1="6" x2="20" y2="6" />
-                  <line x1="8" y1="12" x2="16" y2="12" />
-                  <line x1="11" y1="18" x2="13" y2="18" />
-                </svg>
               </button>
             </div>
           </div>

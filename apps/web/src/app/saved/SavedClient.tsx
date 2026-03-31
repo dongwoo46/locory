@@ -4,12 +4,13 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import BottomNav from '@/components/ui/BottomNav'
 import NotificationBell from '@/components/ui/NotificationBell'
 import PlaceAddSheet from '@/components/place/PlaceAddSheet'
 import PostGrid from '@/components/feed/PostGrid'
 import { CITIES, getMainDistricts, getExtraDistricts, getPlaceCityFilterToken, getPlaceNeighborhoodFilterToken } from '@/lib/utils/districts'
+import { getLocalizedKrDistrictLabel } from '@/lib/utils/administrativeLabels'
 import type { City } from '@/types/database'
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -35,6 +36,7 @@ interface Props {
 export default function SavedClient({ userId, followingUserIds, avatarUrl = null }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const locale = useLocale()
   const t = useTranslations('saved')
   const tPost = useTranslations('post')
   const tCities = useTranslations('cities')
@@ -42,7 +44,8 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   const tFeed = useTranslations('feed')
   function getDistrictLabelSafe(cityCode: string, districtCode: string): string {
     const key = `${cityCode}.${districtCode}` as Parameters<typeof tDistricts>[0]
-    return tDistricts.has(key) ? tDistricts(key) : districtCode
+    if (tDistricts.has(key)) return tDistricts(key)
+    return getLocalizedKrDistrictLabel(districtCode, locale) ?? districtCode
   }
 
   const { data: savedData } = useQuery({
