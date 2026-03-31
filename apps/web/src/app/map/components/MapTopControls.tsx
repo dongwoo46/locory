@@ -25,6 +25,7 @@ interface MapTopControlsProps {
   showRecommendNeighborhoods: boolean;
   onToggleRecommendNeighborhoods: () => void;
   onOpenSavedCourses: () => void;
+  onOpenCreateSheet: () => void;
   onOpenCourseTypePicker: () => void;
 }
 
@@ -47,6 +48,7 @@ export default function MapTopControls({
   showRecommendNeighborhoods,
   onToggleRecommendNeighborhoods,
   onOpenSavedCourses,
+  onOpenCreateSheet,
   onOpenCourseTypePicker,
 }: MapTopControlsProps) {
   const locale = useLocale();
@@ -62,7 +64,7 @@ export default function MapTopControls({
         {mapMode === 'normal' && (
           <div className="relative mb-0.5 flex h-10 items-center rounded-xl border border-white/70 bg-white/85 px-2 shadow-md backdrop-blur-md pointer-events-auto">
             <button
-              onClick={onOpenCourseTypePicker}
+              onClick={onOpenCreateSheet}
               className="-ml-1 shrink-0 p-1 text-gray-700 z-10"
             >
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

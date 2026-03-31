@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import {
@@ -45,6 +46,8 @@ import MapFilterModal from './components/MapFilterModal';
 import PlaceFeedSheet from './components/PlaceFeedSheet';
 import CourseBuildModals from './components/CourseBuildModals';
 import RecommendBuildSheet from './components/RecommendBuildSheet';
+import FeedActionSheet from '@/app/feed/components/FeedActionSheet';
+import PlaceAddSheet from '@/components/place/PlaceAddSheet';
 import { useMapFilters } from './hooks/useMapFilters';
 import { usePlacePostsSheet } from './hooks/usePlacePostsSheet';
 import { useSavedCoursesState } from './hooks/useSavedCoursesState';
@@ -143,6 +146,60 @@ const SEOUL_GU_BY_NEIGHBORHOOD: Record<string, GuMapping> = {
 
 const CITY_STAGE_MAX_ZOOM = 8.2;
 const DETAIL_STAGE_MIN_ZOOM = 12.6;
+const CITY_MISMATCH_KM_THRESHOLD = 80;
+const CITY_BUCKET_CENTERS: Record<string, { lat: number; lng: number }> = {
+  seoul: { lat: 37.5665, lng: 126.978 },
+  busan: { lat: 35.1796, lng: 129.0756 },
+  jeju: { lat: 33.4996, lng: 126.5312 },
+  gyeongju: { lat: 35.8562, lng: 129.2247 },
+  jeonju: { lat: 35.8242, lng: 127.148 },
+  gangneung: { lat: 37.7519, lng: 128.876 },
+  sokcho: { lat: 38.2044, lng: 128.5912 },
+  yeosu: { lat: 34.7604, lng: 127.6622 },
+  incheon: { lat: 37.4563, lng: 126.7052 },
+  daegu: { lat: 35.8714, lng: 128.6014 },
+  daejeon: { lat: 36.3504, lng: 127.3845 },
+  gwangju: { lat: 35.1595, lng: 126.8526 },
+  ulsan: { lat: 35.5384, lng: 129.3114 },
+  sejong: { lat: 36.48, lng: 127.289 },
+};
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return 6371 * c;
+}
+
+function nearestCityBucket(lat: number, lng: number): string {
+  let nearest = 'seoul';
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const [cityKey, center] of Object.entries(CITY_BUCKET_CENTERS)) {
+    const distance = haversineKm(lat, lng, center.lat, center.lng);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      nearest = cityKey;
+    }
+  }
+  return nearest;
+}
+
+function resolveCityBucket(place: Place): string {
+  const rawCity = (place.city || '').trim().toLowerCase();
+  const knownCenter = rawCity ? CITY_BUCKET_CENTERS[rawCity] : null;
+  if (knownCenter) {
+    const distance = haversineKm(place.lat, place.lng, knownCenter.lat, knownCenter.lng);
+    if (distance <= CITY_MISMATCH_KM_THRESHOLD) return rawCity;
+  }
+  return nearestCityBucket(place.lat, place.lng);
+}
 
 function asSinglePlace(
   place: MapQueryPlace | MapQueryPlace[] | null | undefined,
@@ -159,9 +216,11 @@ function asSingleProfile(
 }
 
 export default function MapClient({ userId }: Props) {
+  const router = useRouter();
   const supabase = createClient();
   const locale = useLocale();
   const t = useTranslations('map');
+  const tFeed = useTranslations('feed');
   const tPost = useTranslations('post');
   const tCities = useTranslations('cities');
   const tDistricts = useTranslations('districts');
@@ -328,6 +387,8 @@ export default function MapClient({ userId }: Props) {
   // Place search state
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [showPlaceAdd, setShowPlaceAdd] = useState(false);
   const [showRecommendNeighborhoods, setShowRecommendNeighborhoods] =
     useState(false);
   const [recommendCity, setRecommendCity] = useState<string | null>(null);
@@ -734,13 +795,13 @@ export default function MapClient({ userId }: Props) {
     const cityMap = new Map<string, { latSum: number; lngSum: number; count: number; placeCount: number }>();
 
     for (const place of sourcePlaces) {
-      if (!place.city) continue;
-      const entry = cityMap.get(place.city) ?? { latSum: 0, lngSum: 0, count: 0, placeCount: 0 };
+      const cityBucket = resolveCityBucket(place);
+      const entry = cityMap.get(cityBucket) ?? { latSum: 0, lngSum: 0, count: 0, placeCount: 0 };
       entry.latSum += place.lat;
       entry.lngSum += place.lng;
       entry.count += 1;
       entry.placeCount += 1;
-      cityMap.set(place.city, entry);
+      cityMap.set(cityBucket, entry);
     }
 
     return Array.from(cityMap.entries())
@@ -1320,8 +1381,6 @@ export default function MapClient({ userId }: Props) {
                       lng: cityItem.lng,
                       zoom: Math.max(mapZoom + 1.4, CITY_STAGE_MAX_ZOOM + 0.6),
                     });
-                    selectCity(cityItem.city);
-                    setDistrict(null);
                   }}
                 >
                 <button
@@ -1492,12 +1551,39 @@ export default function MapClient({ userId }: Props) {
         onToggleRecommendNeighborhoods={() =>
           setShowRecommendNeighborhoods((prev) => !prev)
         }
+        onOpenCreateSheet={() => setShowActionSheet(true)}
         onOpenSavedCourses={() => setShowSavedCourses(true)}
         onOpenCourseTypePicker={() => {
           setShowCourseTypePicker(true);
           setSelected(null);
         }}
       />
+
+      <FeedActionSheet
+        open={showActionSheet}
+        onClose={() => setShowActionSheet(false)}
+        onUpload={() => {
+          setShowActionSheet(false);
+          router.push('/upload');
+        }}
+        onAddPlace={() => {
+          setShowActionSheet(false);
+          if (!userId) {
+            router.push('/login?next=%2Fmap');
+            return;
+          }
+          setShowPlaceAdd(true);
+        }}
+        t={(key) => tFeed(key as Parameters<typeof tFeed>[0])}
+      />
+
+      {showPlaceAdd && userId && (
+        <PlaceAddSheet
+          userId={userId}
+          onClose={() => setShowPlaceAdd(false)}
+          onSaved={() => setShowPlaceAdd(false)}
+        />
+      )}
 
       {mapMode === 'normal' &&
         showRecommendNeighborhoods &&
@@ -1641,16 +1727,6 @@ export default function MapClient({ userId }: Props) {
                 {t('share')}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Place count badge */}
-      {mapMode === 'normal' && places.length > 0 && !selected && (
-        <div className="absolute top-28 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-          <div className="bg-black/50 text-white text-xs px-3 py-1 rounded-full">
-            {places.length}
-            {t('placeCount')}
           </div>
         </div>
       )}

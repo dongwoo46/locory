@@ -59,3 +59,11 @@ Source: `MAP_OPTIMIZATION_WORKLOG.md`
 - Final `npm run build` passed.
 - Remaining items mainly warning-level messages.
 
+## 9) Recent Map UX/Auth/Translate Tweaks (2026-04-01)
+
+- Map place sheet translation control restored and aligned with locale-aware visibility.
+- Translation visibility now depends on detected language vs current locale.
+- Logged-out users see a login-required hint instead of translate action.
+- `/api/translate/detect` can be called without login; `/api/translate` remains login-only.
+- Initial map empty-state flicker was reduced by gating message display to active-filter scenarios.
+- Map header readability and compact height were adjusted for better in-map visibility.

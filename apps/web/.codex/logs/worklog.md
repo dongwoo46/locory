@@ -49,3 +49,25 @@
 - Backfill for existing DB records:
   - Added migration `supabase/migrations/043_backfill_places_district_to_gu.sql`.
   - Backfills KR rows to gu/gun-level `district` from address/raw fields and normalizes existing rows.
+
+- Map place detail translation behavior updates:
+  - Re-added memo translation controls in map place post detail sheet (`PlaceFeedSheet`).
+  - Added language-detection gate:
+    - hide translate action when memo language already matches current locale
+    - show login-required hint for logged-out users when language differs
+    - keep translate action available for logged-in users only
+  - Opened `/api/translate/detect` for unauthenticated language detection only.
+  - Kept `/api/translate` login-required for actual translation and quota tracking.
+
+- Map empty-state and header polish:
+  - Suppressed initial "no places" flash on first map enter; empty-state now appears only when active filters are applied and result is empty.
+  - Improved map top header readability over map tiles (translucent white + blur + border/shadow).
+  - Reduced header vertical size for less visual weight.
+  - Added logged-out top-right auth actions on map header (`Sign up` / `Log in` linking to `/login?next=/map`).
+
+- Validation:
+  - Targeted lint passed for:
+    - `src/app/api/translate/detect/route.ts`
+    - `src/app/map/components/PlaceFeedSheet.tsx`
+    - `src/app/map/MapClient.tsx`
+    - `src/app/map/components/MapTopControls.tsx`
