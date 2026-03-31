@@ -71,3 +71,25 @@
     - `src/app/map/components/PlaceFeedSheet.tsx`
     - `src/app/map/MapClient.tsx`
     - `src/app/map/components/MapTopControls.tsx`
+
+- Map top controls behavior fixes:
+  - Changed header `+` action from opening route/course picker to opening create action sheet (feed/place creation).
+  - Kept route/course picker accessible from its dedicated right-side button only.
+  - Added map create flow wiring:
+    - feed creation -> `/upload`
+    - place creation -> `PlaceAddSheet` (logged-in only), logged-out redirects to `/login?next=/map`.
+
+- Map UI cleanup:
+  - Removed top-center map place total badge (e.g., "66 places").
+
+- i18n bug fix on map create sheet:
+  - Fixed missing message error `map.addFeed` by using `feed` namespace keys for create action sheet labels.
+
+- City count marker reliability fix (non-Seoul/Busan):
+  - Improved far-zoom city aggregation with coordinate-based city bucket fallback.
+  - Added nearest-city assignment for mismatched/missing city data.
+  - Included additional KR city buckets for aggregation fallback (e.g., Daejeon, Gwangju, Daegu, Ulsan, Sejong).
+  - Changed city marker click behavior to zoom-in focus without forcing city filter.
+
+- Validation:
+  - Targeted lint passed for updated map files after each change.
