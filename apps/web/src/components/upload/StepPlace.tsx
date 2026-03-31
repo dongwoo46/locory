@@ -32,6 +32,9 @@ interface LocationInfo {
   address: string
   countryCode?: string | null
   adminAreaLevel2?: string | null
+  googlePlaceId?: string | null
+  googleRating?: number | null
+  googleReviewCount?: number | null
   existingId?: string
 }
 
@@ -51,6 +54,9 @@ export default function StepPlace({ onSelect }: Props) {
     lng: number
     countryCode?: string | null
     adminAreaLevel2?: string | null
+    googlePlaceId?: string | null
+    googleRating?: number | null
+    googleReviewCount?: number | null
   }>>([])
   const [location, setLocation] = useState<LocationInfo | null>(null)
   const [category, setCategory] = useState<Category | null>(null)
@@ -58,7 +64,17 @@ export default function StepPlace({ onSelect }: Props) {
   const [searchLoading, setSearchLoading] = useState(false)
   const [placeName, setPlaceName] = useState('')
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 })
-  const searchCache = useRef<Record<string, Array<{ name: string; address: string; lat: number; lng: number; countryCode?: string | null; adminAreaLevel2?: string | null }>>>({})
+  const searchCache = useRef<Record<string, Array<{
+    name: string
+    address: string
+    lat: number
+    lng: number
+    countryCode?: string | null
+    adminAreaLevel2?: string | null
+    googlePlaceId?: string | null
+    googleRating?: number | null
+    googleReviewCount?: number | null
+  }>>>({})
   const isSearching = useRef(false)
 
   const executeSearch = useCallback(async (query: string) => {
@@ -96,7 +112,17 @@ export default function StepPlace({ onSelect }: Props) {
     if (e.key === 'Enter') executeSearch(searchQuery)
   }
 
-  function handlePickSearchResult(result: { name: string; address: string; lat: number; lng: number; countryCode?: string | null; adminAreaLevel2?: string | null }) {
+  function handlePickSearchResult(result: {
+    name: string
+    address: string
+    lat: number
+    lng: number
+    countryCode?: string | null
+    adminAreaLevel2?: string | null
+    googlePlaceId?: string | null
+    googleRating?: number | null
+    googleReviewCount?: number | null
+  }) {
     setLocation({
       name: result.name,
       lat: result.lat,
@@ -104,6 +130,9 @@ export default function StepPlace({ onSelect }: Props) {
       address: result.address,
       countryCode: result.countryCode,
       adminAreaLevel2: result.adminAreaLevel2 ?? null,
+      googlePlaceId: result.googlePlaceId ?? null,
+      googleRating: result.googleRating ?? null,
+      googleReviewCount: result.googleReviewCount ?? null,
     })
     setSearchResults([])
     setSearchQuery(result.name)
@@ -172,6 +201,9 @@ export default function StepPlace({ onSelect }: Props) {
       city,
       countryCode: location.countryCode || null,
       adminAreaLevel2: location.adminAreaLevel2 || null,
+      googlePlaceId: location.googlePlaceId ?? null,
+      googleRating: location.googleRating ?? null,
+      googleReviewCount: location.googleReviewCount ?? null,
       category,
       place_type: 'normal',
     })

@@ -9,6 +9,9 @@ export interface SelectedPlace {
   city: City
   countryCode?: string | null
   adminAreaLevel2?: string | null
+  googlePlaceId?: string | null
+  googleRating?: number | null
+  googleReviewCount?: number | null
   category: Category
   place_type: PlaceType
 }

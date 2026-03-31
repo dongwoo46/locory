@@ -79,7 +79,8 @@
     "gangneung": "江陵",
     "sokcho": "束草",
     "yeosu": "麗水",
-    "incheon": "仁川"
+    "incheon": "仁川",
+    "daejeon": "??"
   },
   "districts": {
     "seoul": {
@@ -823,6 +824,7 @@
     "save": "保存する",
     "saving": "保存中...",
     "saveError": "保存に失敗しました",
+    "alreadyExists": "既に登録された場所があります。既存の場所を使用します。",
     "errorGeneral": "エラーが発生しました"
   },
   "neighborhoods": {

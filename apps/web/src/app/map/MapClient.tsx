@@ -648,7 +648,7 @@ export default function MapClient({ userId }: Props) {
   const places = useMemo(() => {
     return allPlaces
       .filter((p) => mode === 'all' || savedPlaceIds.has(p.id))
-      .filter((p) => !city || p.city === city)
+      .filter((p) => !city || p.city === city || resolveCityBucket(p) === city)
       .filter((p) => categories.size === 0 || categories.has(p.category))
       .filter((p) => !hiddenOnly || p.place_type === 'hidden_spot')
       .filter((p) => {
@@ -690,6 +690,7 @@ export default function MapClient({ userId }: Props) {
     district,
     sortBy,
     resolveDistrictKey,
+    resolveCityBucket,
   ]);
 
   const mapStage = useMemo<'city' | 'pins' | 'detail'>(() => {
@@ -873,25 +874,52 @@ export default function MapClient({ userId }: Props) {
 
   const recommendedDistricts = useMemo(() => {
     if (!activeRecommendCity) return [];
-    const districtMap = new Map<string, { value: string; label: string; placeCount: number }>();
+    const districtMap = new Map<
+      string,
+      { value: string; label: string; placeCount: number; latSum: number; lngSum: number; count: number }
+    >();
     const sourcePlaces = allPlaces.filter(
       (place) =>
-        place.city === activeRecommendCity &&
+        resolveCityBucket(place) === activeRecommendCity &&
         (mode === 'all' || savedPlaceIds.has(place.id)),
     );
 
     for (const place of sourcePlaces) {
       const districtValue = resolveDistrictKey(place.city, place.district);
       if (!districtValue) continue;
-      const label =
-        resolveDistrictLabel(activeRecommendCity, place.district, districtValue) ??
-        districtValue;
-      const entry = districtMap.get(districtValue) ?? { value: districtValue, label, placeCount: 0 };
+      const isCityLevel =
+        districtValue.endsWith('시') || districtValue.endsWith('도');
+      const bucketValue = isCityLevel ? '__city__' : districtValue;
+      const label = isCityLevel
+        ? (tCities.has(activeRecommendCity)
+          ? tCities(activeRecommendCity)
+          : activeRecommendCity)
+        : (resolveDistrictLabel(activeRecommendCity, place.district, districtValue) ??
+          districtValue);
+      const entry = districtMap.get(bucketValue) ?? {
+        value: bucketValue,
+        label,
+        placeCount: 0,
+        latSum: 0,
+        lngSum: 0,
+        count: 0,
+      };
       entry.placeCount += 1;
+      entry.latSum += place.lat;
+      entry.lngSum += place.lng;
+      entry.count += 1;
       districtMap.set(districtValue, entry);
     }
 
-    return Array.from(districtMap.values()).sort((a, b) => b.placeCount - a.placeCount);
+    return Array.from(districtMap.values())
+      .map((entry) => ({
+        value: entry.value,
+        label: entry.label,
+        placeCount: entry.placeCount,
+        lat: entry.latSum / Math.max(1, entry.count),
+        lng: entry.lngSum / Math.max(1, entry.count),
+      }))
+      .sort((a, b) => b.placeCount - a.placeCount);
   }, [activeRecommendCity, allPlaces, mode, savedPlaceIds, resolveDistrictKey, resolveDistrictLabel]);
 
   const searchResults = useMemo(() => {
@@ -1222,6 +1250,10 @@ export default function MapClient({ userId }: Props) {
           className="w-full h-full"
           onClick={() => {
             if (mapMode === 'normal') {
+              if (showRecommendNeighborhoods) {
+                setShowRecommendNeighborhoods(false);
+                return;
+              }
               // Step-wise clear on empty map click:
               // selected/highlighted -> district -> city
               if (selected || highlighted) {
@@ -1476,18 +1508,16 @@ export default function MapClient({ userId }: Props) {
                           sizes="112px"
                           className="object-cover"
                         />
+                        {post.isLocalRecommendation && (
+                          <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-[12px] text-yellow-300 shadow">
+                            ★
+                          </div>
+                        )}
+                        <div className="absolute right-2 top-2 rounded-full bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                          {tPost(`category.${post.category}`)}
+                        </div>
                         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
                         <div className="absolute bottom-2 left-2 right-2 text-white">
-                          <div className="mb-1 flex items-center gap-1">
-                            {post.isLocalRecommendation && (
-                              <span className="rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold">
-                                {tPost('hiddenSpot')}
-                              </span>
-                            )}
-                            <span className="rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] font-semibold">
-                              {tPost(`category.${post.category}`)}
-                            </span>
-                          </div>
                           <p className="truncate text-[11px] font-semibold">{post.placeName}</p>
                           {post.rating && (
                             <p className="mt-0.5 text-[10px] text-white/90">
@@ -1615,7 +1645,17 @@ export default function MapClient({ userId }: Props) {
                   key={item.value}
                   onClick={() => {
                     if (activeRecommendCity) selectCity(activeRecommendCity);
-                    setDistrict(item.value);
+                    setDistrict(item.value === '__city__' ? null : item.value);
+                    setSelected(null);
+                    setHighlighted(null);
+                    setSearchQuery('');
+                    setShowSearchDropdown(false);
+                    setShowRecommendNeighborhoods(false);
+                    setCameraTarget({
+                      lat: item.lat,
+                      lng: item.lng,
+                      zoom: Math.max(mapZoom + 1.2, DETAIL_STAGE_MIN_ZOOM + 0.2),
+                    });
                   }}
                   className={`mt-1.5 w-full rounded-xl px-2 py-1.5 text-left transition-colors ${district === item.value ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-700'}`}
                 >

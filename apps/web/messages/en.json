@@ -79,7 +79,8 @@
     "gangneung": "Gangneung",
     "sokcho": "Sokcho",
     "yeosu": "Yeosu",
-    "incheon": "Incheon"
+    "incheon": "Incheon",
+    "daejeon": "Daejeon"
   },
   "districts": {
     "seoul": {
@@ -823,6 +824,7 @@
     "save": "Save",
     "saving": "Saving...",
     "saveError": "Failed to save",
+    "alreadyExists": "This place already exists. We'll use the existing one.",
     "errorGeneral": "An error occurred"
   },
   "neighborhoods": {

@@ -79,7 +79,8 @@
     "gangneung": "Каннын",
     "sokcho": "Сокчхо",
     "yeosu": "Ёсу",
-    "incheon": "Инчхон"
+    "incheon": "Инчхон",
+    "daejeon": "??????"
   },
   "districts": {
     "seoul": {
@@ -823,6 +824,7 @@
     "save": "Сохранить",
     "saving": "Сохранение...",
     "saveError": "Не удалось сохранить",
+    "alreadyExists": "Это место уже существует. Используем существующее.",
     "errorGeneral": "Произошла ошибка"
   },
   "neighborhoods": {

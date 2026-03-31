@@ -79,7 +79,8 @@
     "gangneung": "강릉",
     "sokcho": "속초",
     "yeosu": "여수",
-    "incheon": "인천"
+    "incheon": "인천",
+    "daejeon": "\uB300\uC804"
   },
   "districts": {
     "seoul": {
@@ -823,6 +824,7 @@
     "save": "저장하기",
     "saving": "저장 중...",
     "saveError": "저장에 실패했어요",
+    "alreadyExists": "이미 등록된 장소가 있어요. 기존 장소로 저장할게요.",
     "errorGeneral": "오류가 발생했어요"
   },
   "neighborhoods": {

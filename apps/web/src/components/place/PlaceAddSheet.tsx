@@ -47,7 +47,7 @@ interface ResolvedNeighborhoodRow {
 }
 
 interface Props {
-  userId: string
+  userId?: string
   onClose: () => void
   onSaved: (place: { id: string; name: string; category: string; city: string; district: string | null }) => void
 }
@@ -68,8 +68,24 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
   const [loading, setLoading] = useState(false)
   const [gpsLoading, setGpsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [saving, setSaving] = useState(false)
   const searchCache = useRef<Record<string, FoundPlace[]>>({})
+
+  async function ensureUserId() {
+    if (userId) return userId
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser()
+    if (currentUser) return currentUser.id
+
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (error || !data.user) throw error ?? new Error('anonymous sign-in failed')
+
+    await fetch('/api/auth/init-anonymous', { method: 'POST' })
+    document.cookie = 'onboarded=1; path=/; max-age=31536000; SameSite=Lax'
+    return data.user.id
+  }
 
   async function handleGPS() {
     setGpsLoading(true)
@@ -140,6 +156,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
 
   function selectPlace(r: FoundPlace) {
     setFound(r)
+    setNotice('')
     const detectedCity = inferCityFromAddress(r.address || '') || detectCity(r.lat, r.lng)
     const detectedDistrict = r.address ? inferDistrictFromAddress(r.address, detectedCity) : null
     const isKorea = (r.countryCode || 'KR').toUpperCase() === 'KR'
@@ -149,7 +166,9 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
   async function handleSave() {
     if (!found || !category) return
     setSaving(true)
+    setNotice('')
     try {
+      const resolvedUserId = await ensureUserId()
       const city = inferCityFromAddress(found.address || '') || detectCity(found.lat, found.lng)
       let effectiveDistrict = normalizeDistrictForCity(city, district || null)
       const adminParts = extractAdministrativeAddressParts(found.address || '')
@@ -196,6 +215,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
           .eq('google_place_id', found.googlePlaceId)
           .maybeSingle()
         placeId = existing?.id ?? ''
+        if (placeId) setNotice(t('alreadyExists'))
       }
       if (!placeId) {
         // lat/lng 근처 동일 장소명으로 조회
@@ -209,6 +229,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
           .lte('lng', found.lng + 0.0001)
           .maybeSingle()
         placeId = existing?.id ?? ''
+        if (placeId) setNotice(t('alreadyExists'))
       }
       if (!placeId) {
         const { data: inserted, error: insertErr } = await supabase
@@ -229,7 +250,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
             postal_code_raw: found.postalCode || null,
             category,
             place_type: saveType === 'hidden_spot' ? 'hidden_spot' : 'normal',
-            created_by: userId,
+            created_by: resolvedUserId,
             ...(found.googlePlaceId && { google_place_id: found.googlePlaceId }),
             ...(found.googleRating != null && { google_rating: found.googleRating }),
             ...(found.googleReviewCount != null && { google_review_count: found.googleReviewCount }),
@@ -244,7 +265,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
       // place_saves에 저장
       await supabase
         .from('place_saves')
-        .upsert({ user_id: userId, place_id: place.id }, { onConflict: 'user_id,place_id', ignoreDuplicates: true })
+        .upsert({ user_id: resolvedUserId, place_id: place.id }, { onConflict: 'user_id,place_id', ignoreDuplicates: true })
 
       onSaved({ id: place.id, name: found.name, category, city, district: effectiveDistrict })
       onClose()
@@ -280,7 +301,7 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
             ] as const).map(item => (
               <button
                 key={item.key}
-                onClick={() => { setTab(item.key); setFound(null); setError('') }}
+                onClick={() => { setTab(item.key); setFound(null); setError(''); setNotice('') }}
                 className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
                   tab === item.key ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400'
                 }`}
@@ -441,6 +462,9 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
               >
                 {saving ? t('saving') : t('save')}
               </button>
+              {notice && (
+                <p className="text-xs text-blue-600 text-center mt-2">{notice}</p>
+              )}
             </div>
           )}
         </div>

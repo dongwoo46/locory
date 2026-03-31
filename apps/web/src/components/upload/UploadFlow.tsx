@@ -89,9 +89,37 @@ export default function UploadFlow() {
           inferredDistrict,
           state.place.address || null,
         )
-        const { data: place, error: placeError } = await supabase
-          .from('places')
-          .upsert({
+        if (state.place.googlePlaceId) {
+          const { data: existingByGoogle, error: existingByGoogleError } = await supabase
+            .from('places')
+            .select('id')
+            .eq('google_place_id', state.place.googlePlaceId)
+            .maybeSingle()
+          if (existingByGoogleError) throw existingByGoogleError
+          if (existingByGoogle?.id) {
+            placeId = existingByGoogle.id
+          }
+        }
+
+        if (!placeId) {
+          const { data: existingPlace, error: existingPlaceError } = await supabase
+            .from('places')
+            .select('id')
+            .eq('name', state.place.name)
+            .gte('lat', state.place.lat - 0.0001)
+            .lte('lat', state.place.lat + 0.0001)
+            .gte('lng', state.place.lng - 0.0001)
+            .lte('lng', state.place.lng + 0.0001)
+            .maybeSingle()
+
+          if (existingPlaceError) throw existingPlaceError
+          if (existingPlace?.id) {
+            placeId = existingPlace.id
+          }
+        }
+
+        if (!placeId) {
+          const placePayload = {
             name: state.place.name,
             lat: state.place.lat,
             lng: state.place.lng,
@@ -102,12 +130,46 @@ export default function UploadFlow() {
             category: state.place.category,
             place_type: state.place.place_type,
             created_by: user.id,
-          }, { onConflict: 'name,lat,lng', ignoreDuplicates: false })
-          .select('id')
-          .single()
+            ...(state.place.googlePlaceId && { google_place_id: state.place.googlePlaceId }),
+            ...(state.place.googleRating != null && { google_rating: state.place.googleRating }),
+            ...(state.place.googleReviewCount != null && { google_review_count: state.place.googleReviewCount }),
+          }
+          const { data: insertedPlace, error: insertError } = await supabase
+            .from('places')
+            .insert(placePayload)
+            .select('id')
+            .single()
 
-        if (placeError) throw placeError
-        placeId = place.id
+          if (insertError) {
+            let retryPlaceId: string | null = null
+            if (state.place.googlePlaceId) {
+              const { data: retryByGoogle, error: retryByGoogleError } = await supabase
+                .from('places')
+                .select('id')
+                .eq('google_place_id', state.place.googlePlaceId)
+                .maybeSingle()
+              if (retryByGoogleError) throw retryByGoogleError
+              retryPlaceId = retryByGoogle?.id ?? null
+            }
+            if (!retryPlaceId) {
+              const { data: retryPlace, error: retryError } = await supabase
+                .from('places')
+                .select('id')
+                .eq('name', state.place.name)
+                .gte('lat', state.place.lat - 0.0001)
+                .lte('lat', state.place.lat + 0.0001)
+                .gte('lng', state.place.lng - 0.0001)
+                .lte('lng', state.place.lng + 0.0001)
+                .maybeSingle()
+              if (retryError) throw retryError
+              retryPlaceId = retryPlace?.id ?? null
+            }
+            if (!retryPlaceId) throw insertError
+            placeId = retryPlaceId
+          } else {
+            placeId = insertedPlace.id
+          }
+        }
       }
 
       // 2. 사진 업로드
