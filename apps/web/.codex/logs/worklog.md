@@ -14,3 +14,38 @@
   - Added `rules/`, `features/`, `architecture/`, `logs/`
   - Added summaries based on `MAP_OPTIMIZATION_WORKLOG.md` and `AGENTS.md`
 
+## 2026-04-01
+
+- Map-first UX updates:
+  - Root redirect to `/map`, removed feed entry from bottom navigation flow.
+  - Kept feed page code, but removed direct client routing emphasis to feed.
+
+- Map visualization redesigned into zoom stages in `src/app/map/MapClient.tsx`:
+  - Far zoom: circular count markers.
+  - Mid zoom: neighborhood/administrative cluster count markers.
+  - Deep zoom: latest feed-photo markers (photo-first) + lightweight place markers.
+  - Added overlap spread logic for nearby markers to reduce "count mismatch vs visible markers".
+
+- Map search behavior:
+  - Search submit now uses places API fallback and pans to searched location.
+  - Local match first, API result second.
+
+- Recommended neighborhoods UI:
+  - Removed top city/district chip rows from `MapTopControls`.
+  - Added toggle button beside `all/saved`.
+  - Opened compact recommendation panel from top area, with city -> district selection and place-count sorting.
+  - Replaced hardcoded English strings with translation keys where applicable.
+
+- Anonymous and access flow:
+  - Kept map/upload usable without mandatory login.
+  - Meetup routes remain login-required (anonymous blocked).
+  - Removed guest-feed scroll login gate behavior.
+
+- District normalization/storage direction:
+  - Shifted from repeated UI-side mapping toward save-time normalization.
+  - Updated upload/place save paths to normalize `district` using address/admin-area data.
+  - Added address-admin extraction path (`adminAreaLevel2`) to upload selection flow.
+
+- Backfill for existing DB records:
+  - Added migration `supabase/migrations/043_backfill_places_district_to_gu.sql`.
+  - Backfills KR rows to gu/gun-level `district` from address/raw fields and normalizes existing rows.

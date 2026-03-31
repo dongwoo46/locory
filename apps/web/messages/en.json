@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "Saved",
-    "placesTab": "My Places",
-    "postsTab": "My Posts",
+    "placesTab": "Places",
+    "postsTab": "Posts",
     "followingTab": "Following",
     "noPlaces": "No saved places",
     "noPosts": "No saved posts",

@@ -64,7 +64,14 @@ export default function OnboardingPage() {
       }
     }
 
-    const updates: any = {
+    const updates: {
+      nickname: string
+      nationality: Nationality
+      gender: 'male' | 'female' | 'other'
+      gender_changed_at: string
+      birth_date: string
+      onboarded: boolean
+    } = {
       nickname: nickname.trim(),
       nationality,
       gender,
@@ -86,7 +93,7 @@ export default function OnboardingPage() {
     }
 
     document.cookie = 'onboarded=1; path=/; max-age=31536000'
-    router.push('/feed')
+    router.push('/map')
   }
 
   return (

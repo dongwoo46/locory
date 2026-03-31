@@ -1,16 +1,13 @@
-'use client';
+﻿'use client';
 
-import type { MouseEventHandler, RefObject } from 'react';
-import { useTranslations } from 'next-intl';
-import type { City } from '@/types/database';
+import { useLocale, useTranslations } from 'next-intl';
 import type { Place } from '../map.types';
-
-type DistrictItem = { value: string; label: string };
 
 interface MapTopControlsProps {
   mapMode: 'normal' | 'course-build' | 'course-view' | 'recommend-build';
   searchQuery: string;
   setSearchQuery: (value: string) => void;
+  onSearchSubmit: () => void;
   showSearchDropdown: boolean;
   setShowSearchDropdown: (value: boolean) => void;
   searchResults: Place[];
@@ -20,25 +17,18 @@ interface MapTopControlsProps {
   onToggleFilters: () => void;
   mode: 'all' | 'saved';
   setMode: (mode: 'all' | 'saved') => void;
+  canUseSavedMode: boolean;
+  showRecommendNeighborhoods: boolean;
+  onToggleRecommendNeighborhoods: () => void;
   onOpenSavedCourses: () => void;
   onOpenCourseTypePicker: () => void;
-  cityScrollRef: RefObject<HTMLDivElement | null>;
-  onCityMouseDown: MouseEventHandler<HTMLDivElement>;
-  onCityMouseMove: MouseEventHandler<HTMLDivElement>;
-  onCityMouseUp: MouseEventHandler<HTMLDivElement>;
-  onCityMouseLeave: MouseEventHandler<HTMLDivElement>;
-  city: string | null;
-  selectCity: (city: string | null) => void;
-  cities: { value: City; label: string }[];
-  districtList: DistrictItem[];
-  district: string | null;
-  setDistrict: (district: string | null) => void;
 }
 
 export default function MapTopControls({
   mapMode,
   searchQuery,
   setSearchQuery,
+  onSearchSubmit,
   showSearchDropdown,
   setShowSearchDropdown,
   searchResults,
@@ -48,23 +38,17 @@ export default function MapTopControls({
   onToggleFilters,
   mode,
   setMode,
+  canUseSavedMode,
+  showRecommendNeighborhoods,
+  onToggleRecommendNeighborhoods,
   onOpenSavedCourses,
   onOpenCourseTypePicker,
-  cityScrollRef,
-  onCityMouseDown,
-  onCityMouseMove,
-  onCityMouseUp,
-  onCityMouseLeave,
-  city,
-  selectCity,
-  cities,
-  districtList,
-  district,
-  setDistrict,
 }: MapTopControlsProps) {
+  const locale = useLocale();
   const t = useTranslations('map');
   const tCities = useTranslations('cities');
-  if (mapMode === 'course-view') return null;
+  const funSpotsLabel =
+    locale === 'ko' ? '\uB180\uB9CC\uD55C \uACF3' : t('recommend.pickFeature2');
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none">
@@ -93,6 +77,12 @@ export default function MapTopControls({
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onSearchSubmit();
+                  }
                 }}
                 onFocus={() => setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 150)}
@@ -141,7 +131,7 @@ export default function MapTopControls({
                         <p className="text-xs text-gray-400 truncate">
                           {tCities(place.city)}
                           {place.district && place.district !== 'other'
-                            ? ` · ${place.district}`
+                            ? ' - ' + place.district
                             : ''}
                         </p>
                       )}
@@ -181,12 +171,26 @@ export default function MapTopControls({
               {(['all', 'saved'] as const).map((m) => (
                 <button
                   key={m}
-                  onClick={() => setMode(m)}
+                  onClick={() => {
+                    if (m === 'saved' && !canUseSavedMode) return;
+                    setMode(m);
+                  }}
+                  disabled={m === 'saved' && !canUseSavedMode}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${mode === m ? 'bg-gray-900 text-white' : 'text-gray-500'}`}
                 >
                   {t(m)}
                 </button>
               ))}
+              <button
+                onClick={onToggleRecommendNeighborhoods}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  showRecommendNeighborhoods
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-500'
+                }`}
+              >
+                {funSpotsLabel}
+              </button>
             </div>
             <div className="flex gap-1.5 ml-auto">
               <button
@@ -250,45 +254,9 @@ export default function MapTopControls({
           </div>
         )}
 
-        <div
-          ref={cityScrollRef}
-          onMouseDown={onCityMouseDown}
-          onMouseMove={onCityMouseMove}
-          onMouseUp={onCityMouseUp}
-          onMouseLeave={onCityMouseLeave}
-          className="flex gap-1.5 overflow-x-auto scrollbar-hide pointer-events-auto pb-0.5 cursor-grab select-none"
-        >
-          <button
-            onClick={() => selectCity(null)}
-            className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium shadow transition-colors ${!city ? 'bg-gray-900 text-white' : 'bg-white text-gray-600'}`}
-          >
-            {t('all')}
-          </button>
-          {cities.map((c) => (
-            <button
-              key={c.value}
-              onClick={() => selectCity(city === c.value ? null : c.value)}
-              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium shadow transition-colors ${city === c.value ? 'bg-gray-900 text-white' : 'bg-white text-gray-600'}`}
-            >
-              {tCities(c.value)}
-            </button>
-          ))}
-        </div>
-
-        {city && districtList.length > 0 && (
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pointer-events-auto pb-0.5 cursor-grab select-none">
-            {districtList.map((d) => (
-              <button
-                key={d.value}
-                onClick={() => setDistrict(district === d.value ? null : d.value)}
-                className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-medium shadow transition-colors ${district === d.value ? 'bg-gray-700 text-white' : 'bg-white/90 text-gray-600'}`}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
 }
+
+

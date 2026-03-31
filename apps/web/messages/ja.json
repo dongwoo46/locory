@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "保存済み",
-    "placesTab": "マイ場所",
-    "postsTab": "マイ投稿",
+    "placesTab": "場所",
+    "postsTab": "投稿",
     "followingTab": "フォロー中の場所",
     "noPlaces": "保存した場所がありません",
     "noPosts": "保存した投稿がありません",

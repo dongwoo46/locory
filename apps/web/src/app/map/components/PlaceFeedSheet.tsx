@@ -54,6 +54,14 @@ export default function PlaceFeedSheet({
   const tPost = useTranslations('post');
   const tCities = useTranslations('cities');
   const tDistricts = useTranslations('districts');
+  const getCityLabel = (city: string): string => {
+    const key = city as Parameters<typeof tCities>[0];
+    return tCities.has(key) ? tCities(key) : city;
+  };
+  const getDistrictLabel = (city: string, district: string): string => {
+    const key = `${city}.${district}` as Parameters<typeof tDistricts>[0];
+    return tDistricts.has(key) ? tDistricts(key) : district;
+  };
 
   const [showPlaceReport, setShowPlaceReport] = useState(false);
   const [showPlaceMenu, setShowPlaceMenu] = useState(false);
@@ -120,9 +128,9 @@ export default function PlaceFeedSheet({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-gray-900 truncate">{place.name}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {tPost(`category.${place.category}`)} · {tCities(place.city)}
+                  {tPost(`category.${place.category}`)} - {getCityLabel(place.city)}
                   {place.district && place.district !== 'other'
-                    ? ` ${tDistricts(`${place.city}.${place.district}`)}`
+                    ? ` ${getDistrictLabel(place.city, place.district)}`
                     : ''}
                   {place.place_type === 'hidden_spot' && (
                     <span className="ml-1 text-purple-400">{tPost('hiddenSpot')}</span>
@@ -339,8 +347,8 @@ export default function PlaceFeedSheet({
               )}
             </div>
             <div className="px-4 pb-2 -mt-1 flex items-center gap-3 text-xs text-gray-500">
-              <span>❤️ {toCount(sheetPost.post_likes?.[0]?.count)}</span>
-              <span>🔖 {toCount(sheetPost.post_saves?.[0]?.count)}</span>
+              <span>Likes {toCount(sheetPost.post_likes?.[0]?.count)}</span>
+              <span>Saves {toCount(sheetPost.post_saves?.[0]?.count)}</span>
             </div>
             {sheetPost.photos?.[0] && (
               <div className="relative aspect-square bg-gray-100 overflow-hidden">
@@ -358,7 +366,7 @@ export default function PlaceFeedSheet({
             <div className="px-4 py-3 pb-8 flex flex-col gap-3">
               {sheetPost.recommended_menu && (
                 <div className="flex items-start gap-2 px-3 py-2.5 bg-orange-50 rounded-xl">
-                  <span className="text-base shrink-0">🍽️</span>
+                  <span className="text-base shrink-0">i</span>
                   <div>
                     <p className="text-[10px] font-semibold text-orange-500 mb-0.5">
                       {t('menuLabel')}
@@ -377,3 +385,4 @@ export default function PlaceFeedSheet({
     </>
   );
 }
+

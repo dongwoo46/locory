@@ -11,6 +11,7 @@ import StepMemo from './StepMemo'
 import { useTranslations } from 'next-intl'
 import { INITIAL_STATE, type UploadState } from './types'
 import { optimizeImageFile, optimizeImageFileCover } from '@/lib/utils/image'
+import { inferDistrictFromAddress, normalizeDistrictForStorage } from '@/lib/utils/districts'
 
 export default function UploadFlow() {
   const router = useRouter()
@@ -53,18 +54,41 @@ export default function UploadFlow() {
     setState(prev => ({ ...prev, step: (prev.step - 1) as UploadState['step'] }))
   }
 
+  async function ensureUserSession() {
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser()
+    if (currentUser) return currentUser
+
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (error || !data.user) throw new Error(t('loginRequired'))
+
+    await fetch('/api/auth/init-anonymous', { method: 'POST' })
+    document.cookie = 'onboarded=1; path=/; max-age=31536000; SameSite=Lax'
+    return data.user
+  }
+
   async function handleSubmit() {
     if (!state.place || !state.postType) return
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error(t('loginRequired'))
+      const user = await ensureUserSession()
 
       // 1. 장소 upsert
       let placeId = state.place.id
       if (!placeId) {
         const countryCode = (state.place.countryCode || 'KR').toUpperCase()
+        const inferredDistrict =
+          state.place.adminAreaLevel2 ||
+          inferDistrictFromAddress(state.place.address || '', state.place.city) ||
+          null
+        const districtFromAddress = normalizeDistrictForStorage(
+          state.place.city,
+          countryCode,
+          inferredDistrict,
+          state.place.address || null,
+        )
         const { data: place, error: placeError } = await supabase
           .from('places')
           .upsert({
@@ -73,6 +97,7 @@ export default function UploadFlow() {
             lng: state.place.lng,
             address: state.place.address,
             city: state.place.city,
+            district: districtFromAddress || null,
             country_code: countryCode,
             category: state.place.category,
             place_type: state.place.place_type,
@@ -178,8 +203,7 @@ export default function UploadFlow() {
       }
 
       // 피드 돌아올 때 새로고침 트리거
-      sessionStorage.setItem('feed-needs-refresh', '1')
-      router.push('/feed')
+      router.push('/map')
     } catch (err) {
       console.error(err)
       alert(t('failedMsg'))

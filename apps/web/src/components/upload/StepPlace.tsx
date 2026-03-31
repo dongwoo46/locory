@@ -31,6 +31,7 @@ interface LocationInfo {
   lng: number
   address: string
   countryCode?: string | null
+  adminAreaLevel2?: string | null
   existingId?: string
 }
 
@@ -49,6 +50,7 @@ export default function StepPlace({ onSelect }: Props) {
     lat: number
     lng: number
     countryCode?: string | null
+    adminAreaLevel2?: string | null
   }>>([])
   const [location, setLocation] = useState<LocationInfo | null>(null)
   const [category, setCategory] = useState<Category | null>(null)
@@ -56,7 +58,7 @@ export default function StepPlace({ onSelect }: Props) {
   const [searchLoading, setSearchLoading] = useState(false)
   const [placeName, setPlaceName] = useState('')
   const [mapCenter, setMapCenter] = useState({ lat: 37.5665, lng: 126.978 })
-  const searchCache = useRef<Record<string, Array<{ name: string; address: string; lat: number; lng: number; countryCode?: string | null }>>>({})
+  const searchCache = useRef<Record<string, Array<{ name: string; address: string; lat: number; lng: number; countryCode?: string | null; adminAreaLevel2?: string | null }>>>({})
   const isSearching = useRef(false)
 
   const executeSearch = useCallback(async (query: string) => {
@@ -94,13 +96,14 @@ export default function StepPlace({ onSelect }: Props) {
     if (e.key === 'Enter') executeSearch(searchQuery)
   }
 
-  function handlePickSearchResult(result: { name: string; address: string; lat: number; lng: number; countryCode?: string | null }) {
+  function handlePickSearchResult(result: { name: string; address: string; lat: number; lng: number; countryCode?: string | null; adminAreaLevel2?: string | null }) {
     setLocation({
       name: result.name,
       lat: result.lat,
       lng: result.lng,
       address: result.address,
       countryCode: result.countryCode,
+      adminAreaLevel2: result.adminAreaLevel2 ?? null,
     })
     setSearchResults([])
     setSearchQuery(result.name)
@@ -123,6 +126,7 @@ export default function StepPlace({ onSelect }: Props) {
             lng,
             address: data.address || '',
             countryCode: data.countryCode ?? null,
+            adminAreaLevel2: data.adminAreaLevel2 ?? null,
           })
         } catch {
           setLocation({ name: t('place.currentLocation'), lat, lng, address: '' })
@@ -136,10 +140,10 @@ export default function StepPlace({ onSelect }: Props) {
   async function handleMapPick({ lat, lng, name: poiName, address: poiAddress }: { lat: number; lng: number; name?: string; address?: string }) {
     if (poiName) {
       setPlaceName(poiName)
-      setLocation({ name: poiName, lat, lng, address: poiAddress || '', countryCode: null })
+      setLocation({ name: poiName, lat, lng, address: poiAddress || '', countryCode: null, adminAreaLevel2: null })
       return
     }
-    setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address: '' })
+    setLocation({ name: placeName || t('place.selectedLocation'), lat, lng, address: '', adminAreaLevel2: null })
     try {
       const res = await fetch(`/api/places/geocode?lat=${lat}&lng=${lng}`)
       const data = await res.json()
@@ -149,6 +153,7 @@ export default function StepPlace({ onSelect }: Props) {
         lng,
         address: data.address || '',
         countryCode: data.countryCode ?? null,
+        adminAreaLevel2: data.adminAreaLevel2 ?? null,
       })
     } catch {
       // keep existing location
@@ -166,6 +171,7 @@ export default function StepPlace({ onSelect }: Props) {
       address: location.address,
       city,
       countryCode: location.countryCode || null,
+      adminAreaLevel2: location.adminAreaLevel2 || null,
       category,
       place_type: 'normal',
     })

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { locales, defaultLocale, type Locale } from '@/i18n/config'
+import { defaultLocale, type Locale } from '@/i18n/config'
 
 // locale 문자열 → 지원 Locale 매핑
 function mapToLocale(lang: string): Locale | null {
@@ -32,7 +32,7 @@ function detectLocale(googleLocale: string | undefined, acceptLanguage: string |
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/feed'
+  const next = searchParams.get('next') ?? '/map'
 
   if (code) {
     const supabase = await createClient()

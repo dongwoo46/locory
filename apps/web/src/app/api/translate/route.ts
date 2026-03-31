@@ -1,7 +1,36 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const DAILY_LIMIT = 5
+
+function normalizeTranslatedText(value: string): string {
+  return value.trim()
+}
+
+async function translateWithGemini(text: string, target: string): Promise<string | null> {
+  const geminiApiKey = process.env.GEMINI_API_KEY
+  if (!geminiApiKey) return null
+
+  try {
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite'
+    const genAI = new GoogleGenerativeAI(geminiApiKey)
+    const model = genAI.getGenerativeModel({ model: modelName })
+    const prompt = [
+      'You are a translation API.',
+      `Translate the following text into "${target}".`,
+      'Return only the translated text with no extra explanation.',
+      '',
+      text,
+    ].join('\n')
+    const result = await model.generateContent(prompt)
+    const translated = result.response.text()
+    return normalizeTranslatedText(translated)
+  } catch (error) {
+    console.error('Gemini translate fallback error:', error)
+    return null
+  }
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -41,24 +70,30 @@ export async function POST(req: Request) {
     }
   }
 
+  let translated = ''
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Translate API not configured' }, { status: 500 })
+
+  if (apiKey) {
+    const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: text, target, format: 'text' }),
+    })
+
+    if (!res.ok) {
+      const err = await res.text()
+      return NextResponse.json({ error: 'Translation failed', detail: err }, { status: 502 })
+    }
+
+    const json = await res.json()
+    translated = json.data?.translations?.[0]?.translatedText ?? ''
+  } else {
+    const geminiTranslated = await translateWithGemini(text, target)
+    if (!geminiTranslated) {
+      return NextResponse.json({ error: 'Translate API not configured' }, { status: 500 })
+    }
+    translated = geminiTranslated
   }
-
-  const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: text, target, format: 'text' }),
-  })
-
-  if (!res.ok) {
-    const err = await res.text()
-    return NextResponse.json({ error: 'Translation failed', detail: err }, { status: 502 })
-  }
-
-  const json = await res.json()
-  const translated: string = json.data?.translations?.[0]?.translatedText ?? ''
 
   if (!isAdmin) {
     await supabase.rpc('increment_translate_usage', { p_user_id: user.id, p_date: today })

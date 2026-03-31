@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useTranslations } from 'next-intl'
-import { extractAdministrativeAddressParts, inferCityFromAddress, inferDistrictFromAddress, normalizeDistrictForCity } from '@/lib/utils/districts'
+import { extractAdministrativeAddressParts, inferCityFromAddress, inferDistrictFromAddress, normalizeDistrictForCity, normalizeDistrictForStorage } from '@/lib/utils/districts'
 import type { Category, City } from '@/types/database'
 
 const CATEGORY_EMOJIS: Record<Category, string> = {
@@ -180,6 +180,12 @@ export default function PlaceAddSheet({ userId, onClose, onSaved }: Props) {
           effectiveDistrict = resolvedLocation.neighborhood_code
         }
       }
+      effectiveDistrict = normalizeDistrictForStorage(
+        city,
+        countryCode,
+        effectiveDistrict || found.adminAreaLevel2 || adminParts.guRaw || null,
+        found.address || null,
+      )
 
       // places 테이블에 저장 (기존 장소 있으면 재사용)
       let placeId = ''

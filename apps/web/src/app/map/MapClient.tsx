@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Image from 'next/image';
 import {
   APIProvider,
   Map as GoogleMap,
@@ -9,10 +10,9 @@ import {
 } from '@vis.gl/react-google-maps';
 import { useTranslations, useLocale } from 'next-intl';
 import BottomNav from '@/components/ui/BottomNav';
-import { CITIES, getMainDistricts, normalizeDistrictForCity } from '@/lib/utils/districts';
+import { inferCityFromAddress, normalizeDistrictForCity } from '@/lib/utils/districts';
 import type { City } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
-import { useDragScroll } from '@/hooks/useDragScroll';
 import { useUserInteractions } from '@/hooks/useUserInteractions';
 import { getPostImageUrl } from '@/lib/utils/postImage';
 import {
@@ -36,6 +36,7 @@ import {
   PinMarker,
   CityNavigator,
   PlacePanner,
+  CameraPanner,
   RoutePolyline,
 } from './map-overlays';
 import MapTopControls from './components/MapTopControls';
@@ -51,7 +52,7 @@ import { useRecommendBuildState } from './hooks/useRecommendBuildState';
 import 'react-day-picker/style.css';
 
 interface Props {
-  userId: string;
+  userId: string | null;
 }
 
 type MapPlaceAggregate = Place & {
@@ -65,6 +66,81 @@ type MapPlaceAggregate = Place & {
 type WantPlaceRow = {
   places: MapQueryPlace | MapQueryPlace[] | null;
 };
+
+type MapFeedCard = {
+  id: string;
+  placeId: string;
+  placeName: string;
+  placeType: string;
+  category: string;
+  city: string;
+  district: string | null;
+  rating: string | null;
+  isLocalRecommendation: boolean;
+  photoUrl: string;
+  createdAt: string | null;
+};
+
+type PlacesSearchResult = {
+  name?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+};
+
+type MapBounds = {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+type MapCenter = { lat: number; lng: number };
+
+type CityMarkerStat = {
+  city: string;
+  lat: number;
+  lng: number;
+  placeCount: number;
+};
+
+type NeighborhoodCluster = {
+  city: string;
+  district: string;
+  label: string;
+  lat: number;
+  lng: number;
+  placeCount: number;
+};
+
+type GuMapping = { key: string; label: string };
+
+const SEOUL_GU_BY_NEIGHBORHOOD: Record<string, GuMapping> = {
+  hongdae: { key: 'mapo-gu', label: 'Mapo-gu' },
+  yeonnam: { key: 'mapo-gu', label: 'Mapo-gu' },
+  hapjeong: { key: 'mapo-gu', label: 'Mapo-gu' },
+  sinchon: { key: 'mapo-gu', label: 'Mapo-gu' },
+  seongsu: { key: 'seongdong-gu', label: 'Seongdong-gu' },
+  seoulforest: { key: 'seongdong-gu', label: 'Seongdong-gu' },
+  itaewon: { key: 'yongsan-gu', label: 'Yongsan-gu' },
+  hannam: { key: 'yongsan-gu', label: 'Yongsan-gu' },
+  yongsan: { key: 'yongsan-gu', label: 'Yongsan-gu' },
+  myeongdong: { key: 'jung-gu', label: 'Jung-gu' },
+  euljiro: { key: 'jung-gu', label: 'Jung-gu' },
+  insadong: { key: 'jongno-gu', label: 'Jongno-gu' },
+  bukchon: { key: 'jongno-gu', label: 'Jongno-gu' },
+  jongno: { key: 'jongno-gu', label: 'Jongno-gu' },
+  gangnam: { key: 'gangnam-gu', label: 'Gangnam-gu' },
+  sinsa: { key: 'gangnam-gu', label: 'Gangnam-gu' },
+  apgujeong: { key: 'gangnam-gu', label: 'Gangnam-gu' },
+  cheongdam: { key: 'gangnam-gu', label: 'Gangnam-gu' },
+  jamsil: { key: 'songpa-gu', label: 'Songpa-gu' },
+  konkuk: { key: 'gwangjin-gu', label: 'Gwangjin-gu' },
+  dongdaemun: { key: 'dongdaemun-gu', label: 'Dongdaemun-gu' },
+  yeouido: { key: 'yeongdeungpo-gu', label: 'Yeongdeungpo-gu' },
+};
+
+const CITY_STAGE_MAX_ZOOM = 8.2;
+const DETAIL_STAGE_MIN_ZOOM = 12.6;
 
 function asSinglePlace(
   place: MapQueryPlace | MapQueryPlace[] | null | undefined,
@@ -85,6 +161,11 @@ export default function MapClient({ userId }: Props) {
   const locale = useLocale();
   const t = useTranslations('map');
   const tPost = useTranslations('post');
+  const tCities = useTranslations('cities');
+  const tDistricts = useTranslations('districts');
+  const funSpotsLabel =
+    locale === 'ko' ? '\uB180\uB9CC\uD55C \uACF3' : t('recommend.pickFeature2');
+  const canUseSavedMode = Boolean(userId);
 
   // Map data cache
   const MAP_POST_FETCH_LIMIT = 300;
@@ -94,7 +175,7 @@ export default function MapClient({ userId }: Props) {
       const { data: posts } = await supabase
         .from('posts')
         .select(
-          'place_id, photos, photo_variants, type, rating, profiles!user_id(nationality, gender), places!place_id(id, name, lat, lng, category, city, district, place_type, avg_rating)',
+          'id, place_id, created_at, is_local_recommendation, photos, photo_variants, type, rating, profiles!user_id(nationality, gender), places!place_id(id, name, lat, lng, category, city, district, place_type, avg_rating)',
         )
         .eq('is_public', true)
         .is('deleted_at', null)
@@ -150,8 +231,31 @@ export default function MapClient({ userId }: Props) {
         }),
       );
 
+      const mapPosts: MapFeedCard[] = ((posts ?? []) as unknown as MapQueryPost[])
+        .map((post) => {
+          const place = asSinglePlace(post.places);
+          if (!place) return null;
+          const photoUrl = getPostImageUrl(post, 0, 'medium');
+          if (!photoUrl) return null;
+          return {
+            id: post.id,
+            placeId: place.id,
+            placeName: place.name,
+            placeType: place.place_type,
+            category: place.category,
+            city: place.city,
+            district: place.district ?? null,
+            rating: post.rating ?? null,
+            isLocalRecommendation: Boolean(post.is_local_recommendation),
+            photoUrl,
+            createdAt: post.created_at ?? null,
+          } satisfies MapFeedCard;
+        })
+        .filter((post): post is MapFeedCard => Boolean(post));
+
       return {
         allPlaces,
+        mapPosts,
       };
     },
     staleTime: 5 * 60 * 1000,
@@ -164,6 +268,10 @@ export default function MapClient({ userId }: Props) {
   const allPlaces = useMemo<Place[]>(
     () => mapData?.allPlaces ?? [],
     [mapData?.allPlaces],
+  );
+  const allMapPosts = useMemo<MapFeedCard[]>(
+    () => mapData?.mapPosts ?? [],
+    [mapData?.mapPosts],
   );
   const { data: interactions } = useUserInteractions(userId);
   const savedPlaceIds = useMemo<Set<string>>(
@@ -200,10 +308,27 @@ export default function MapClient({ userId }: Props) {
   } = useMapFilters();
   const [selected, setSelected] = useState<Place | null>(null);
   const [highlighted, setHighlighted] = useState<Place | null>(null);
+  const [cameraTarget, setCameraTarget] = useState<{
+    lat: number;
+    lng: number;
+    zoom?: number;
+  } | null>(null);
+  const [mapZoom, setMapZoom] = useState<number>(7);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const [mapCenter, setMapCenter] = useState<MapCenter | null>(null);
+
+  useEffect(() => {
+    if (!canUseSavedMode && mode === 'saved') {
+      setMode('all');
+    }
+  }, [canUseSavedMode, mode, setMode]);
 
   // Place search state
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showRecommendNeighborhoods, setShowRecommendNeighborhoods] =
+    useState(false);
+  const [recommendCity, setRecommendCity] = useState<string | null>(null);
 
   // Course builder state
   const [mapMode, setMapMode] = useState<
@@ -283,7 +408,7 @@ export default function MapClient({ userId }: Props) {
     selectedCoursePlace,
     setSelectedCoursePlace,
   } = useSavedCoursesState({
-    userId,
+    userId: userId ?? '',
     mapMode,
     supabase,
   });
@@ -327,12 +452,14 @@ export default function MapClient({ userId }: Props) {
   });
 
   const shouldLoadAccommodation =
-    (mapMode === 'course-build' && buildStep === 'settings') ||
-    (mapMode === 'recommend-build' && recommendStep === 'settings');
+    Boolean(userId) &&
+    ((mapMode === 'course-build' && buildStep === 'settings') ||
+      (mapMode === 'recommend-build' && recommendStep === 'settings'));
   useQuery({
     queryKey: ['saved-accommodation', userId],
     enabled: shouldLoadAccommodation,
     queryFn: async () => {
+      if (!userId) return null;
       const { data, error } = await supabase
         .from('profiles')
         .select('accommodation_name, accommodation_address')
@@ -390,6 +517,7 @@ export default function MapClient({ userId }: Props) {
   }
 
   async function saveAccommodation(name: string, address: string) {
+    if (!userId) return;
     await supabase
       .from('profiles')
       .update({ accommodation_name: name, accommodation_address: address })
@@ -399,10 +527,55 @@ export default function MapClient({ userId }: Props) {
     setAccomResults([]);
   }
 
-  const cityScroll = useDragScroll();
   const allCategories = useMemo(
     () => [...new Set(allPlaces.map((p) => p.category))],
     [allPlaces],
+  );
+
+  const resolveDistrictKey = useCallback(
+    (cityValue: string, districtValue: string | null) => {
+      const raw = (districtValue ?? '').trim();
+      const normalized = normalizeDistrictForCity(cityValue, districtValue);
+
+      const rawKey = raw.toLowerCase();
+      const normalizedKey = (normalized ?? '').toLowerCase();
+      if (cityValue === 'seoul') {
+        const mapped =
+          SEOUL_GU_BY_NEIGHBORHOOD[rawKey] ??
+          SEOUL_GU_BY_NEIGHBORHOOD[normalizedKey];
+        if (mapped) return mapped.key;
+      }
+
+      if (raw && raw.toLowerCase() !== 'other') {
+        if (raw.endsWith('\uAD6C') || raw.endsWith('\uAD70')) return raw.toLowerCase();
+        return raw.toLowerCase();
+      }
+      if (normalized && normalized !== 'other') return normalized.toLowerCase();
+      return null;
+    },
+    [],
+  );
+
+  const resolveDistrictLabel = useCallback(
+    (cityValue: string, districtValue: string | null, fallbackKey: string | null) => {
+      const raw = (districtValue ?? '').trim();
+      const normalized = normalizeDistrictForCity(cityValue, districtValue);
+      const rawKey = raw.toLowerCase();
+      const normalizedKey = (normalized ?? '').toLowerCase();
+      if (cityValue === 'seoul') {
+        const mapped =
+          SEOUL_GU_BY_NEIGHBORHOOD[rawKey] ??
+          SEOUL_GU_BY_NEIGHBORHOOD[normalizedKey];
+        if (mapped) return mapped.label;
+      }
+      if (raw && raw.toLowerCase() !== 'other') {
+        if (raw.endsWith('\uAD6C') || raw.endsWith('\uAD70')) return raw;
+      }
+      if (!fallbackKey) return null;
+      const i18nKey = `${cityValue}.${fallbackKey}`;
+      return tDistricts.has(i18nKey) ? tDistricts(i18nKey) : fallbackKey;
+    },
+    [tDistricts],
   );
 
   const places = useMemo(() => {
@@ -430,7 +603,11 @@ export default function MapClient({ userId }: Props) {
         if (!p.genders || p.genders.length === 0) return false;
         return p.genders.includes(genderFilter);
       })
-      .filter((p) => !district || normalizeDistrictForCity(p.city, p.district) === district)
+      .filter((p) => {
+        if (!district) return true;
+        const key = resolveDistrictKey(p.city, p.district);
+        return key === district;
+      })
       .sort((a, b) => (sortBy === 'popular' ? b.postCount - a.postCount : 0));
   }, [
     allPlaces,
@@ -445,12 +622,210 @@ export default function MapClient({ userId }: Props) {
     genderFilter,
     district,
     sortBy,
+    resolveDistrictKey,
   ]);
 
-  const districtList = useMemo(
-    () => (city ? getMainDistricts(city as City) : []),
-    [city],
+  const mapStage = useMemo<'city' | 'pins' | 'detail'>(() => {
+    if (mapMode !== 'normal') return 'pins';
+    if (mapZoom <= CITY_STAGE_MAX_ZOOM) return 'city';
+    if (mapZoom < DETAIL_STAGE_MIN_ZOOM) return 'pins';
+    return 'detail';
+  }, [mapMode, mapZoom]);
+
+  const isInBounds = useCallback((lat: number, lng: number) => {
+    if (!mapBounds) return true;
+    const latPadding = (mapBounds.north - mapBounds.south) * 0.12;
+    const lngPadding = (mapBounds.east - mapBounds.west) * 0.12;
+    const north = mapBounds.north + latPadding;
+    const south = mapBounds.south - latPadding;
+    const east = mapBounds.east + lngPadding;
+    const west = mapBounds.west - lngPadding;
+    const latOk = lat <= north && lat >= south;
+    const lngOk =
+      west <= east
+        ? lng >= west && lng <= east
+        : lng >= west || lng <= east;
+    return latOk && lngOk;
+  }, [mapBounds]);
+
+  const visiblePlaces = useMemo(
+    () => places.filter((place) => isInBounds(place.lat, place.lng)),
+    [places, isInBounds],
   );
+
+  const detailPlaces = useMemo(() => {
+    if (visiblePlaces.length > 0) return visiblePlaces;
+    if (!mapCenter) return places.slice(0, 40);
+    return [...places]
+      .sort((a, b) => {
+        const da =
+          (a.lat - mapCenter.lat) * (a.lat - mapCenter.lat) +
+          (a.lng - mapCenter.lng) * (a.lng - mapCenter.lng);
+        const db =
+          (b.lat - mapCenter.lat) * (b.lat - mapCenter.lat) +
+          (b.lng - mapCenter.lng) * (b.lng - mapCenter.lng);
+        return da - db;
+      })
+      .slice(0, 40);
+  }, [visiblePlaces, places, mapCenter]);
+
+  const detailPlacePositions = useMemo(() => {
+    const grouped = new Map<string, Place[]>();
+    for (const place of detailPlaces) {
+      const key = `${place.lat.toFixed(5)}:${place.lng.toFixed(5)}`;
+      const arr = grouped.get(key) ?? [];
+      arr.push(place);
+      grouped.set(key, arr);
+    }
+
+    const positioned = new Map<string, { lat: number; lng: number }>();
+    grouped.forEach((group) => {
+      group.forEach((place, index) => {
+        if (index === 0) {
+          positioned.set(place.id, { lat: place.lat, lng: place.lng });
+          return;
+        }
+        const ring = Math.floor((index - 1) / 6);
+        const step = (index - 1) % 6;
+        const angle = (Math.PI / 3) * step;
+        const radius = 0.00012 + ring * 0.00007;
+        positioned.set(place.id, {
+          lat: place.lat + Math.sin(angle) * radius,
+          lng: place.lng + Math.cos(angle) * radius,
+        });
+      });
+    });
+    return positioned;
+  }, [detailPlaces]);
+
+  const placeById = useMemo(() => {
+    const map = new Map<string, Place>();
+    for (const place of allPlaces) {
+      map.set(place.id, place);
+    }
+    return map;
+  }, [allPlaces]);
+
+  const latestFeedByPlace = useMemo(() => {
+    const latest = new Map<string, MapFeedCard>();
+    for (const post of allMapPosts) {
+      const place = placeById.get(post.placeId);
+      if (!place || !isInBounds(place.lat, place.lng)) continue;
+      const prev = latest.get(post.placeId);
+      if (!prev) {
+        latest.set(post.placeId, post);
+        continue;
+      }
+      if (!prev.createdAt || !post.createdAt || post.createdAt > prev.createdAt) {
+        latest.set(post.placeId, post);
+      }
+    }
+    return latest;
+  }, [allMapPosts, placeById, isInBounds]);
+
+  const cityMarkerStats = useMemo<CityMarkerStat[]>(() => {
+    const sourcePlaces = allPlaces.filter((place) => mode === 'all' || savedPlaceIds.has(place.id));
+    const cityMap = new Map<string, { latSum: number; lngSum: number; count: number; placeCount: number }>();
+
+    for (const place of sourcePlaces) {
+      if (!place.city) continue;
+      const entry = cityMap.get(place.city) ?? { latSum: 0, lngSum: 0, count: 0, placeCount: 0 };
+      entry.latSum += place.lat;
+      entry.lngSum += place.lng;
+      entry.count += 1;
+      entry.placeCount += 1;
+      cityMap.set(place.city, entry);
+    }
+
+    return Array.from(cityMap.entries())
+      .map(([cityKey, entry]) => ({
+        city: cityKey,
+        lat: entry.latSum / entry.count,
+        lng: entry.lngSum / entry.count,
+        placeCount: entry.placeCount,
+      }))
+      .filter((item) => item.placeCount > 0);
+  }, [allPlaces, mode, savedPlaceIds]);
+
+  const neighborhoodClusters = useMemo<NeighborhoodCluster[]>(() => {
+    const clusterMap = new Map<
+      string,
+      { city: string; district: string; label: string; latSum: number; lngSum: number; count: number; placeCount: number }
+    >();
+
+    for (const place of visiblePlaces) {
+      const districtValue = resolveDistrictKey(place.city, place.district);
+      if (!districtValue) continue;
+      const key = `${place.city}.${districtValue}`;
+      const label =
+        resolveDistrictLabel(place.city, place.district, districtValue) ?? districtValue;
+      const entry = clusterMap.get(key) ?? {
+        city: place.city,
+        district: districtValue,
+        label,
+        latSum: 0,
+        lngSum: 0,
+        count: 0,
+        placeCount: 0,
+      };
+      entry.latSum += place.lat;
+      entry.lngSum += place.lng;
+      entry.count += 1;
+      entry.placeCount += 1;
+      clusterMap.set(key, entry);
+    }
+
+    return Array.from(clusterMap.values())
+      .map((entry) => ({
+        city: entry.city,
+        district: entry.district,
+        label: entry.label,
+        lat: entry.latSum / entry.count,
+        lng: entry.lngSum / entry.count,
+        placeCount: entry.placeCount,
+      }))
+      .filter((item) => item.placeCount > 0);
+  }, [visiblePlaces, resolveDistrictKey, resolveDistrictLabel]);
+
+  const recommendCityOptions = useMemo(
+    () => [...cityMarkerStats].sort((a, b) => b.placeCount - a.placeCount),
+    [cityMarkerStats],
+  );
+
+  const activeRecommendCity = useMemo(
+    () => city ?? recommendCity ?? recommendCityOptions[0]?.city ?? null,
+    [city, recommendCity, recommendCityOptions],
+  );
+
+  useEffect(() => {
+    if (!recommendCityOptions.length) return;
+    if (!recommendCity) {
+      setRecommendCity(recommendCityOptions[0].city);
+    }
+  }, [recommendCityOptions, recommendCity]);
+
+  const recommendedDistricts = useMemo(() => {
+    if (!activeRecommendCity) return [];
+    const districtMap = new Map<string, { value: string; label: string; placeCount: number }>();
+    const sourcePlaces = allPlaces.filter(
+      (place) =>
+        place.city === activeRecommendCity &&
+        (mode === 'all' || savedPlaceIds.has(place.id)),
+    );
+
+    for (const place of sourcePlaces) {
+      const districtValue = resolveDistrictKey(place.city, place.district);
+      if (!districtValue) continue;
+      const label =
+        resolveDistrictLabel(activeRecommendCity, place.district, districtValue) ??
+        districtValue;
+      const entry = districtMap.get(districtValue) ?? { value: districtValue, label, placeCount: 0 };
+      entry.placeCount += 1;
+      districtMap.set(districtValue, entry);
+    }
+
+    return Array.from(districtMap.values()).sort((a, b) => b.placeCount - a.placeCount);
+  }, [activeRecommendCity, allPlaces, mode, savedPlaceIds, resolveDistrictKey, resolveDistrictLabel]);
 
   const searchResults = useMemo(() => {
     if (searchQuery.trim().length === 0) return [];
@@ -468,6 +843,49 @@ export default function MapClient({ userId }: Props) {
     }
   }
 
+  async function handleSearchSubmit() {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    const localMatch = allPlaces.find((place) =>
+      place.name.toLowerCase().includes(query.toLowerCase()),
+    );
+    if (localMatch) {
+      handleSearchSelect(localMatch);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/places/search?q=${encodeURIComponent(query)}`);
+      const data = (await res.json()) as { places?: PlacesSearchResult[] };
+      const first = data.places?.[0];
+      if (!first?.lat || !first?.lng) return;
+
+      const inferredCity = first.address ? inferCityFromAddress(first.address) : null;
+      const pseudoPlace: Place = {
+        id: `search-${Date.now()}`,
+        name: first.name || query,
+        lat: first.lat,
+        lng: first.lng,
+        category: 'street',
+        city: inferredCity ?? (city as City) ?? 'seoul',
+        district: null,
+        place_type: 'normal',
+        postCount: 0,
+        photoUrl: null,
+        rating: null,
+      };
+      setHighlighted(pseudoPlace);
+      setSearchQuery('');
+      setShowSearchDropdown(false);
+      if (inferredCity) {
+        selectCity(inferredCity);
+      }
+    } catch (error) {
+      console.error('Map search failed:', error);
+    }
+  }
+
   function exitCourseMode() {
     setMapMode('normal');
     setBuildStep('select');
@@ -479,6 +897,10 @@ export default function MapClient({ userId }: Props) {
   }
 
   const loadWantPlaces = useCallback(async () => {
+    if (!userId) {
+      setWantPlaces([]);
+      return;
+    }
     const { data } = await supabase
       .from('posts')
       .select(
@@ -569,7 +991,7 @@ export default function MapClient({ userId }: Props) {
   }
 
   async function handleSaveCourse() {
-    if (!courseData || !courseTitle.trim()) return;
+    if (!courseData || !courseTitle.trim() || !userId) return;
     setSaving(true);
     try {
       const { data, error } = await supabase
@@ -732,11 +1154,77 @@ export default function MapClient({ userId }: Props) {
           disableDefaultUI
           className="w-full h-full"
           onClick={() => {
-            if (mapMode === 'normal') setSelected(null);
+            if (mapMode === 'normal') {
+              // Step-wise clear on empty map click:
+              // selected/highlighted -> district -> city
+              if (selected || highlighted) {
+                setSelected(null);
+                setHighlighted(null);
+                return;
+              }
+              if (district) {
+                setDistrict(null);
+                return;
+              }
+              if (city) {
+                selectCity(null);
+              }
+            }
+          }}
+          onCameraChanged={(event) => {
+            const detail = event.detail as {
+              zoom?: number;
+              bounds?: Partial<MapBounds>;
+              center?: Partial<MapCenter>;
+            };
+            if (typeof detail.zoom === 'number') {
+              // If user zooms out while a place sheet is open, clear selection.
+              if (
+                mapMode === 'normal' &&
+                selected &&
+                detail.zoom < mapZoom - 0.03
+              ) {
+                setSelected(null);
+                setHighlighted(null);
+              }
+              // Zoom-out should also broaden map scope so user can recover context quickly.
+              if (mapMode === 'normal' && detail.zoom < mapZoom - 0.03) {
+                if (detail.zoom <= CITY_STAGE_MAX_ZOOM && city) {
+                  setDistrict(null);
+                  selectCity(null);
+                } else if (detail.zoom < DETAIL_STAGE_MIN_ZOOM && district) {
+                  setDistrict(null);
+                }
+              }
+              setMapZoom(detail.zoom);
+            }
+            if (
+              detail.center &&
+              typeof detail.center.lat === 'number' &&
+              typeof detail.center.lng === 'number'
+            ) {
+              setMapCenter({ lat: detail.center.lat, lng: detail.center.lng });
+            }
+            const bounds = detail.bounds;
+            if (
+              bounds &&
+              typeof bounds.north === 'number' &&
+              typeof bounds.south === 'number' &&
+              typeof bounds.east === 'number' &&
+              typeof bounds.west === 'number'
+            ) {
+              setMapBounds({
+                north: bounds.north,
+                south: bounds.south,
+                east: bounds.east,
+                west: bounds.west,
+              });
+            }
           }}
         >
           <CityNavigator city={city} />
-          <PlacePanner place={highlighted ?? selected} />
+          <PlacePanner place={highlighted ?? selected} minZoom={13.2} />
+          <CameraPanner target={cameraTarget} />
 
           {/* Per-day polylines in course-view mode */}
           {mapMode === 'course-view' &&
@@ -758,7 +1246,7 @@ export default function MapClient({ userId }: Props) {
                   points={dayPlaces.map((p) => ({ lat: p.lat, lng: p.lng }))}
                   color={color}
                   onActivate={() =>
-                    showPolylineTooltip(`${t('day')} ${day.day} · ${day.theme}`)
+                    showPolylineTooltip(t('day') + ' ' + day.day + ' - ' + day.theme)
                   }
                 />
               );
@@ -812,40 +1300,159 @@ export default function MapClient({ userId }: Props) {
                 }),
             )}
 
-          {/* In normal/build mode: show regular place pins */}
-          {mapMode !== 'course-view' &&
+          {/* Normal mode: staged visualization by zoom */}
+          {mapMode === 'normal' && mapStage === 'city' &&
+            cityMarkerStats.map((cityItem) => (
+                <AdvancedMarker
+                  key={`city-${cityItem.city}`}
+                  position={{ lat: cityItem.lat, lng: cityItem.lng }}
+                  onClick={() => {
+                    setSelected(null);
+                    setHighlighted(null);
+                    setCameraTarget({
+                      lat: cityItem.lat,
+                      lng: cityItem.lng,
+                      zoom: Math.max(mapZoom + 1.4, CITY_STAGE_MAX_ZOOM + 0.6),
+                    });
+                    selectCity(cityItem.city);
+                    setDistrict(null);
+                  }}
+                >
+                <button
+                  aria-label={`${cityItem.placeCount} places`}
+                  className="h-12 w-12 rounded-full border border-gray-300/70 bg-gray-200/60 text-sm font-bold text-gray-900 shadow-lg backdrop-blur-sm"
+                >
+                  {cityItem.placeCount}
+                </button>
+              </AdvancedMarker>
+            ))}
+
+          {mapMode === 'normal' && mapStage === 'pins' && (
+            <>
+              {neighborhoodClusters.map((cluster) => (
+                <AdvancedMarker
+                  key={`district-cluster-${cluster.city}-${cluster.district}`}
+                  position={{ lat: cluster.lat, lng: cluster.lng }}
+                  onClick={() => {
+                    setSelected(null);
+                    setHighlighted(null);
+                    setCameraTarget({
+                      lat: cluster.lat,
+                      lng: cluster.lng,
+                      zoom: Math.max(mapZoom + 1.4, DETAIL_STAGE_MIN_ZOOM + 0.2),
+                    });
+                    selectCity(cluster.city);
+                    setDistrict(cluster.district);
+                  }}
+                >
+                  <button
+                    aria-label={`${cluster.placeCount}${t('placeCount')}`}
+                    className="h-11 w-11 rounded-full border border-gray-300/70 bg-gray-200/60 text-sm font-bold text-gray-900 shadow-lg backdrop-blur-sm"
+                  >
+                    {cluster.placeCount}
+                  </button>
+                </AdvancedMarker>
+              ))}
+            </>
+          )}
+
+          {mapMode === 'normal' && mapStage === 'detail' && (
+            <>
+              {detailPlaces
+                .filter((place) => !latestFeedByPlace.has(place.id))
+                .map((place) => {
+                const positioned = detailPlacePositions.get(place.id) ?? {
+                  lat: place.lat,
+                  lng: place.lng,
+                };
+                return (
+                  <AdvancedMarker
+                    key={`place-lite-${place.id}`}
+                    position={{ lat: positioned.lat, lng: positioned.lng }}
+                    onClick={() => setSelected(place)}
+                  >
+                    <button className="rounded-xl border border-gray-200 bg-white/95 px-2.5 py-1.5 text-left shadow">
+                      <p className="max-w-[120px] truncate text-[11px] font-semibold text-gray-900">
+                        {place.name}
+                      </p>
+                      <p className="max-w-[120px] truncate text-[10px] text-gray-500">
+                        {tPost(`category.${place.category}`)}
+                      </p>
+                      {place.rating && (
+                        <p className="mt-0.5 text-[10px] text-gray-600">
+                          {tPost(`rating.${place.rating}`)}
+                        </p>
+                      )}
+                    </button>
+                  </AdvancedMarker>
+                );
+              })}
+
+              {detailPlaces
+                .filter((place) => latestFeedByPlace.has(place.id))
+                .map((place) => {
+                  const positioned = detailPlacePositions.get(place.id) ?? {
+                    lat: place.lat,
+                    lng: place.lng,
+                  };
+                  const post = latestFeedByPlace.get(place.id);
+                  if (!post) return null;
+                  return (
+                    <AdvancedMarker
+                      key={`feed-photo-${post.id}`}
+                      position={{ lat: positioned.lat + 0.00008, lng: positioned.lng + 0.00008 }}
+                      onClick={() => setSelected(place)}
+                    >
+                      <button className="relative h-36 w-28 overflow-hidden rounded-2xl bg-gray-100 text-left shadow-xl">
+                        <Image
+                          src={post.photoUrl}
+                          alt={post.placeName}
+                          fill
+                          sizes="112px"
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+                        <div className="absolute bottom-2 left-2 right-2 text-white">
+                          <div className="mb-1 flex items-center gap-1">
+                            {post.isLocalRecommendation && (
+                              <span className="rounded-full bg-purple-500/90 px-1.5 py-0.5 text-[9px] font-semibold">
+                                {tPost('hiddenSpot')}
+                              </span>
+                            )}
+                            <span className="rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] font-semibold">
+                              {tPost(`category.${post.category}`)}
+                            </span>
+                          </div>
+                          <p className="truncate text-[11px] font-semibold">{post.placeName}</p>
+                          {post.rating && (
+                            <p className="mt-0.5 text-[10px] text-white/90">
+                              {tPost(`rating.${post.rating}`)}
+                            </p>
+                          )}
+                        </div>
+                    </button>
+                  </AdvancedMarker>
+                  );
+                })}
+            </>
+          )}
+
+          {/* Build mode: show regular place pins */}
+          {mapMode === 'course-build' &&
             places.map((place) => {
-              const buildOrder =
-                mapMode === 'course-build'
-                  ? courseSelection.findIndex((p) => p.id === place.id)
-                  : -1;
+              const buildOrder = courseSelection.findIndex((p) => p.id === place.id);
               const isSelected = buildOrder >= 0;
               return (
                 <AdvancedMarker
                   key={place.id}
                   position={{ lat: place.lat, lng: place.lng }}
-                  onClick={() => {
-                    if (mapMode === 'course-build') {
-                      toggleCoursePlace(place);
-                    } else {
-                      setHighlighted(null);
-                      setSelected(place);
-                    }
-                  }}
+                  onClick={() => toggleCoursePlace(place)}
                 >
                   <PinMarker
                     color={CATEGORY_COLOR[place.category] || '#607D8B'}
-                    selected={
-                      selected?.id === place.id ||
-                      isSelected ||
-                      highlighted?.id === place.id
-                    }
+                    selected={isSelected || highlighted?.id === place.id}
                     order={isSelected ? buildOrder + 1 : undefined}
-                    photoUrl={
-                      mapMode === 'course-build' && isSelected
-                        ? null
-                        : place.photoUrl
-                    }
+                    photoUrl={null}
                     name={place.name}
                     categoryLabel={tPost(`category.${place.category}`)}
                     rating={place.rating}
@@ -863,6 +1470,7 @@ export default function MapClient({ userId }: Props) {
         mapMode={mapMode}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
         showSearchDropdown={showSearchDropdown}
         setShowSearchDropdown={setShowSearchDropdown}
         searchResults={searchResults}
@@ -872,23 +1480,63 @@ export default function MapClient({ userId }: Props) {
         onToggleFilters={() => setShowFilters((v) => !v)}
         mode={mode}
         setMode={setMode}
+        canUseSavedMode={canUseSavedMode}
+        showRecommendNeighborhoods={showRecommendNeighborhoods}
+        onToggleRecommendNeighborhoods={() =>
+          setShowRecommendNeighborhoods((prev) => !prev)
+        }
         onOpenSavedCourses={() => setShowSavedCourses(true)}
         onOpenCourseTypePicker={() => {
           setShowCourseTypePicker(true);
           setSelected(null);
         }}
-        cityScrollRef={cityScroll.ref}
-        onCityMouseDown={cityScroll.onMouseDown}
-        onCityMouseMove={cityScroll.onMouseMove}
-        onCityMouseUp={cityScroll.onMouseUp}
-        onCityMouseLeave={cityScroll.onMouseLeave}
-        city={city}
-        selectCity={selectCity}
-        cities={CITIES}
-        districtList={districtList}
-        district={district}
-        setDistrict={setDistrict}
       />
+
+      {mapMode === 'normal' &&
+        showRecommendNeighborhoods &&
+        recommendCityOptions.length > 0 && (
+        <div className="fixed top-[92px] left-1/2 z-[56] w-[min(92vw,360px)] -translate-x-1/2 pointer-events-auto">
+          <div className="rounded-2xl border border-gray-200 bg-white/95 p-2 shadow-lg backdrop-blur-sm">
+            <div className="mb-2 flex gap-1 overflow-x-auto scrollbar-hide">
+              {recommendCityOptions.map((item) => (
+                <button
+                  key={`recommend-city-${item.city}`}
+                  onClick={() => {
+                    setRecommendCity(item.city);
+                    selectCity(item.city);
+                    setDistrict(null);
+                  }}
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    activeRecommendCity === item.city
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {tCities.has(item.city) ? tCities(item.city) : item.city}
+                </button>
+              ))}
+            </div>
+            <div className="max-h-52 overflow-y-auto pr-0.5">
+              {recommendedDistricts.map((item) => (
+                <button
+                  key={item.value}
+                  onClick={() => {
+                    if (activeRecommendCity) selectCity(activeRecommendCity);
+                    setDistrict(item.value);
+                  }}
+                  className={`mt-1.5 w-full rounded-xl px-2 py-1.5 text-left transition-colors ${district === item.value ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-700'}`}
+                >
+                  <p className="truncate text-[11px] font-medium">{item.label}</p>
+                  <p className="text-[10px] opacity-75">
+                    {item.placeCount}
+                    {t('placeCount')}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Course builder bottom sheet */}
       {mapMode === 'course-build' && (
@@ -1077,7 +1725,7 @@ export default function MapClient({ userId }: Props) {
               <div className="w-8 h-1 bg-gray-200 rounded-full" />
             </div>
 
-            {/* Day ??*/}
+            {/* Day tabs */}
             <div className="flex gap-0 border-b border-gray-100 shrink-0 px-4">
               {courseData.days.map((day) => (
                 <button
@@ -1153,7 +1801,7 @@ export default function MapClient({ userId }: Props) {
                                     {p.tip && (
                                       <div className="flex items-start gap-1.5 bg-amber-50 rounded-lg px-2.5 py-1.5">
                                         <span className="text-amber-500 text-xs shrink-0">
-                                          💡
+                                          i
                                         </span>
                                         <p className="text-xs text-amber-800">
                                           {p.tip}
@@ -1452,7 +2100,7 @@ export default function MapClient({ userId }: Props) {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
-                    {t('recommend.pickFeature2')}
+                    {funSpotsLabel}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {t('recommend.pickFeature2Desc')}
@@ -1513,3 +2161,6 @@ export default function MapClient({ userId }: Props) {
     </div>
   );
 }
+
+
+

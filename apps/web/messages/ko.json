@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "저장",
-    "placesTab": "내 장소",
-    "postsTab": "내 포스팅",
+    "placesTab": "장소",
+    "postsTab": "포스팅",
     "followingTab": "팔로잉 장소",
     "noPlaces": "저장한 장소가 없어요",
     "noPosts": "저장한 포스팅이 없어요",

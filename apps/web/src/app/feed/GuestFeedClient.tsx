@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
@@ -46,10 +46,6 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
   const tUpload = useTranslations('upload')
   const [guestPosts, setGuestPosts] = useState<GuestPost[]>(posts)
   const [loadingPosts, setLoadingPosts] = useState(posts.length === 0)
-  const [showLoadMoreSpinner, setShowLoadMoreSpinner] = useState(false)
-  const [showLoginGateModal, setShowLoginGateModal] = useState(false)
-  const gateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const gateActiveRef = useRef(false)
 
   useEffect(() => {
     if (posts.length > 0) return
@@ -76,37 +72,6 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
       active = false
     }
   }, [posts.length, supabase])
-
-  useEffect(() => {
-    if (guestPosts.length < GUEST_PREVIEW_LIMIT) return
-
-    const onScroll = () => {
-      if (gateActiveRef.current) return
-      const scrollY = window.scrollY || window.pageYOffset
-      const viewportBottom = window.innerHeight + scrollY
-      const fullHeight = document.documentElement.scrollHeight
-      const nearBottom = viewportBottom >= fullHeight - 180
-      if (!nearBottom) return
-
-      gateActiveRef.current = true
-      setShowLoadMoreSpinner(true)
-      if (gateTimerRef.current) {
-        clearTimeout(gateTimerRef.current)
-      }
-      gateTimerRef.current = setTimeout(() => {
-        setShowLoadMoreSpinner(false)
-        setShowLoginGateModal(true)
-      }, 700)
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      if (gateTimerRef.current) {
-        clearTimeout(gateTimerRef.current)
-      }
-    }
-  }, [guestPosts.length])
 
   return (
     <div className="min-h-screen bg-white">
@@ -192,60 +157,9 @@ export default function GuestFeedClient({ posts }: { posts: GuestPost[] }) {
         )}
       </main>
 
-      {showLoadMoreSpinner && (
-        <div className="fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
-          <div className="rounded-full bg-gray-900/92 p-2.5">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-          </div>
-        </div>
-      )}
-
-      {showLoginGateModal && (
-        <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/40 px-4 pb-24 sm:items-center sm:pb-0">
-          <div className={`${FEED_FRAME_CLASS} w-full rounded-2xl bg-white p-4 shadow-lg`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">{tUpload('loginRequired')}</p>
-                <p className="mt-1 text-xs text-gray-500">{tFeed('guestLoginRequiredMessage')}</p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowLoginGateModal(false)
-                  setShowLoadMoreSpinner(false)
-                  gateActiveRef.current = false
-                }}
-                className="shrink-0 rounded-full p-1 text-gray-400"
-                aria-label="Close"
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <Link
-                href={loginHref('/feed')}
-                prefetch={false}
-                className="rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white"
-              >
-                Continue with Google
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white pb-1">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom)+4px)]">
-          <Link href={loginHref('/feed')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-900">
-            <svg width="20" height="20" fill="currentColor" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-          </Link>
-          <Link href={loginHref('/map')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-400">
+          <Link href={loginHref('/map')} prefetch={false} className="flex flex-col items-center gap-0.5 rounded-xl px-2.5 py-2 text-gray-900">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
               <circle cx="12" cy="9" r="2.5" />

@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "Guardado",
-    "placesTab": "Mis lugares",
-    "postsTab": "Mis posts",
+    "placesTab": "Lugares",
+    "postsTab": "Posts",
     "followingTab": "Lugares seguidos",
     "noPlaces": "No hay lugares guardados",
     "noPosts": "No hay publicaciones guardadas",

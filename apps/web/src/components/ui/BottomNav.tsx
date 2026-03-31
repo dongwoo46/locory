@@ -9,19 +9,16 @@ import { createClient } from '@/lib/supabase/client'
 export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) {
   const pathname = usePathname()
   const t = useTranslations('nav')
-  const [resolvedAvatar, setResolvedAvatar] = useState<string | null>(avatarUrl ?? null)
+  const [fetchedAvatar, setFetchedAvatar] = useState<string | null>(null)
+  const resolvedAvatar = avatarUrl ?? fetchedAvatar
 
-  // avatarUrl이 전달되지 않은 페이지(예: 지도)에서도 프로필 이미지 표시
   useEffect(() => {
-    if (avatarUrl !== undefined) {
-      setResolvedAvatar(avatarUrl ?? null)
-      return
-    }
+    if (avatarUrl !== undefined) return
     createClient().auth.getUser().then(async ({ data }) => {
       if (!data.user) return
       const { data: profile } = await createClient()
         .from('profiles').select('avatar_url').eq('id', data.user.id).single()
-      setResolvedAvatar(profile?.avatar_url ?? null)
+      setFetchedAvatar(profile?.avatar_url ?? null)
     })
   }, [avatarUrl])
 
@@ -29,18 +26,6 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
     pathname === href || pathname.startsWith(href + '/')
 
   const NAV_ITEMS = [
-    {
-      href: '/feed',
-      label: t('feed'),
-      icon: (active: boolean) => (
-        <svg width="20" height="20" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={active ? 2.2 : 1.7} viewBox="0 0 24 24">
-          <rect x="3" y="3" width="7" height="7" rx="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" />
-          <rect x="14" y="14" width="7" height="7" rx="1" />
-        </svg>
-      ),
-    },
     {
       href: '/map',
       label: t('map'),
@@ -108,3 +93,4 @@ export default function BottomNav({ avatarUrl }: { avatarUrl?: string | null }) 
     </nav>
   )
 }
+

@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "收藏",
-    "placesTab": "我的地點",
-    "postsTab": "我的貼文",
+    "placesTab": "地點",
+    "postsTab": "貼文",
     "followingTab": "追蹤中的地點",
     "noPlaces": "沒有收藏的地點",
     "noPosts": "沒有收藏的貼文",

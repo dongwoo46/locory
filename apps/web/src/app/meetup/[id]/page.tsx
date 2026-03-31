@@ -6,7 +6,7 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ i
   const { id } = await params
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/login')
+  if (!session || session.user.is_anonymous) redirect('/login')
 
   const [meetupRes, profileRes, joinRes] = await Promise.all([
     supabase
@@ -37,10 +37,10 @@ export default async function MeetupDetailPage({ params }: { params: Promise<{ i
 
   return (
     <MeetupDetailClient
-      meetup={meetupRes.data as any}
+      meetup={meetupRes.data}
       userId={session.user.id}
-      profile={profileRes.data as any}
-      myJoin={joinRes.data as any}
+      profile={profileRes.data}
+      myJoin={joinRes.data}
     />
   )
 }

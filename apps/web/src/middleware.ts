@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PROTECTED_PATHS = ['/settings', '/upload', '/saved', '/admin', '/map']
+const PROTECTED_PATHS = ['/settings', '/saved', '/admin']
 
 function matchesPrefix(pathname: string, prefixes: string[]) {
   return prefixes.some((prefix) => pathname.startsWith(prefix))
@@ -39,8 +39,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/map/:path*',
-    '/upload/:path*',
     '/settings/:path*',
     '/saved/:path*',
     '/admin/:path*',

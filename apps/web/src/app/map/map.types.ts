@@ -102,7 +102,10 @@ export interface MapQueryPlace {
 }
 
 export interface MapQueryPost {
+  id: string;
   place_id: string;
+  created_at?: string;
+  is_local_recommendation?: boolean | null;
   photos?: string[];
   photo_variants?: {
     thumbnailUrl?: string;

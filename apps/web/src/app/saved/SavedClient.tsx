@@ -40,6 +40,10 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   const tCities = useTranslations('cities')
   const tDistricts = useTranslations('districts')
   const tFeed = useTranslations('feed')
+  function getDistrictLabelSafe(cityCode: string, districtCode: string): string {
+    const key = `${cityCode}.${districtCode}` as Parameters<typeof tDistricts>[0]
+    return tDistricts.has(key) ? tDistricts(key) : districtCode
+  }
 
   const { data: savedData } = useQuery({
     queryKey: ['saved-data', userId],
@@ -114,7 +118,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
       const cityCode = selectedCity as City
       return [...getMainDistricts(cityCode), ...getExtraDistricts(cityCode)].map(d => ({
         value: d.value,
-        label: tDistricts(`${cityCode}.${d.value}`),
+        label: getDistrictLabelSafe(cityCode, d.value),
       }))
     }
 
@@ -130,7 +134,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
       dynamic.push({ value: neighborhoodLabel, label: neighborhoodLabel })
     }
     return dynamic
-  }, [selectedCity, savedPlaces, followingPlaces, postPlaces, tDistricts])
+  }, [selectedCity, savedPlaces, followingPlaces, postPlaces])
 
   function selectCity(c: string | null) { setSelectedCity(c); setSelectedDistrict(null) }
 
@@ -169,7 +173,7 @@ export default function SavedClient({ userId, followingUserIds, avatarUrl = null
   function getNeighborhoodLabel(place: any): string {
     if (place?.neighborhood_global) return place.neighborhood_global
     if (place?.district && place?.district !== 'other' && place?.city && CITIES.some(c => c.value === place.city)) {
-      return tDistricts(`${place.city}.${place.district}`)
+      return getDistrictLabelSafe(place.city, place.district)
     }
     return place?.district || ''
   }

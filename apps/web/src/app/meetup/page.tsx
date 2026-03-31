@@ -5,7 +5,7 @@ import MeetupExploreClient from './MeetupExploreClient'
 export default async function MeetupExplorePage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/login')
+  if (!session || session.user.is_anonymous) redirect('/login')
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -13,5 +13,5 @@ export default async function MeetupExplorePage() {
     .eq('id', session.user.id)
     .single()
 
-  return <MeetupExploreClient userId={session.user.id} profile={profile as any} isAnonymous={session.user.is_anonymous ?? false} />
+  return <MeetupExploreClient userId={session.user.id} profile={profile} isAnonymous={session.user.is_anonymous ?? false} />
 }

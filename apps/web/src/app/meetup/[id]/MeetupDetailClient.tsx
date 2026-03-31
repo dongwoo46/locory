@@ -74,6 +74,8 @@ export default function MeetupDetailClient({ meetup: initialMeetup, userId, prof
   const router = useRouter()
   const supabase = createClient()
   const t = useTranslations('meetup')
+  const placeLabel = t.has('detail.placeLabel') ? t('detail.placeLabel') : 'Place'
+  const dateLabel = t.has('detail.dateLabel') ? t('detail.dateLabel') : 'Date & Time'
 
   const [meetup, setMeetup] = useState(initialMeetup)
   const [myJoin, setMyJoin] = useState(initialMyJoin)
@@ -195,6 +197,17 @@ export default function MeetupDetailClient({ meetup: initialMeetup, userId, prof
           </div>
 
           {/* 장소 카드 */}
+          <div className="grid grid-cols-2 gap-2 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-500">{placeLabel}</p>
+              <p className="mt-1 text-sm font-bold text-gray-900 truncate">{meetup.places?.name ?? '-'}</p>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-500">{dateLabel}</p>
+              <p className="mt-1 text-sm font-bold text-gray-900">{formatScheduled(meetup.scheduled_at)}</p>
+            </div>
+          </div>
+
           <button
             onClick={() => meetup.places?.id && router.push(`/place/${meetup.places.id}`)}
             className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-left w-full"

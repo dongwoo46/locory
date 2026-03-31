@@ -8,6 +8,7 @@ export interface SelectedPlace {
   address: string
   city: City
   countryCode?: string | null
+  adminAreaLevel2?: string | null
   category: Category
   place_type: PlaceType
 }

@@ -181,12 +181,40 @@ export function CityNavigator({ city }: { city: string | null }) {
   return null;
 }
 
-export function PlacePanner({ place }: { place: Place | null }) {
+export function PlacePanner({
+  place,
+  minZoom,
+}: {
+  place: Place | null;
+  minZoom?: number;
+}) {
   const map = useMap();
   useEffect(() => {
     if (!map || !place) return;
     map.panTo({ lat: place.lat, lng: place.lng });
-  }, [map, place]);
+    if (typeof minZoom === 'number') {
+      const currentZoom = map.getZoom() ?? 0;
+      if (currentZoom < minZoom) {
+        map.setZoom(minZoom);
+      }
+    }
+  }, [map, place, minZoom]);
+  return null;
+}
+
+export function CameraPanner({
+  target,
+}: {
+  target: { lat: number; lng: number; zoom?: number } | null;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !target) return;
+    map.panTo({ lat: target.lat, lng: target.lng });
+    if (typeof target.zoom === 'number') {
+      map.setZoom(target.zoom);
+    }
+  }, [map, target]);
   return null;
 }
 

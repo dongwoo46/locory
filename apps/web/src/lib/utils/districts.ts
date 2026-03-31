@@ -533,3 +533,42 @@ export function inferDistrictFromAddress(address: string, city: City): string | 
 
   return null
 }
+
+function toKoreanAdministrativeLabel(value: string | null | undefined): string | null {
+  if (!value) return null
+  const raw = value.trim()
+  if (!raw) return null
+  if (/[가-힣]+(시|군|구)$/.test(raw)) return raw
+  const koMatch = raw.match(/([가-힣]+(?:시|군|구))/)
+  if (koMatch?.[1]) return koMatch[1]
+  return null
+}
+
+export function inferGuFromAddress(address: string): string | null {
+  if (!address) return null
+  const koMatch = address.match(/([가-힣]+(?:시|군|구))/)
+  if (koMatch?.[1]) return koMatch[1]
+  return null
+}
+
+export function normalizeDistrictForStorage(
+  city: City | string | null | undefined,
+  countryCode: string | null | undefined,
+  district: string | null | undefined,
+  address: string | null | undefined,
+): string | null {
+  const cc = (countryCode || 'KR').toUpperCase()
+  const rawDistrict = district?.trim() || null
+  const rawAddress = address?.trim() || null
+
+  if (cc !== 'KR') {
+    return normalizeDistrictForCity(city, rawDistrict) ?? rawDistrict
+  }
+
+  const fromAddress = rawAddress ? inferGuFromAddress(rawAddress) : null
+  const normalized = normalizeDistrictForCity(city, rawDistrict)
+  const fromNormalized = toKoreanAdministrativeLabel(normalized)
+  const fromRaw = toKoreanAdministrativeLabel(rawDistrict)
+
+  return fromAddress || fromRaw || fromNormalized || null
+}

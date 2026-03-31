@@ -365,8 +365,8 @@
   },
   "saved": {
     "title": "Сохранённое",
-    "placesTab": "Мои места",
-    "postsTab": "Мои посты",
+    "placesTab": "Места",
+    "postsTab": "Посты",
     "followingTab": "Места подписок",
     "noPlaces": "Нет сохранённых мест",
     "noPosts": "Нет сохранённых постов",

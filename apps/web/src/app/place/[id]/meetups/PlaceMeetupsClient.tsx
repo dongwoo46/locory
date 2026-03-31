@@ -528,6 +528,7 @@ function CreateModal({
   }
 
   const [scheduledAt, setScheduledAt] = useState(defaultScheduledAt())
+  const [title, setTitle] = useState('')
   const [hostCount, setHostCount] = useState(1)
   const [hostGender, setHostGender] = useState<string>(
     myGender === 'female' ? 'female' : myGender === 'male' ? 'male' : 'mixed'
@@ -543,15 +544,16 @@ function CreateModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const canSubmit = scheduledAt && hostAgeGroups.length > 0 && activities.length > 0
+  const canSubmit = title.trim().length > 0 && scheduledAt && hostAgeGroups.length > 0 && activities.length > 0
 
   async function handleSubmit() {
     if (!canSubmit) return
-    if (containsProfanity(description)) { setError(tCommon('profanityError')); return }
+    if (containsProfanity(title) || containsProfanity(description)) { setError(tCommon('profanityError')); return }
     setLoading(true)
     const { error: err } = await supabase.from('place_meetups').insert({
       place_id: placeId,
       organizer_id: userId,
+      title: title.trim(),
       scheduled_at: new Date(scheduledAt).toISOString(),
       host_count: hostCount,
       host_gender: hostGender,
@@ -596,6 +598,16 @@ function CreateModal({
         </div>
 
         <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-5 pb-8">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.title')}</p>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value.slice(0, 60))}
+              placeholder={t('form.titlePlaceholder')}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white"
+            />
+            <p className="text-right text-xs text-gray-300 mt-0.5">{title.length}/60</p>
+          </div>
           {/* 날짜/시간 */}
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-2">{t('form.dateTime')}</p>
