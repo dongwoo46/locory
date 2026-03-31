@@ -10,6 +10,17 @@
     "back": "Back",
     "profanityError": "Inappropriate content detected"
   },
+  "intro": {
+    "title": "Welcome to Locory",
+    "subtitle": "A photo-first place guide built from real visits and wishlists.",
+    "point1": "Explore places by real photos and short notes",
+    "point2": "Save spots you want to visit and build your list",
+    "point3": "Use Feed and Map to discover nearby favorites",
+    "cta": "Start exploring",
+    "dontShowToday": "Don't show for 7 days",
+    "close": "Close",
+    "browserNote": "For the best experience, please use Chrome or Safari."
+  },
   "feed": {
     "noPostsTitle": "No posts yet",
     "noPostsSubtitle": "Be the first to share a place",

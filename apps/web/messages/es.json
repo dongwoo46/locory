@@ -10,6 +10,17 @@
     "back": "Volver",
     "profanityError": "Contenido inapropiado detectado"
   },
+  "intro": {
+    "title": "Bienvenido a Locory",
+    "subtitle": "Gu?a de lugares centrada en fotos basada en visitas reales y listas de deseos.",
+    "point1": "Explora lugares con fotos reales y notas breves",
+    "point2": "Guarda sitios que quieres visitar y crea tu lista",
+    "point3": "Descubre favoritos cercanos en el Feed y el Mapa",
+    "cta": "Empezar",
+    "dontShowToday": "No mostrar durante 7 d?as",
+    "close": "Cerrar",
+    "browserNote": "Para una mejor experiencia, usa Chrome o Safari."
+  },
   "feed": {
     "noPostsTitle": "Aún no hay publicaciones",
     "noPostsSubtitle": "Sé el primero en compartir un lugar",

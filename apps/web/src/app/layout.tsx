@@ -4,6 +4,7 @@ import { getMessages, getLocale } from 'next-intl/server';
 import { Analytics } from '@vercel/analytics/next';
 import QueryProvider from '@/components/providers/QueryProvider';
 import ThirdPartyScripts from '@/components/providers/ThirdPartyScripts';
+import IntroModal from '@/components/ui/IntroModal';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default async function RootLayout({
         <QueryProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             {children}
+            <IntroModal />
             <Analytics />
             <ThirdPartyScripts />
           </NextIntlClientProvider>
