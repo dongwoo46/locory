@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { incrementGeminiUsage, requireGeminiAccess } from '@/lib/utils/geminiUsage'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -12,10 +13,14 @@ function slotToTime(slot: number): string {
 }
 
 export async function POST(request: Request) {
+  const access = await requireGeminiAccess()
+  if (!access.ok) return access.response
+  const { user, supabase: authSupabase, today, isAdmin, remaining } = access
+  const authUserId = user.id
+
   const {
     places, startDate, endDate, transport, vibe, companion,
-    timeRange, startLocation, endLocation, extraConditions,
-    ragEnabled, ragMaxPlaces, userId,
+    timeRange, startLocation, endLocation, extraConditions, ragEnabled, ragMaxPlaces,
   } = await request.json()
 
   // 날짜 범위에서 일수 계산
@@ -38,7 +43,7 @@ export async function POST(request: Request) {
 
   // RAG: 동선에 추가할 장소 조회
   let ragPlacesDesc = ''
-  if (ragEnabled && userId) {
+  if (ragEnabled && authUserId) {
     try {
       const supabase = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,10 +55,10 @@ export async function POST(request: Request) {
       const selectedIds = places.map((p: any) => p.id)
 
       // 유저 프로필 조회
-      const { data: profile } = await supabase
+      await supabase
         .from('profiles')
         .select('nationality, gender, birth_date')
-        .eq('id', userId)
+        .eq('id', authUserId)
         .single()
 
       // 같은 district의 장소 조회 (이미 선택된 장소 제외)
@@ -145,7 +150,14 @@ JSON만 반환 (마크다운 없이):
     const cleaned = text.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '')
     const parsed = JSON.parse(cleaned)
 
-    return NextResponse.json(parsed)
+    if (!isAdmin) {
+      await incrementGeminiUsage(authSupabase, authUserId, today)
+    }
+
+    return NextResponse.json({
+      ...parsed,
+      remaining: remaining === null ? null : remaining - 1,
+    })
   } catch (e) {
     console.error('Gemini error:', e)
     return NextResponse.json({ error: '코스 생성에 실패했어요' }, { status: 500 })

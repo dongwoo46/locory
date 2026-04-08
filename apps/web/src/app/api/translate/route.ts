@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (user.is_anonymous) return NextResponse.json({ error: 'signup_required' }, { status: 403 })
 
   const { text, target } = await req.json()
   if (!text || !target) {

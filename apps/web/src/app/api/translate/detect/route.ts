@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
+import { incrementGeminiUsage, requireGeminiAccess } from '@/lib/utils/geminiUsage'
 
 function normalizeLanguage(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase().replace('_', '-')
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
 
   let detectedLanguage: string | null = null
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY
+  let geminiRemaining: number | null = null
 
   if (apiKey) {
     const res = await fetch(`https://translation.googleapis.com/language/translate/v2/detect?key=${apiKey}`, {
@@ -63,14 +65,24 @@ export async function POST(req: Request) {
     const json = await res.json()
     detectedLanguage = json?.data?.detections?.[0]?.[0]?.language ?? null
   } else {
+    const access = await requireGeminiAccess()
+    if (!access.ok) return access.response
+
+    const { user, supabase, today, isAdmin, remaining } = access
     detectedLanguage = await detectLanguageWithGemini(text)
     if (!detectedLanguage) {
       return NextResponse.json({ error: 'Translate API not configured' }, { status: 500 })
+    }
+
+    geminiRemaining = remaining === null ? null : remaining - 1
+    if (!isAdmin) {
+      await incrementGeminiUsage(supabase, user.id, today)
     }
   }
 
   return NextResponse.json({
     detectedLanguage,
     sameLanguage: isSameLanguage(detectedLanguage, target),
+    remaining: geminiRemaining,
   })
 }

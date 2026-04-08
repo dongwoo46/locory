@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { incrementGeminiUsage, requireGeminiAccess } from '@/lib/utils/geminiUsage'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -12,7 +13,12 @@ function slotToTime(slot: number): string {
 }
 
 export async function POST(request: Request) {
-  const { districts, cities, startDate, endDate, timeRange, styles, companion, extraConditions, userId } = await request.json()
+  const access = await requireGeminiAccess()
+  if (!access.ok) return access.response
+  const { user, supabase: authSupabase, today, isAdmin, remaining } = access
+  const authUserId = user.id
+
+  const { districts, cities, startDate, endDate, timeRange, styles, companion, extraConditions } = await request.json()
 
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,11 +53,11 @@ export async function POST(request: Request) {
 
   // 유저 프로필 조회 (개인화용)
   let userContext = ''
-  if (userId) {
+  if (authUserId) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('nationality, gender, birth_date, trust_score')
-      .eq('id', userId)
+      .eq('id', authUserId)
       .single()
 
     if (profile) {
@@ -68,7 +74,7 @@ export async function POST(request: Request) {
     const { data: likedPosts } = await supabase
       .from('post_likes')
       .select('posts!post_id(places!place_id(category))')
-      .eq('user_id', userId)
+      .eq('user_id', authUserId)
       .limit(30)
 
     const categoryCounts: Record<string, number> = {}
@@ -162,7 +168,14 @@ JSON만 반환 (마크다운 없이):
     const text = result.response.text().trim()
     const cleaned = text.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '')
     const parsed = JSON.parse(cleaned)
-    return NextResponse.json({ ...parsed, placeCount })
+    if (!isAdmin) {
+      await incrementGeminiUsage(authSupabase, authUserId, today)
+    }
+    return NextResponse.json({
+      ...parsed,
+      placeCount,
+      remaining: remaining === null ? null : remaining - 1,
+    })
   } catch (e) {
     console.error('Gemini recommend error:', e)
     return NextResponse.json({ error: '코스 추천에 실패했어요' }, { status: 500 })
